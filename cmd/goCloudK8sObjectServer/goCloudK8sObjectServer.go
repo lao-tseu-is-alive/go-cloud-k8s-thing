@@ -86,7 +86,7 @@ func (s ServiceGoObject) login(ctx echo.Context) error {
 }
 
 func (s ServiceGoObject) restricted(ctx echo.Context) error {
-	s.Log.Println("trace: entering CreateUser()")
+	s.Log.Println("trace: entering restricted zone()")
 	// get the current user from JWT TOKEN
 	u := ctx.Get("jwtdata").(*jwt.Token)
 	claims := goserver.JwtCustomClaims{}
