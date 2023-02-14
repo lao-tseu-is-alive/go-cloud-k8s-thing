@@ -142,7 +142,7 @@ func main() {
 	// Login route
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
-	// now with restricted group reference you can here the routes defined in OpenApi users.yaml are registered
+	// now with restricted group reference you can here the routes defined in OpenApi objects.yaml are registered
 	// yourModelEntityFromOpenApi.RegisterHandlers(r, &yourModelService)
 	r.GET("/secret", yourService.restricted)
 	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
