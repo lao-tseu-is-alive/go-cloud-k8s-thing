@@ -32,7 +32,7 @@ USER 1221:1221
 WORKDIR /goapp
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/goCloudK8sObjectGroupServer .
+COPY --from=builder /app/goCloudK8sObjectServer .
 
 ENV PORT="${PORT}"
 ENV DB_DRIVER="${DB_DRIVER}"

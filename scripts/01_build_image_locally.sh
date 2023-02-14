@@ -54,7 +54,7 @@ then
         APP_ID=$(echo "${JSON_APP}" | jq '.|.ID')
         echo "Info about your image :"
         echo "${JSON_APP}" | jq '.'
-        echo "to try your container image locally :  ${DOCKER_BIN} run --rm -p 8888:8888 --env-file .env  --name ${APP_NAME_SNAKE} ${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE}"
+        echo "to try your container image locally :  ${DOCKER_BIN} run --rm -p 9090:9090 --env-file .env  --name ${APP_NAME_SNAKE} ${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE}"
         echo "to try to open a shell inside your container :  ${DOCKER_BIN} run -it ${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE} /bin/sh"
         echo "to deploy your container image to docker hub :  ${DOCKER_BIN} push ${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE}"
         echo "to latter remove the images :  ${DOCKER_BIN} rmi ${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE}"
