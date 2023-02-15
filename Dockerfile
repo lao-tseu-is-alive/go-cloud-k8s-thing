@@ -42,8 +42,6 @@ ENV DB_NAME="${DB_NAME}"
 ENV DB_USER="${DB_USER}"
 ENV DB_PASSWORD="${DB_PASSWORD}"
 ENV DB_SSL_MODE="${DB_SSL_MODE}"
-ENV ADMIN_USER="${ADMIN_USER}"
-ENV ADMIN_PASSWORD="${ADMIN_PASSWORD}"
 ENV JWT_SECRET="${JWT_SECRET}"
 ENV JWT_DURATION_MINUTES="${JWT_DURATION_MINUTES}"
 # Expose port  to the outside world, goCloudK8sObject will use the env PORT as listening port or 8080 as default
