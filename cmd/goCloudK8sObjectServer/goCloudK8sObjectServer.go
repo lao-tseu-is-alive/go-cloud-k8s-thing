@@ -35,7 +35,7 @@ var content embed.FS
 type ServiceGoObject struct {
 	Log *log.Logger
 	//Store       Storage
-	dbConn      *database.PgxDB
+	dbConn      database.DB
 	JwtSecret   []byte
 	JwtDuration int
 }
@@ -119,7 +119,7 @@ func main() {
 	if err != nil {
 		l.Fatalf("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
 	}
-	dbConn, err := database.GetPgxConn(dbDsn, runtime.NumCPU(), l)
+	dbConn, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
 		l.Fatalf("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
 	}
@@ -137,7 +137,7 @@ func main() {
 		l.Fatalf("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
 	}
 	l.Printf("INFO: 'Will start HTTP server listening on port %s'", listenAddr)
-	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content)
+	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, "go-api")
 	e := server.GetEcho()
 	// Login route
 	e.POST("/login", yourService.login)
