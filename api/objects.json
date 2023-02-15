@@ -22,9 +22,9 @@
   "paths": {
     "/objects": {
       "get": {
-        "summary": "ObjectList returns a list of objects",
+        "summary": "List returns a list of objects",
         "description": "Returns the objects in an array",
-        "operationId": "ObjectList",
+        "operationId": "List",
         "parameters": [
           {
             "name": "limit",
@@ -74,9 +74,9 @@
         ]
       },
       "post": {
-        "summary": "ObjectCreate will create a new object",
+        "summary": "Create will create a new object",
         "description": "Creates a new object",
-        "operationId": "ObjectCreate",
+        "operationId": "Create",
         "requestBody": {
           "description": "Object to add",
           "content": {
@@ -120,11 +120,77 @@
         ]
       }
     },
+    "/objectsByType/{typeId}": {
+      "get": {
+        "summary": "ListByType returns a list of objects",
+        "description": "Returns the objects in an array",
+        "operationId": "ListByType",
+        "parameters": [
+          {
+            "name": "typeId",
+            "in": "path",
+            "description": "typeId of the objects needed",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "maximum number of results to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of objects response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObjectList"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/objects/{objectId}": {
       "get": {
-        "summary": "ObjectGet will retrieve in backend all information about a specific objectId",
+        "summary": "Get will retrieve in backend all information about a specific objectId",
         "description": "Retrieve a specific object",
-        "operationId": "ObjectGet",
+        "operationId": "Get",
         "parameters": [
           {
             "name": "objectId",
@@ -174,9 +240,9 @@
         ]
       },
       "put": {
-        "summary": "ObjectUpdate allows to modify information about a specific objectId",
+        "summary": "Update allows to modify information about a specific objectId",
         "description": "Updates the status of a object",
-        "operationId": "ObjectUpdate",
+        "operationId": "Update",
         "parameters": [
           {
             "name": "objectId",
@@ -236,9 +302,9 @@
         ]
       },
       "delete": {
-        "summary": "ObjectDelete allows to delete a specific objectId",
+        "summary": "Delete allows to delete a specific objectId",
         "description": "delete a object",
-        "operationId": "ObjectDelete",
+        "operationId": "Delete",
         "parameters": [
           {
             "name": "objectId",
@@ -300,8 +366,8 @@
             "format": "int32"
           },
           "type_object_id": {
-              "type": "integer",
-              "format": "int32"
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "minLength": 2,

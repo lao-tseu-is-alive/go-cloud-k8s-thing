@@ -34,7 +34,7 @@ var content embed.FS
 
 var dbConn database.DB
 
-type ServiceGoObject struct {
+type ServiceExample struct {
 	Log *log.Logger
 	//Store       Storage
 	dbConn      database.DB
@@ -45,7 +45,7 @@ type ServiceGoObject struct {
 // login is just a trivial stupid example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
-func (s ServiceGoObject) login(ctx echo.Context) error {
+func (s ServiceExample) login(ctx echo.Context) error {
 
 	username := ctx.FormValue("login")
 	fakePassword := ctx.FormValue("pass")
@@ -87,7 +87,7 @@ func (s ServiceGoObject) login(ctx echo.Context) error {
 	})
 }
 
-func (s ServiceGoObject) restricted(ctx echo.Context) error {
+func (s ServiceExample) restricted(ctx echo.Context) error {
 	s.Log.Println("trace: entering restricted zone()")
 	// get the current user from JWT TOKEN
 	u := ctx.Get("jwtdata").(*jwt.Token)
@@ -154,7 +154,7 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	yourService := ServiceGoObject{
+	yourService := ServiceExample{
 		Log:         l,
 		dbConn:      dbConn,
 		JwtSecret:   []byte(secret),
@@ -176,6 +176,9 @@ func main() {
 	// now with restricted group reference you can here the routes defined in OpenApi objects.yaml are registered
 	// yourModelEntityFromOpenApi.RegisterHandlers(r, &yourModelService)
 	r.GET("/secret", yourService.restricted)
+
+	//objects.RegisterHandlers(r, &)
+
 	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
 	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s/api/secret |jq\n", listenAddr)
 	l.Printf("INFO: from another terminal just try :\n %s", loginExample)
