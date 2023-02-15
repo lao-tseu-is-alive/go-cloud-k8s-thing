@@ -32,6 +32,8 @@ const (
 //go:embed goCloudK8sObjectFront/dist/*
 var content embed.FS
 
+var dbConn database.DB
+
 type ServiceGoObject struct {
 	Log *log.Logger
 	//Store       Storage
@@ -102,6 +104,33 @@ func (s ServiceGoObject) restricted(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, claims)
 }
 
+func isDBAlive() bool {
+	dbVer, err := dbConn.GetVersion()
+	if err != nil {
+		return false
+	}
+	if len(dbVer) < 2 {
+		return false
+	}
+	return true
+}
+
+func checkReady(info string) bool {
+	// we decide what makes us ready, is a valid  connection to the database
+	if !isDBAlive() {
+		return false
+	}
+	return true
+}
+
+func checkHealthy(info string) bool {
+	// you decide what makes you ready, may be it is the connection to the database
+	//if !isDBAlive() {
+	//	return false
+	//}
+	return true
+}
+
 func main() {
 	l := log.New(os.Stdout, fmt.Sprintf("%s ", version.APP), log.Ldate|log.Ltime|log.Lshortfile)
 	l.Printf("INFO: 'Starting %s v:%s  rev:%s  build: %s'", version.APP, version.VERSION, version.REVISION, version.BuildStamp)
@@ -119,7 +148,7 @@ func main() {
 	if err != nil {
 		l.Fatalf("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
 	}
-	dbConn, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
+	dbConn, err = database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
 		l.Fatalf("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
 	}
@@ -139,6 +168,8 @@ func main() {
 	l.Printf("INFO: 'Will start HTTP server listening on port %s'", listenAddr)
 	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, "go-api")
 	e := server.GetEcho()
+	e.GET("/readiness", server.GetReadinessHandler(checkReady, "Connection to DB"))
+	e.GET("/health", server.GetHealthHandler(checkHealthy, "Connection to DB"))
 	// Login route
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
