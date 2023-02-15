@@ -9,6 +9,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goserver"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-object/pkg/objects"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-object/pkg/version"
 	"log"
 	"net/http"
@@ -23,6 +24,7 @@ const (
 	defaultDBIp           = "127.0.0.1"
 	defaultDBSslMode      = "prefer"
 	defaultWebRootDir     = "goCloudK8sObjectFront/dist/"
+	defaultSecuredApi     = "/goapi/v1"
 	defaultUsername       = "bill"
 	defaultFakeStupidPass = "board"
 )
@@ -166,21 +168,30 @@ func main() {
 		l.Fatalf("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
 	}
 	l.Printf("INFO: 'Will start HTTP server listening on port %s'", listenAddr)
-	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, "go-api")
+	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
 	e.GET("/readiness", server.GetReadinessHandler(checkReady, "Connection to DB"))
 	e.GET("/health", server.GetHealthHandler(checkHealthy, "Connection to DB"))
 	// Login route
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
-	// now with restricted group reference you can here the routes defined in OpenApi objects.yaml are registered
-	// yourModelEntityFromOpenApi.RegisterHandlers(r, &yourModelService)
 	r.GET("/secret", yourService.restricted)
 
-	//objects.RegisterHandlers(r, &)
+	objStore, err := objects.GetStorageInstance("pgx", dbConn, l)
+	if err != nil {
+		l.Fatalf("💥💥 ERROR: 'calling objects.GetStorageInstance got error: %v'\n", err)
+	}
+	// now with restricted group reference you can register your secured handlers defined in OpenApi objects.yaml
+	objService := objects.Service{
+		Log:         l,
+		Store:       objStore,
+		JwtSecret:   []byte(secret),
+		JwtDuration: tokenDuration,
+	}
+	objects.RegisterHandlers(r, &objService)
 
 	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
-	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s/api/secret |jq\n", listenAddr)
+	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s%s/secret |jq\n", listenAddr, defaultSecuredApi)
 	l.Printf("INFO: from another terminal just try :\n %s", loginExample)
 	l.Printf("INFO: then type export TOKEN=your_token_above_goes_here   \n %s", getSecretExample)
 

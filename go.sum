@@ -92,10 +92,10 @@ github.com/labstack/echo/v4 v4.10.0 h1:5CiyngihEO4HXsz3vVsJn7f8xAlWwRr3aY6Ih280Z
 github.com/labstack/echo/v4 v4.10.0/go.mod h1:S/T/5fy/GigaXnHTkh0ZGe4LpkkQysvRjFMSUTkDRNQ=
 github.com/labstack/gommon v0.4.0 h1:y7cvthEAEbU0yHOf4axH8ZG2NH8knB9iNSoTO8dyIk8=
 github.com/labstack/gommon v0.4.0/go.mod h1:uW6kP17uPlLJsD3ijUYn3/M5bAxtlZhMI6m3MFxTMTM=
-github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.0-20230213165657-9042e53e1538 h1:73tynLkJWm+gaQ46+XxNWWpHKp+K3GRF5+S/pJgZqlQ=
-github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.0-20230213165657-9042e53e1538/go.mod h1:aHmfUgxfIy3dhhoz7+eKbTHcEdtmQqmCkW1mHI6Eqrc=
-github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.0-20230215130957-6f7be98cbdc3 h1:/9ITxw9P5jxH4X1b+x2C/PDg8wGNY4Qn0ySYbRDbkKE=
-github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.0-20230215130957-6f7be98cbdc3/go.mod h1:aHmfUgxfIy3dhhoz7+eKbTHcEdtmQqmCkW1mHI6Eqrc=
+github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.2 h1:9Pww4xsbEF/3a16SdhBfuTcoMQAvGfi2Uiw1aY30T4k=
+github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.2/go.mod h1:aHmfUgxfIy3dhhoz7+eKbTHcEdtmQqmCkW1mHI6Eqrc=
+github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.3 h1:xIyNLsvy1hLqcrIFVxDsLE0xGTXMky1KrZPoIHU9PXw=
+github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.0.3/go.mod h1:aHmfUgxfIy3dhhoz7+eKbTHcEdtmQqmCkW1mHI6Eqrc=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.1.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
