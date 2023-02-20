@@ -19,14 +19,20 @@ import (
 )
 
 const (
-	defaultPort           = 9090
-	defaultDBPort         = 5432
-	defaultDBIp           = "127.0.0.1"
-	defaultDBSslMode      = "prefer"
-	defaultWebRootDir     = "goCloudK8sObjectFront/dist/"
-	defaultSecuredApi     = "/goapi/v1"
-	defaultUsername       = "bill"
-	defaultFakeStupidPass = "board"
+	defaultPort            = 9090
+	defaultDBPort          = 5432
+	defaultDBIp            = "127.0.0.1"
+	defaultDBSslMode       = "prefer"
+	defaultWebRootDir      = "goCloudK8sObjectFront/dist/"
+	defaultSecuredApi      = "/goapi/v1"
+	defaultUsername        = "bill"
+	defaultFakeStupidPass  = "board"
+	charsetUTF8            = "charset=UTF-8"
+	MIMEAppJSON            = "application/json"
+	MIMEHtml               = "text/html"
+	MIMEAppJSONCharsetUTF8 = MIMEAppJSON + "; " + charsetUTF8
+	MIMEHtmlCharsetUTF8    = MIMEHtml + "; " + charsetUTF8
+	HeaderContentType      = "Content-Type"
 )
 
 // content holds our static web server content.
@@ -48,7 +54,7 @@ type ServiceExample struct {
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
 func (s ServiceExample) login(ctx echo.Context) error {
-
+	s.Log.Printf("trace: entering %v login()", ctx.Request().Method)
 	username := ctx.FormValue("login")
 	fakePassword := ctx.FormValue("pass")
 
@@ -117,7 +123,7 @@ func isDBAlive() bool {
 	return true
 }
 
-func checkReady(info string) bool {
+func checkReady(string) bool {
 	// we decide what makes us ready, is a valid  connection to the database
 	if !isDBAlive() {
 		return false
@@ -125,7 +131,7 @@ func checkReady(info string) bool {
 	return true
 }
 
-func checkHealthy(info string) bool {
+func checkHealthy(string) bool {
 	// you decide what makes you ready, may be it is the connection to the database
 	//if !isDBAlive() {
 	//	return false
