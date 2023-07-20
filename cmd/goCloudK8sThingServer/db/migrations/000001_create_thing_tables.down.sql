@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS thing;
+DROP TABLE IF EXISTS type_thing;
