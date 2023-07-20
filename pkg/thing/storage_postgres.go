@@ -2,12 +2,12 @@ package thing
 
 import (
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 type PGX struct {
 	con *pgxpool.Pool
-	log *log.Logger
+	log golog.MyLogger
 }
 
 func (P PGX) List(offset, limit int) ([]*ThingList, error) {

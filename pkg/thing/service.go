@@ -3,11 +3,11 @@ package thing
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
-	"log"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 type Service struct {
-	Log         *log.Logger
+	Log         golog.MyLogger
 	dbConn      database.DB
 	Store       Storage
 	JwtSecret   []byte

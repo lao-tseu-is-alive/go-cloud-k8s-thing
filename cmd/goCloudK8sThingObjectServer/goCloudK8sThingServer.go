@@ -7,13 +7,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goserver"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
-	"log"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 )
@@ -42,9 +41,8 @@ var content embed.FS
 
 var dbConn database.DB
 
-type ServiceExample struct {
-	Log *log.Logger
-	//Store       Storage
+type ServiceThing struct {
+	Log         golog.MyLogger
 	dbConn      database.DB
 	JwtSecret   []byte
 	JwtDuration int
@@ -53,8 +51,8 @@ type ServiceExample struct {
 // login is just a trivial stupid example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
-func (s ServiceExample) login(ctx echo.Context) error {
-	s.Log.Printf("trace: entering %v login()", ctx.Request().Method)
+func (s ServiceThing) login(ctx echo.Context) error {
+	s.Log.Debug("++ entering %v login()", ctx.Request().Method)
 	username := ctx.FormValue("login")
 	fakePassword := ctx.FormValue("pass")
 
@@ -89,14 +87,14 @@ func (s ServiceExample) login(ctx echo.Context) error {
 		return err
 	}
 	msg := fmt.Sprintf("LoginUser(%s) succesfull login for user id (%d)", claims.Username, claims.Id)
-	s.Log.Printf(msg)
+	s.Log.Info(msg)
 	return ctx.JSON(http.StatusOK, echo.Map{
 		"token": token.String(),
 	})
 }
 
-func (s ServiceExample) restricted(ctx echo.Context) error {
-	s.Log.Println("trace: entering restricted zone()")
+func (s ServiceThing) restricted(ctx echo.Context) error {
+	s.Log.Debug("++ entering restricted zone()")
 	// get the current user from JWT TOKEN
 	u := ctx.Get("jwtdata").(*jwt.Token)
 	claims := goserver.JwtCustomClaims{}
@@ -140,29 +138,31 @@ func checkHealthy(string) bool {
 }
 
 func main() {
-	l := log.New(os.Stdout, fmt.Sprintf("%s ", version.APP), log.Ldate|log.Ltime|log.Lshortfile)
-	l.Printf("INFO: 'Starting %s v:%s  rev:%s  build: %s'", version.APP, version.VERSION, version.REVISION, version.BuildStamp)
-	l.Printf("INFO: 'Repository url: https://%s'", version.REPOSITORY)
+	prefix := fmt.Sprintf("%s ", version.APP)
+	//l := log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
+	l, err := golog.NewLogger("zap", golog.DebugLevel, prefix)
+	l.Info("Starting %s v:%s  rev:%s  build: %s", version.APP, version.VERSION, version.REVISION, version.BuildStamp)
+	l.Info("Repository url: https://%s", version.REPOSITORY)
 	secret, err := config.GetJwtSecretFromEnv()
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtSecretFromEnv() got error: %v'\n", err)
+		l.Fatal("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtSecretFromEnv() got error: %v'\n", err)
 	}
 	tokenDuration, err := config.GetJwtDurationFromEnv(60)
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtDurationFromEnv() got error: %v'\n", err)
+		l.Fatal("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtDurationFromEnv() got error: %v'\n", err)
 	}
 	dbDsn, err := config.GetPgDbDsnUrlFromEnv(defaultDBIp, defaultDBPort,
 		tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
 	if err != nil {
-		l.Fatalf("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
+		l.Fatal("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
 	}
 	dbConn, err = database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
-		l.Fatalf("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
+		l.Fatal("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
 	}
 	defer dbConn.Close()
 
-	yourService := ServiceExample{
+	yourService := ServiceThing{
 		Log:         l,
 		dbConn:      dbConn,
 		JwtSecret:   []byte(secret),
@@ -171,9 +171,9 @@ func main() {
 
 	listenAddr, err := config.GetPortFromEnv(defaultPort)
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
+		l.Fatal("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
 	}
-	l.Printf("INFO: 'Will start HTTP server listening on port %s'", listenAddr)
+	l.Info("Will start HTTP server listening on port %s", listenAddr)
 	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
 	e.GET("/readiness", server.GetReadinessHandler(checkReady, "Connection to DB"))
@@ -185,7 +185,7 @@ func main() {
 
 	objStore, err := thing.GetStorageInstance("pgx", dbConn, l)
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'calling things.GetStorageInstance got error: %v'\n", err)
+		l.Fatal("💥💥 ERROR: 'calling things.GetStorageInstance got error: %v'\n", err)
 	}
 	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
 	objService := thing.Service{
@@ -198,12 +198,12 @@ func main() {
 
 	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
 	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s%s/secret |jq\n", listenAddr, defaultSecuredApi)
-	l.Printf("INFO: from another terminal just try :\n %s", loginExample)
-	l.Printf("INFO: then type export TOKEN=your_token_above_goes_here   \n %s", getSecretExample)
+	l.Info(" --> from another terminal just try :\n %s", loginExample)
+	l.Info(" --> then type export TOKEN=your_token_above_goes_here   \n %s", getSecretExample)
 
 	err = server.StartServer()
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'calling echo.Start(%s) got error: %v'\n", listenAddr, err)
+		l.Fatal("💥💥 ERROR: 'calling echo.Start(%s) got error: %v'\n", listenAddr, err)
 	}
 
 }
