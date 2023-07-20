@@ -9,8 +9,8 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goserver"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-object/pkg/objects"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-object/pkg/version"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +23,7 @@ const (
 	defaultDBPort          = 5432
 	defaultDBIp            = "127.0.0.1"
 	defaultDBSslMode       = "prefer"
-	defaultWebRootDir      = "goCloudK8sObjectFront/dist/"
+	defaultWebRootDir      = "goCloudK8sThingFront/dist/"
 	defaultSecuredApi      = "/goapi/v1"
 	defaultUsername        = "bill"
 	defaultFakeStupidPass  = "board"
@@ -37,7 +37,7 @@ const (
 
 // content holds our static web server content.
 //
-//go:embed goCloudK8sObjectFront/dist/*
+//go:embed goCloudK8sThingFront/dist/*
 var content embed.FS
 
 var dbConn database.DB
@@ -183,18 +183,18 @@ func main() {
 	r := server.GetRestrictedGroup()
 	r.GET("/secret", yourService.restricted)
 
-	objStore, err := objects.GetStorageInstance("pgx", dbConn, l)
+	objStore, err := thing.GetStorageInstance("pgx", dbConn, l)
 	if err != nil {
-		l.Fatalf("💥💥 ERROR: 'calling objects.GetStorageInstance got error: %v'\n", err)
+		l.Fatalf("💥💥 ERROR: 'calling things.GetStorageInstance got error: %v'\n", err)
 	}
-	// now with restricted group reference you can register your secured handlers defined in OpenApi objects.yaml
-	objService := objects.Service{
+	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
+	objService := thing.Service{
 		Log:         l,
 		Store:       objStore,
 		JwtSecret:   []byte(secret),
 		JwtDuration: tokenDuration,
 	}
-	objects.RegisterHandlers(r, &objService)
+	thing.RegisterHandlers(r, &objService)
 
 	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
 	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s%s/secret |jq\n", listenAddr, defaultSecuredApi)

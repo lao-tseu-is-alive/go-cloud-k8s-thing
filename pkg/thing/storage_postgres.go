@@ -1,4 +1,4 @@
-package objects
+package thing
 
 import (
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -10,12 +10,12 @@ type PGX struct {
 	log *log.Logger
 }
 
-func (P PGX) List(offset, limit int) ([]*ObjectList, error) {
+func (P PGX) List(offset, limit int) ([]*ThingList, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) Get(id int32) (*Object, error) {
+func (P PGX) Get(id int32) (*Thing, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -35,12 +35,12 @@ func (P PGX) Count() (int32, error) {
 	panic("implement me")
 }
 
-func (P PGX) Create(object Object) (*Object, error) {
+func (P PGX) Create(thing Thing) (*Thing, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) Update(id int32, object Object) (*Object, error) {
+func (P PGX) Update(id int32, thing Thing) (*Thing, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -50,37 +50,37 @@ func (P PGX) Delete(id int32) error {
 	panic("implement me")
 }
 
-func (P PGX) SearchObjectsByName(pattern string) ([]*ObjectList, error) {
+func (P PGX) SearchThingsByName(pattern string) ([]*ThingList, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) IsObjectActive(id int32) bool {
+func (P PGX) IsThingActive(id int32) bool {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) CreateTypeObject(typeObject TypeObject) (*TypeObject, error) {
+func (P PGX) CreateTypeThing(typeThing TypeThing) (*TypeThing, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) UpdateTypeObject(id int32, typeObject TypeObject) (*TypeObject, error) {
+func (P PGX) UpdateTypeThing(id int32, typeThing TypeThing) (*TypeThing, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) DeleteTypeObject(id int32) error {
+func (P PGX) DeleteTypeThing(id int32) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) ListTypeObject(offset, limit int) ([]*TypeObjectList, error) {
+func (P PGX) ListTypeThing(offset, limit int) ([]*TypeThingList, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (P PGX) GetTypeObject(id int32) (*TypeObject, error) {
+func (P PGX) GetTypeThing(id int32) (*TypeThing, error) {
 	//TODO implement me
 	panic("implement me")
 }

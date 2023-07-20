@@ -1,23 +1,23 @@
 ---
 openapi: 3.0.3
 info:
-  title: Object microservice written in Golang
-  description: OpenApi Specification for an API to manage Object
+  title: Thing microservice written in Golang
+  description: OpenApi Specification for an API to manage Thing
   contact:
-    name: go-cloud-k8s-object API Team
+    name: go-cloud-k8s-thing API Team
     url: https://goeland.io
-    email: go-cloud-k8s-object@goeland.io
+    email: go-cloud-k8s-thing@goeland.io
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.1
+  version: 0.0.3
 servers:
-- url: https://api.goeland.io/objects
+- url: https://api.goeland.io/thing
 paths:
-  /objects:
+  /thing:
     get:
-      summary: List returns a list of objects
-      description: Returns the objects in an array
+      summary: List returns a list of thing
+      description: Returns the thing in an array
       operationId: List
       parameters:
       - name: limit
@@ -31,13 +31,13 @@ paths:
           format: int32
       responses:
         "200":
-          description: get List of objects response
+          description: get List of thing response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ObjectList'
+                  $ref: '#/components/schemas/ThingList'
         "401":
           description: Access token is missing or invalid
         default:
@@ -49,23 +49,23 @@ paths:
       security:
       - JWTAuth: []
     post:
-      summary: Create will create a new object
-      description: Creates a new object
+      summary: Create will create a new thing
+      description: Creates a new thing
       operationId: Create
       requestBody:
-        description: Object to add
+        description: Thing to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Object'
+              $ref: '#/components/schemas/Thing'
         required: true
       responses:
         "201":
-          description: Object creation response
+          description: Thing creation response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Object'
+                $ref: '#/components/schemas/Thing'
         "401":
           description: Access token is missing or invalid
         default:
@@ -76,15 +76,15 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - JWTAuth: []
-  /objectsByType/{typeId}:
+  /thingByType/{typeId}:
     get:
-      summary: ListByType returns a list of objects
-      description: Returns the objects in an array
+      summary: ListByType returns a list of thing
+      description: Returns the things in an array
       operationId: ListByType
       parameters:
       - name: typeId
         in: path
-        description: typeId of the objects needed
+        description: typeId of the things needed
         required: true
         style: simple
         explode: false
@@ -102,13 +102,13 @@ paths:
           format: int32
       responses:
         "200":
-          description: get List of objects response
+          description: get List of things response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ObjectList'
+                  $ref: '#/components/schemas/ThingList'
         "401":
           description: Access token is missing or invalid
         default:
@@ -119,15 +119,15 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - JWTAuth: []
-  /objects/{objectId}:
+  /thing/{thingId}:
     get:
-      summary: Get will retrieve in backend all information about a specific objectId
-      description: Retrieve a specific object
+      summary: Get will retrieve in backend all information about a specific thingId
+      description: Retrieve a specific thing
       operationId: Get
       parameters:
-      - name: objectId
+      - name: thingId
         in: path
-        description: Id of the object
+        description: Id of the thing
         required: true
         style: simple
         explode: false
@@ -136,15 +136,15 @@ paths:
           format: int32
       responses:
         "200":
-          description: get object successful response
+          description: get thing successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Object'
+                $ref: '#/components/schemas/Thing'
         "401":
           description: Access token is missing or invalid
         "404":
-          description: get objects response when objectId was not found
+          description: get things response when thingId was not found
         default:
           description: unexpected error
           content:
@@ -154,13 +154,13 @@ paths:
       security:
       - JWTAuth: []
     put:
-      summary: Update allows to modify information about a specific objectId
-      description: Updates the status of a object
+      summary: Update allows to modify information about a specific thingId
+      description: Updates the status of a thing
       operationId: Update
       parameters:
-      - name: objectId
+      - name: thingId
         in: path
-        description: Id of the object
+        description: Id of the thing
         required: true
         style: simple
         explode: false
@@ -168,22 +168,22 @@ paths:
           type: integer
           format: int32
       requestBody:
-        description: informations related to the object
+        description: informations related to the thing
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Object'
+              $ref: '#/components/schemas/Thing'
       responses:
         "200":
-          description: put objects successful response
+          description: put things successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Object'
+                $ref: '#/components/schemas/Thing'
         "401":
           description: Access token is missing or invalid
         "404":
-          description: put objects response when objectId was not found
+          description: put things response when thingId was not found
         default:
           description: unexpected error
           content:
@@ -193,13 +193,13 @@ paths:
       security:
       - JWTAuth: []
     delete:
-      summary: Delete allows to delete a specific objectId
-      description: delete a object
+      summary: Delete allows to delete a specific thingId
+      description: delete a thing
       operationId: Delete
       parameters:
-      - name: objectId
+      - name: thingId
         in: path
-        description: Id of the object
+        description: Id of the thing
         required: true
         style: simple
         explode: false
@@ -208,11 +208,11 @@ paths:
           format: int32
       responses:
         "204":
-          description: delete object successful no content
+          description: delete thing successful no content
         "401":
           description: Access token is missing or invalid
         "404":
-          description: delete object response when objectId was not found
+          description: delete thing response when thingId was not found
         default:
           description: unexpected error
           content:
@@ -223,9 +223,9 @@ paths:
       - JWTAuth: []
   /types:
     get:
-      summary: TypeObjectList returns a list of types
+      summary: TypeThingList returns a list of types
       description: Returns the types in an array
-      operationId: TypeObjectList
+      operationId: TypeThingList
       parameters:
       - name: limit
         in: query
@@ -244,7 +244,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TypeObjectList'
+                  $ref: '#/components/schemas/TypeThingList'
         "401":
           description: Access token is missing or invalid
         default:
@@ -256,23 +256,23 @@ paths:
       security:
       - JWTAuth: []
     post:
-      summary: TypeObjectCreate will create a new group
+      summary: TypeThingCreate will create a new group
       description: Creates a new group
-      operationId: TypeObjectCreate
+      operationId: TypeThingCreate
       requestBody:
-        description: TypeObject to add
+        description: TypeThing to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TypeObject'
+              $ref: '#/components/schemas/TypeThing'
         required: true
       responses:
         "201":
-          description: TypeObject creation response
+          description: TypeThing creation response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TypeObject'
+                $ref: '#/components/schemas/TypeThing'
         "401":
           description: Access token is missing or invalid
         default:
@@ -283,15 +283,15 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - JWTAuth: []
-  /types/{typeObjectId}:
+  /types/{typeThingId}:
     get:
-      summary: TypeObjectGet will retrieve in backend all information about a specific typeObjectId
-      description: Retrieve a specific typeObject
-      operationId: TypeObjectGet
+      summary: TypeThingGet will retrieve in backend all information about a specific typeThingId
+      description: Retrieve a specific typeThing
+      operationId: TypeThingGet
       parameters:
-      - name: typeObjectId
+      - name: typeThingId
         in: path
-        description: Id of the typeObject
+        description: Id of the typeThing
         required: true
         style: simple
         explode: false
@@ -300,15 +300,15 @@ paths:
           format: int32
       responses:
         "200":
-          description: get typeObject successful response
+          description: get typeThing successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TypeObject'
+                $ref: '#/components/schemas/TypeThing'
         "401":
           description: Access token is missing or invalid
         "404":
-          description: get typeObject response when typeObjectId was not found
+          description: get typeThing response when typeThingId was not found
         default:
           description: unexpected error
           content:
@@ -318,13 +318,13 @@ paths:
       security:
       - JWTAuth: []
     put:
-      summary: TypeObjectUpdate allows to modify information about a specific typeObjectId
-      description: Updates the informations related to a typeObject
-      operationId: TypeObjectUpdate
+      summary: TypeThingUpdate allows to modify information about a specific typeThingId
+      description: Updates the informations related to a typeThing
+      operationId: TypeThingUpdate
       parameters:
-      - name: typeObjectId
+      - name: typeThingId
         in: path
-        description: Id of the typeObject
+        description: Id of the typeThing
         required: true
         style: simple
         explode: false
@@ -332,22 +332,22 @@ paths:
           type: integer
           format: int32
       requestBody:
-        description: informations related to the typeObject
+        description: informations related to the typeThing
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TypeObject'
+              $ref: '#/components/schemas/TypeThing'
       responses:
         "200":
-          description: put typeObject successful response
+          description: put typeThing successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TypeObject'
+                $ref: '#/components/schemas/TypeThing'
         "401":
           description: Access token is missing or invalid
         "404":
-          description: put typeObject response when userId was not found
+          description: put typeThing response when userId was not found
         default:
           description: unexpected error
           content:
@@ -357,13 +357,13 @@ paths:
       security:
       - JWTAuth: []
     delete:
-      summary: TypeObjectDelete allows to delete a specific typeObjectId
-      description: delete a typeObject
-      operationId: TypeObjectDelete
+      summary: TypeThingDelete allows to delete a specific typeThingId
+      description: delete a typeThing
+      operationId: TypeThingDelete
       parameters:
-      - name: typeObjectId
+      - name: typeThingId
         in: path
-        description: Id of the typeObject
+        description: Id of the typeThing
         required: true
         style: simple
         explode: false
@@ -372,11 +372,11 @@ paths:
           format: int32
       responses:
         "204":
-          description: delete typeObject successful no content
+          description: delete typeThing successful no content
         "401":
           description: Access token is missing or invalid
         "404":
-          description: delete typeObject response when typeObjectId was not found
+          description: delete typeThing response when typeThingId was not found
         default:
           description: unexpected error
           content:
@@ -387,20 +387,20 @@ paths:
       - JWTAuth: []
 components:
   schemas:
-    Object:
+    Thing:
       required:
       - create_time
       - creator
       - id
       - is_active
       - name
-      - type_object_id
+      - type_thing_id
       type: object
       properties:
         id:
           type: integer
           format: int32
-        type_object_id:
+        type_thing_id:
           type: integer
           format: int32
         name:
@@ -440,20 +440,30 @@ components:
         last_modification_user:
           type: integer
           format: int32
-    ObjectList:
+        is_deleted:
+          type: boolean
+          default: false
+        deleted_time:
+          type: string
+          format: date-time
+        deleted_by_user:
+          type: integer
+          format: int32
+
+    ThingList:
       required:
       - create_time
       - creator
       - id
       - is_active
       - name
-      - type_object_id
+      - type_thing_id
       type: object
       properties:
         id:
           type: integer
           format: int32
-        type_object_id:
+        type_thing_id:
           type: integer
           format: int32
         name:
@@ -474,7 +484,7 @@ components:
         create_time:
           type: string
           format: date-time
-    TypeObject:
+    TypeThing:
       required:
       - create_time
       - creator
@@ -511,7 +521,7 @@ components:
           type: string
         comment:
           type: string
-    TypeObjectList:
+    TypeThingList:
       required:
       - id
       - is_active

@@ -1,4 +1,4 @@
-module github.com/lao-tseu-is-alive/go-cloud-k8s-object
+module github.com/lao-tseu-is-alive/go-cloud-k8s-thing
 
 go 1.19
 

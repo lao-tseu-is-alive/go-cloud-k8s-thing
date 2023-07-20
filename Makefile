@@ -18,8 +18,8 @@ else
 	DB_DRIVER ?= postgres
 	DB_HOST ?= 127.0.0.1
 	DB_PORT ?= 5432
-	DB_NAME ?= go_cloud_k8s_object
-	DB_USER ?= go_cloud_k8s_object
+	DB_NAME ?= go_cloud_k8s_thing
+	DB_USER ?= go_cloud_k8s_thing
 	# DB_PASSWORD should be defined in your env or in github secrets
 	DB_SSL_MODE ?= disable
 endif
@@ -109,8 +109,8 @@ endif
 .PHONY: openapi-codegen
 ## openapi-codegen:	will generate helper Go code for types & server based on OpenApi spec in api/app.yml
 openapi-codegen: dependencies-openapi
-	oapi-codegen --old-config-style -generate types -o pkg/objects/objects_types.gen.go -package objects api/objects.yaml
-	oapi-codegen --old-config-style -templates templates_oapi-codegen -generate server -o pkg/objects/objects_server.gen.go -package objects api/objects.yaml
+	oapi-codegen --old-config-style -generate types -o pkg/thing/thing_types.gen.go -package thing api/thing.yaml
+	oapi-codegen --old-config-style -templates templates_oapi-codegen -generate server -o pkg/thing/thing_server.gen.go -package thing api/thing.yaml
 
 
 .PHONY: build-container-image
@@ -123,8 +123,8 @@ build-container-image:
 .PHONY: xo-codegen
 ## xo-codegen:	will generate helper Go code for database queries in models directory
 xo-codegen: dependencies-xo
-	xo schema schema -s public --go-pkg=objects --src templates_xo -o models ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
-	#xo schema schema -s public --go-pkg=objects --src templates_xo -o pkg/objects ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
+	xo schema schema -s public --go-pkg=thing --src templates_xo -o models ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
+	#xo schema schema -s public --go-pkg=thing --src templates_xo -o pkg/thing ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
 
 .PHONY: help
 help: Makefile

@@ -1,4 +1,4 @@
-## OpenAPi Specification for go-cloud-k8s-object microservices
+## OpenAPi Specification for go-cloud-k8s-thing microservices
 
 In this directory you will find the [OpenAPI](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md)
 specifications files for this service

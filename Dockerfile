@@ -18,7 +18,7 @@ RUN go mod download
 COPY . ./
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o goCloudK8sObjectServer ./cmd/goCloudK8sObjectServer
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o goCloudK8sThingServer ./cmd/goCloudK8sThingServer
 
 
 ######## Start a new stage  #######
@@ -32,7 +32,7 @@ USER 1221:1221
 WORKDIR /goapp
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/goCloudK8sObjectServer .
+COPY --from=builder /app/goCloudK8sThingServer .
 
 ENV PORT="${PORT}"
 ENV DB_DRIVER="${DB_DRIVER}"
@@ -44,8 +44,8 @@ ENV DB_PASSWORD="${DB_PASSWORD}"
 ENV DB_SSL_MODE="${DB_SSL_MODE}"
 ENV JWT_SECRET="${JWT_SECRET}"
 ENV JWT_DURATION_MINUTES="${JWT_DURATION_MINUTES}"
-# Expose port  to the outside world, goCloudK8sObject will use the env PORT as listening port or 8080 as default
+# Expose port  to the outside world, goCloudK8sThing will use the env PORT as listening port or 8080 as default
 EXPOSE 9090
 
 # Command to run the executable
-CMD ["./goCloudK8sObjectServer"]
+CMD ["./goCloudK8sThingServer"]

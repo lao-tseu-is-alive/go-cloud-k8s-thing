@@ -1,4 +1,4 @@
-package objects
+package thing
 
 import (
 	"github.com/labstack/echo/v4"
@@ -24,17 +24,17 @@ func (s Service) Create(ctx echo.Context) error {
 	panic("implement me")
 }
 
-func (s Service) Delete(ctx echo.Context, objectId int32) error {
+func (s Service) Delete(ctx echo.Context, thingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) Get(ctx echo.Context, objectId int32) error {
+func (s Service) Get(ctx echo.Context, thingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) Update(ctx echo.Context, objectId int32) error {
+func (s Service) Update(ctx echo.Context, thingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -44,27 +44,27 @@ func (s Service) ListByType(ctx echo.Context, typeId int32, params ListByTypePar
 	panic("implement me")
 }
 
-func (s Service) TypeObjectList(ctx echo.Context, params TypeObjectListParams) error {
+func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) TypeObjectCreate(ctx echo.Context) error {
+func (s Service) TypeThingCreate(ctx echo.Context) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) TypeObjectDelete(ctx echo.Context, typeObjectId int32) error {
+func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) TypeObjectGet(ctx echo.Context, typeObjectId int32) error {
+func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Service) TypeObjectUpdate(ctx echo.Context, typeObjectId int32) error {
+func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
