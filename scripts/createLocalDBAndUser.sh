@@ -38,6 +38,7 @@ if DB_PASSWORD=$(openssl rand -base64 32); then
   su -c "createdb -O ${DB_NAME} ${DB_NAME}" postgres
   # next line allows to add the needed postgis extension to the db as a superuser
   su -c "psql -c 'CREATE EXTENSION postgis;' ${DB_NAME}" postgres
+  su -c "psql -c 'CREATE EXTENSION unaccent;' ${DB_NAME}" postgres
   cd - || exit
   # https://www.freedesktop.org/software/systemd/man/systemd.service.html
   echo "## Will prepare a systemd unit conf file in current directory: ${APP_NAME}.conf"

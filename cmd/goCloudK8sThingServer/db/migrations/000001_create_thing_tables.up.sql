@@ -1,4 +1,7 @@
--- CREATE EXTENSION postgis; this one should be done by a superuser of db
+-- the next lines with create extension should be done by a superuser of db
+-- I added those to the scripts/createLocalDBAndUser.sh
+-- CREATE EXTENSION postgis;
+-- CREATE EXTENSION unaccent;
 /*
 -- Table structure for table thing for project go-cloud-k8s-thing
 -- version : 0.0.3
@@ -75,6 +78,8 @@ alter table public.type_thing
 alter table thing
     add constraint thing_type_thing_id_fk
         foreign key (type_id) references type_thing;
+
+-- #### BEGIN OF DATA FROM GOELAND
 -- imported from TypeThing in goeland as of 2023-07-21
 INSERT INTO public.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time, inactivated_by, inactivated_reason, managed_by, created_at, created_by, last_modified_at, last_modified_by, deleted, deleted_at, deleted_by, additional_data, geometry_type) VALUES (1, 'Rue', 'Artères,Rues & chemins', null, 1, 'ThiStreet', false, null, null, null, 6, '1998-05-07 13:39:11.000000', 6, null, null, false, null, null, null, 'bbox');
 INSERT INTO public.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time, inactivated_by, inactivated_reason, managed_by, created_at, created_by, last_modified_at, last_modified_by, deleted, deleted_at, deleted_by, additional_data, geometry_type) VALUES (2, 'Ville', 'Villes & communes', null, 2, 'ThiCity', false, null, null, null, 6, '1998-05-11 13:12:30.000000', 6, null, null, false, null, null, null, 'bbox');
