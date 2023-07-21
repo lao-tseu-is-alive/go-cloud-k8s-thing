@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/cristalhq/jwt/v4 v4.0.2
 	github.com/deepmap/oapi-codegen v1.13.0
+	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.1.0
@@ -25,12 +26,12 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
-	github.com/golang-migrate/migrate/v4 v4.16.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.0 // indirect
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
