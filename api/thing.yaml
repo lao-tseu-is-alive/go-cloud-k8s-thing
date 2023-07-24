@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.3
+  version: 0.0.4
 servers:
 - url: https://api.goeland.io/thing
 paths:
@@ -132,8 +132,8 @@ paths:
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int32
+          type: string
+          format: uuid
       responses:
         "200":
           description: get thing successful response
@@ -165,8 +165,8 @@ paths:
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int32
+          type: string
+          format: uuid
       requestBody:
         description: informations related to the thing
         content:
@@ -204,8 +204,8 @@ paths:
         style: simple
         explode: false
         schema:
-          type: integer
-          format: int32
+          type: string
+          format: uuid
       responses:
         "204":
           description: delete thing successful no content
@@ -319,7 +319,7 @@ paths:
       - JWTAuth: []
     put:
       summary: TypeThingUpdate allows to modify information about a specific typeThingId
-      description: Updates the informations related to a typeThing
+      description: Updates the information related to a typeThing
       operationId: TypeThingUpdate
       parameters:
       - name: typeThingId
@@ -389,81 +389,117 @@ components:
   schemas:
     Thing:
       required:
-      - create_time
-      - creator
       - id
-      - is_active
+      - type_id
       - name
-      - type_thing_id
+      - inactivated
       type: object
       properties:
         id:
-          type: integer
-          format: int32
-        type_thing_id:
+          type: string
+          format: uuid
+        type_id:
           type: integer
           format: int32
         name:
-          minLength: 2
+          format: text
           type: string
         description:
-          minLength: 2
-          type: string
-        external_id:
-          type: integer
-          format: int32
-        is_active:
-          type: boolean
-          default: true
-        inactivation_time:
-          type: string
-          format: date-time
-        inactivation_reason:
+          format: text
           type: string
         comment:
+          format: text
           type: string
-        is_validated:
+        external_id:
+          format: int32
+          type: integer
+        external_ref:
+          format: text
+          type: string
+        build_at:
+          format: date,
+          type: string
+        status:
+          enum:
+            - "Planifié"
+            - "En Construction"
+            - "Utilisé"
+            - "Abandonné"
+            - "Démoli"
+          format: "public.thing_status_type"
+          type: string
+        contained_by:
+          format: uuid,
+          type: string
+        contained_by_old:
+          format: int32
+          type: integer
+        inactivated:
+          default: false,
           type: boolean
-          default: false
-        id_validator:
-          type: integer
-          format: int32
-        create_time:
-          type: string
+        inactivated_time:
           format: date-time
-        creator:
-          type: integer
-          format: int32
-        last_modification_time:
           type: string
-          format: date-time
-        last_modification_user:
-          type: integer
+        inactivated_by:
           format: int32
-        is_deleted:
+          type: integer
+        inactivated_reason:
+          format: text
+          type: string
+        validated:
+          default: false,
           type: boolean
-          default: false
-        deleted_time:
-          type: string
+        validated_time:
           format: date-time
-        deleted_by_user:
-          type: integer
+          type: string
+        validated_by:
           format: int32
+          type: integer
+        managed_by:
+          format: int32
+          type: integer
+        _created_at:
+          format: date-time
+          type: string
+        _created_by:
+          format: int32
+          type: integer
+        _last_modified_at:
+          format: date-time
+          type: string
+        _last_modified_by:
+          format: int32
+          type: integer
+        _deleted:
+          default: false,
+          type: boolean
+        _deleted_at:
+          format: date-time
+          type: string
+        _deleted_by:
+          format: int32
+          type: integer
+        more_data_schema:
+          format: object
+        position:
+          type: string
+          format: geometry
 
     ThingList:
       required:
-      - create_time
-      - creator
       - id
-      - is_active
+      - type_id
       - name
-      - type_thing_id
+      - external_id
+      - inactivated
+      - created_at
+      - created_by
       type: object
       properties:
         id:
-          type: integer
-          format: int32
-        type_thing_id:
+          type: string
+          format: uuid
+        type_id:
           type: integer
           format: int32
         name:
@@ -475,56 +511,83 @@ components:
         external_id:
           type: integer
           format: int32
-        is_active:
+        inactivated:
           type: boolean
-          default: true
-        creator:
+          default: false
+        created_by:
           type: integer
           format: int32
-        create_time:
+        created_at:
           type: string
           format: date-time
     TypeThing:
       required:
-      - create_time
-      - creator
       - id
-      - is_active
       - name
       type: object
       properties:
         id:
-          type: integer
           format: int32
+          type: integer
         name:
-          minLength: 2
+          format: text
           type: string
-        create_time:
-          type: string
-          format: date-time
-        creator:
-          type: integer
-          format: int32
-        last_modification_time:
-          type: string
-          format: date-time
-        last_modification_user:
-          type: integer
-          format: int32
-        is_active:
-          type: boolean
-          default: true
-        inactivation_time:
-          type: string
-          format: date-time
-        inactivation_reason:
+        description:
+          format: text
           type: string
         comment:
+          format: text
           type: string
+        external_id:
+          format: int32
+          type: integer
+        table_name:
+          format: text
+          type: string
+        geometry_type:
+          format: text,
+          type: string
+        inactivated: 
+          default: false,
+          type: boolean
+        inactivated_time: 
+          format: date-time
+          type: string
+        inactivated_by: 
+          format: int32
+          type: integer
+        inactivated_reason: 
+          format: text
+          type: string
+        managed_by:
+          format: int32
+          type: integer
+        _created_at: 
+          format: date-time
+          type: string
+        _created_by: 
+          format: int32
+          type: integer
+        _last_modified_at: 
+          format: date-time
+          type: string
+        _last_modified_by: 
+          format: int32
+          type: integer
+        _deleted: 
+          default: false,
+          type: boolean
+        _deleted_at:
+          format: date-time
+          type: string
+        _deleted_by: 
+          format: int32
+          type: integer
+        more_data_schema:
+          format: object
     TypeThingList:
       required:
       - id
-      - is_active
       - name
       type: object
       properties:
@@ -534,9 +597,9 @@ components:
         name:
           minLength: 2
           type: string
-        is_active:
+        inactivated:
           type: boolean
-          default: true
+          default: false
     Error:
       required:
       - code

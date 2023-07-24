@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,13 +22,13 @@ type ServerInterface interface {
 	Create(ctx echo.Context) error
 	// Delete allows to delete a specific thingId
 	// (DELETE /thing/{thingId})
-	Delete(ctx echo.Context, thingId int32) error
+	Delete(ctx echo.Context, thingId openapi_types.UUID) error
 	// Get will retrieve in backend all information about a specific thingId
 	// (GET /thing/{thingId})
-	Get(ctx echo.Context, thingId int32) error
+	Get(ctx echo.Context, thingId openapi_types.UUID) error
 	// Update allows to modify information about a specific thingId
 	// (PUT /thing/{thingId})
-	Update(ctx echo.Context, thingId int32) error
+	Update(ctx echo.Context, thingId openapi_types.UUID) error
 	// ListByType returns a list of thing
 	// (GET /thingByType/{typeId})
 	ListByType(ctx echo.Context, typeId int32, params ListByTypeParams) error
@@ -88,7 +89,7 @@ func (w *ServerInterfaceWrapper) Create(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) Delete(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "thingId" -------------
-	var thingId int32
+	var thingId openapi_types.UUID
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "thingId", runtime.ParamLocationPath, ctx.Param("thingId"), &thingId)
 	if err != nil {
@@ -106,7 +107,7 @@ func (w *ServerInterfaceWrapper) Delete(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) Get(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "thingId" -------------
-	var thingId int32
+	var thingId openapi_types.UUID
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "thingId", runtime.ParamLocationPath, ctx.Param("thingId"), &thingId)
 	if err != nil {
@@ -124,7 +125,7 @@ func (w *ServerInterfaceWrapper) Get(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) Update(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "thingId" -------------
-	var thingId int32
+	var thingId openapi_types.UUID
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "thingId", runtime.ParamLocationPath, ctx.Param("thingId"), &thingId)
 	if err != nil {

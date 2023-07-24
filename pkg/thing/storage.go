@@ -2,6 +2,7 @@ package thing
 
 import (
 	"errors"
+	"fmt"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
@@ -42,15 +43,12 @@ type Storage interface {
 
 func GetStorageInstance(dbDriver string, db database.DB, l golog.MyLogger) (Storage, error) {
 	var store Storage
+	var err error
 	switch dbDriver {
 	case "pgx":
-		pgConn, err := db.GetPGConn()
+		store, err = NewPgxDB(db, l)
 		if err != nil {
-			return nil, err
-		}
-		store = PGX{
-			con: pgConn,
-			log: l,
+			return nil, fmt.Errorf("error doing NewPgxDB(pgConn : %w", err)
 		}
 
 	default:
