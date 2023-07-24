@@ -9,7 +9,7 @@ INSERT INTO thing
 (type_id, name, description,  external_id,
  build_time, contained_by, inactivated,
  validated, validated_time, created_at, created_by,
- last_modified_at, last_modified_by, geom)
+ last_modified_at, last_modified_by, position)
 SELECT
     old.idtypething, old.name, old.description, old.idthing,
     old.dateconstruction,old.idcontainer, not(old.isactive),
