@@ -16,3 +16,4 @@
 /.env
 /goCloudK8sThing.conf
 .idea
+/openapitools.json

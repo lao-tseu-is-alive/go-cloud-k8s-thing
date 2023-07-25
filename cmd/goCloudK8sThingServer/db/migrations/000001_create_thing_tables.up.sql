@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS go_thing.thing
 (
     -- using Postgres Native UUID v4 128bit https://www.postgresql.org/docs/14/datatype-uuid.html
     -- this choice allows to do client side generation of the id UUID v4
+    -- https://shekhargulati.com/2022/06/23/choosing-a-primary-key-type-in-postgres/
     id                 uuid    not null
         constraint pk_thing primary key default gen_random_uuid(),
     type_id            integer not null,

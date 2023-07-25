@@ -1,0 +1,939 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Thing microservice written in Golang",
+    "description": "OpenApi Specification for an API to manage Thing",
+    "contact": {
+      "name": "go-cloud-k8s-thing API Team",
+      "url": "https://goeland.io",
+      "email": "go-cloud-k8s-thing@goeland.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "0.0.4"
+  },
+  "servers": [
+    {
+      "url": "https://api.goeland.io/thing"
+    }
+  ],
+  "paths": {
+    "/thing": {
+      "get": {
+        "summary": "List returns a list of thing",
+        "description": "Returns the thing in an array",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "maximum number of results to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of thing response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ThingList"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create will create a new thing",
+        "description": "Creates a new thing",
+        "operationId": "Create",
+        "requestBody": {
+          "description": "Thing to add",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Thing"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Thing creation response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/thingByType/{typeId}": {
+      "get": {
+        "summary": "ListByType returns a list of thing",
+        "description": "Returns the things in an array",
+        "operationId": "ListByType",
+        "parameters": [
+          {
+            "name": "typeId",
+            "in": "path",
+            "description": "typeId of the things needed",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "maximum number of results to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of things response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ThingList"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/thing/{thingId}": {
+      "get": {
+        "summary": "Get will retrieve in backend all information about a specific thingId",
+        "description": "Retrieve a specific thing",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "thingId",
+            "in": "path",
+            "description": "Id of the thing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get thing successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "get things response when thingId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update allows to modify information about a specific thingId",
+        "description": "Updates the status of a thing",
+        "operationId": "Update",
+        "parameters": [
+          {
+            "name": "thingId",
+            "in": "path",
+            "description": "Id of the thing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "informations related to the thing",
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Thing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "put things successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "put things response when thingId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete allows to delete a specific thingId",
+        "description": "delete a thing",
+        "operationId": "Delete",
+        "parameters": [
+          {
+            "name": "thingId",
+            "in": "path",
+            "description": "Id of the thing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "delete thing successful no content"
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "delete thing response when thingId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/types": {
+      "get": {
+        "summary": "TypeThingList returns a list of types",
+        "description": "Returns the types in an array",
+        "operationId": "TypeThingList",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "maximum number of results to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of types response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TypeThingList"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "TypeThingCreate will create a new group",
+        "description": "Creates a new group",
+        "operationId": "TypeThingCreate",
+        "requestBody": {
+          "description": "TypeThing to add",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TypeThing"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "TypeThing creation response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TypeThing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/types/{typeThingId}": {
+      "get": {
+        "summary": "TypeThingGet will retrieve in backend all information about a specific typeThingId",
+        "description": "Retrieve a specific typeThing",
+        "operationId": "TypeThingGet",
+        "parameters": [
+          {
+            "name": "typeThingId",
+            "in": "path",
+            "description": "Id of the typeThing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get typeThing successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TypeThing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "get typeThing response when typeThingId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "TypeThingUpdate allows to modify information about a specific typeThingId",
+        "description": "Updates the information related to a typeThing",
+        "operationId": "TypeThingUpdate",
+        "parameters": [
+          {
+            "name": "typeThingId",
+            "in": "path",
+            "description": "Id of the typeThing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "informations related to the typeThing",
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TypeThing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "put typeThing successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TypeThing"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "put typeThing response when userId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "TypeThingDelete allows to delete a specific typeThingId",
+        "description": "delete a typeThing",
+        "operationId": "TypeThingDelete",
+        "parameters": [
+          {
+            "name": "typeThingId",
+            "in": "path",
+            "description": "Id of the typeThing",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "delete typeThing successful no content"
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "404": {
+            "description": "delete typeThing response when typeThingId was not found"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Thing": {
+        "required": [
+          "id",
+          "type_id",
+          "name",
+          "inactivated"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "format": "text",
+            "type": "string"
+          },
+          "description": {
+            "format": "text",
+            "type": "string"
+          },
+          "comment": {
+            "format": "text",
+            "type": "string"
+          },
+          "external_id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "external_ref": {
+            "format": "text",
+            "type": "string"
+          },
+          "build_at": {
+            "format": "date,",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "Planifié",
+              "En Construction",
+              "Utilisé",
+              "Abandonné",
+              "Démoli"
+            ],
+            "format": "public.thing_status_type",
+            "type": "string"
+          },
+          "contained_by": {
+            "format": "uuid,",
+            "type": "string"
+          },
+          "contained_by_old": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "inactivated": {
+            "default": "false,",
+            "type": "boolean"
+          },
+          "inactivated_time": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "inactivated_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "inactivated_reason": {
+            "format": "text",
+            "type": "string"
+          },
+          "validated": {
+            "default": "false,",
+            "type": "boolean"
+          },
+          "validated_time": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "validated_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "managed_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_created_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_last_modified_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_last_modified_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_deleted": {
+            "default": "false,",
+            "type": "boolean"
+          },
+          "_deleted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_deleted_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "more_data_schema": {
+            "format": "object"
+          },
+          "position": {
+            "type": "string",
+            "format": "geometry"
+          }
+        }
+      },
+      "ThingList": {
+        "required": [
+          "id",
+          "type_id",
+          "name",
+          "external_id",
+          "inactivated",
+          "created_at",
+          "created_by"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "minLength": 2,
+            "type": "string"
+          },
+          "description": {
+            "minLength": 2,
+            "type": "string"
+          },
+          "external_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inactivated": {
+            "type": "boolean",
+            "default": false
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TypeThing": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "name": {
+            "format": "text",
+            "type": "string"
+          },
+          "description": {
+            "format": "text",
+            "type": "string"
+          },
+          "comment": {
+            "format": "text",
+            "type": "string"
+          },
+          "external_id": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "table_name": {
+            "format": "text",
+            "type": "string"
+          },
+          "geometry_type": {
+            "format": "text,",
+            "type": "string"
+          },
+          "inactivated": {
+            "default": "false,",
+            "type": "boolean"
+          },
+          "inactivated_time": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "inactivated_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "inactivated_reason": {
+            "format": "text",
+            "type": "string"
+          },
+          "managed_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_created_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_last_modified_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_last_modified_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "_deleted": {
+            "default": "false,",
+            "type": "boolean"
+          },
+          "_deleted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "_deleted_by": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "more_data_schema": {
+            "format": "object"
+          }
+        }
+      },
+      "TypeThingList": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "minLength": 2,
+            "type": "string"
+          },
+          "inactivated": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "Error": {
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "JsonWebToken": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid"
+      }
+    },
+    "securitySchemes": {
+      "JWTAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
