@@ -30,34 +30,35 @@ type Error struct {
 
 // Thing defines model for Thing.
 type Thing struct {
-	CreatedAt         *time.Time         `json:"_created_at,omitempty"`
-	CreatedBy         *int32             `json:"_created_by,omitempty"`
-	Deleted           *bool              `json:"_deleted,omitempty"`
-	DeletedAt         *time.Time         `json:"_deleted_at,omitempty"`
-	DeletedBy         *int32             `json:"_deleted_by,omitempty"`
-	LastModifiedAt    *time.Time         `json:"_last_modified_at,omitempty"`
-	LastModifiedBy    *int32             `json:"_last_modified_by,omitempty"`
-	BuildAt           *string            `json:"build_at,omitempty"`
-	Comment           *string            `json:"comment,omitempty"`
-	ContainedBy       *string            `json:"contained_by,omitempty"`
-	ContainedByOld    *int32             `json:"contained_by_old,omitempty"`
-	Description       *string            `json:"description,omitempty"`
-	ExternalId        *int32             `json:"external_id,omitempty"`
-	ExternalRef       *string            `json:"external_ref,omitempty"`
-	Id                openapi_types.UUID `json:"id"`
-	Inactivated       bool               `json:"inactivated"`
-	InactivatedBy     *int32             `json:"inactivated_by,omitempty"`
-	InactivatedReason *string            `json:"inactivated_reason,omitempty"`
-	InactivatedTime   *time.Time         `json:"inactivated_time,omitempty"`
-	ManagedBy         *int32             `json:"managed_by,omitempty"`
-	MoreDataSchema    *interface{}       `json:"more_data_schema,omitempty"`
-	Name              string             `json:"name"`
-	Position          *string            `json:"position,omitempty"`
-	Status            *ThingStatus       `json:"status,omitempty"`
-	TypeId            int32              `json:"type_id"`
-	Validated         *bool              `json:"validated,omitempty"`
-	ValidatedBy       *int32             `json:"validated_by,omitempty"`
-	ValidatedTime     *time.Time         `json:"validated_time,omitempty"`
+	BuildAt           *string                 `json:"build_at,omitempty"`
+	Comment           *string                 `json:"comment,omitempty"`
+	ContainedBy       *string                 `json:"contained_by,omitempty"`
+	ContainedByOld    *int32                  `json:"contained_by_old,omitempty"`
+	CreateAt          *time.Time              `json:"create_at,omitempty"`
+	CreateBy          int32                   `json:"create_by"`
+	Deleted           bool                    `json:"deleted"`
+	DeletedAt         *time.Time              `json:"deleted_at,omitempty"`
+	DeletedBy         *int32                  `json:"deleted_by,omitempty"`
+	Description       *string                 `json:"description,omitempty"`
+	ExternalId        *int32                  `json:"external_id,omitempty"`
+	ExternalRef       *string                 `json:"external_ref,omitempty"`
+	Id                openapi_types.UUID      `json:"id"`
+	Inactivated       bool                    `json:"inactivated"`
+	InactivatedBy     *int32                  `json:"inactivated_by,omitempty"`
+	InactivatedReason *string                 `json:"inactivated_reason,omitempty"`
+	InactivatedTime   *time.Time              `json:"inactivated_time,omitempty"`
+	LastModifiedAt    *time.Time              `json:"last_modified_at,omitempty"`
+	LastModifiedBy    *int32                  `json:"last_modified_by,omitempty"`
+	ManagedBy         *int32                  `json:"managed_by,omitempty"`
+	MoreData          *map[string]interface{} `json:"more_data,omitempty"`
+	Name              string                  `json:"name"`
+	PosX              float64                 `json:"pos_x"`
+	PosY              float64                 `json:"pos_y"`
+	Status            *ThingStatus            `json:"status,omitempty"`
+	TypeId            int32                   `json:"type_id"`
+	Validated         bool                    `json:"validated"`
+	ValidatedBy       *int32                  `json:"validated_by,omitempty"`
+	ValidatedTime     *time.Time              `json:"validated_time,omitempty"`
 }
 
 // ThingStatus defines model for Thing.Status.
@@ -77,22 +78,22 @@ type ThingList struct {
 
 // TypeThing defines model for TypeThing.
 type TypeThing struct {
-	CreatedAt         *time.Time   `json:"_created_at,omitempty"`
-	CreatedBy         *int32       `json:"_created_by,omitempty"`
-	Deleted           *bool        `json:"_deleted,omitempty"`
-	DeletedAt         *time.Time   `json:"_deleted_at,omitempty"`
-	DeletedBy         *int32       `json:"_deleted_by,omitempty"`
-	LastModifiedAt    *time.Time   `json:"_last_modified_at,omitempty"`
-	LastModifiedBy    *int32       `json:"_last_modified_by,omitempty"`
 	Comment           *string      `json:"comment,omitempty"`
+	CreateAt          *time.Time   `json:"create_at,omitempty"`
+	CreateBy          *int32       `json:"create_by,omitempty"`
+	Deleted           bool         `json:"deleted"`
+	DeletedAt         *time.Time   `json:"deleted_at,omitempty"`
+	DeletedBy         *int32       `json:"deleted_by,omitempty"`
 	Description       *string      `json:"description,omitempty"`
 	ExternalId        *int32       `json:"external_id,omitempty"`
 	GeometryType      *string      `json:"geometry_type,omitempty"`
 	Id                int32        `json:"id"`
-	Inactivated       *bool        `json:"inactivated,omitempty"`
+	Inactivated       bool         `json:"inactivated"`
 	InactivatedBy     *int32       `json:"inactivated_by,omitempty"`
 	InactivatedReason *string      `json:"inactivated_reason,omitempty"`
 	InactivatedTime   *time.Time   `json:"inactivated_time,omitempty"`
+	LastModifiedAt    *time.Time   `json:"last_modified_at,omitempty"`
+	LastModifiedBy    *int32       `json:"last_modified_by,omitempty"`
 	ManagedBy         *int32       `json:"managed_by,omitempty"`
 	MoreDataSchema    *interface{} `json:"more_data_schema,omitempty"`
 	Name              string       `json:"name"`
@@ -102,7 +103,7 @@ type TypeThing struct {
 // TypeThingList defines model for TypeThingList.
 type TypeThingList struct {
 	Id          int32  `json:"id"`
-	Inactivated *bool  `json:"inactivated,omitempty"`
+	Inactivated bool   `json:"inactivated"`
 	Name        string `json:"name"`
 }
 
@@ -110,21 +111,39 @@ type TypeThingList struct {
 type ListParams struct {
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // CreateJSONBody defines parameters for Create.
 type CreateJSONBody = Thing
 
+// ListByExternalIdParams defines parameters for ListByExternalId.
+type ListByExternalIdParams struct {
+	// maximum number of results to return
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // ListByTypeParams defines parameters for ListByType.
 type ListByTypeParams struct {
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // TypeThingListParams defines parameters for TypeThingList.
 type TypeThingListParams struct {
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // TypeThingCreateJSONBody defines parameters for TypeThingCreate.

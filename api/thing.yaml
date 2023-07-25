@@ -29,6 +29,15 @@ paths:
         schema:
           type: integer
           format: int32
+      - name: offset
+        in: query
+        description: offset rows to skip before returning rows
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: get List of thing response
@@ -76,9 +85,9 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - JWTAuth: []
-  /thingByType/{typeId}:
+  /thing/by-type/{typeId}:
     get:
-      summary: ListByType returns a list of thing
+      summary: ListByType returns a list of thing filtered by type of thing
       description: Returns the things in an array
       operationId: ListByType
       parameters:
@@ -94,6 +103,15 @@ paths:
       - name: limit
         in: query
         description: maximum number of results to return
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        description: offset rows to skip before returning rows
         required: false
         style: form
         explode: true
@@ -119,6 +137,58 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - JWTAuth: []
+  /thing/by-external-id/{externalId}:
+    get:
+      summary: ListByExternalId returns a list of thing filtered by externalId
+      description: Returns the things in an array
+      operationId: ListByExternalId
+      parameters:
+        - name: externalId
+          in: path
+          description: externalId of the things needed
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: query
+          description: offset rows to skip before returning rows
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: get List of things response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThingList'
+        "401":
+          description: Access token is missing or invalid
+        default:
+          description: unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - JWTAuth: [ ]
   /thing/{thingId}:
     get:
       summary: Get will retrieve in backend all information about a specific thingId
@@ -230,6 +300,15 @@ paths:
       - name: limit
         in: query
         description: maximum number of results to return
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        description: offset rows to skip before returning rows
         required: false
         style: form
         explode: true
@@ -393,6 +472,11 @@ components:
       - type_id
       - name
       - inactivated
+      - validated
+      - create_by
+      - deleted
+      - pos_x
+      - pos_y
       type: object
       properties:
         id:
@@ -458,33 +542,35 @@ components:
         managed_by:
           format: int32
           type: integer
-        _created_at:
+        create_at:
           format: date-time
           type: string
-        _created_by:
+        create_by:
           format: int32
           type: integer
-        _last_modified_at:
+        last_modified_at:
           format: date-time
           type: string
-        _last_modified_by:
+        last_modified_by:
           format: int32
           type: integer
-        _deleted:
+        deleted:
           default: false,
           type: boolean
-        _deleted_at:
+        deleted_at:
           format: date-time
           type: string
-        _deleted_by:
+        deleted_by:
           format: int32
           type: integer
-        more_data_schema:
-          format: object
-        position:
-          type: string
-          format: geometry
-
+        more_data:
+          type: object
+        pos_x:
+          type: number
+          format: double
+        pos_y:
+          type: number
+          format: double
     ThingList:
       required:
       - id
@@ -524,6 +610,8 @@ components:
       required:
       - id
       - name
+      - inactivated
+      - deleted
       type: object
       properties:
         id:
@@ -562,25 +650,25 @@ components:
         managed_by:
           format: int32
           type: integer
-        _created_at: 
+        create_at: 
           format: date-time
           type: string
-        _created_by: 
+        create_by: 
           format: int32
           type: integer
-        _last_modified_at: 
+        last_modified_at: 
           format: date-time
           type: string
-        _last_modified_by: 
+        last_modified_by: 
           format: int32
           type: integer
-        _deleted: 
+        deleted: 
           default: false,
           type: boolean
-        _deleted_at:
+        deleted_at:
           format: date-time
           type: string
-        _deleted_by: 
+        deleted_by: 
           format: int32
           type: integer
         more_data_schema:
@@ -589,6 +677,7 @@ components:
       required:
       - id
       - name
+      - inactivated
       type: object
       properties:
         id:
