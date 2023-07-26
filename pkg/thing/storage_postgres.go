@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/georgysavva/scany/pgxscan"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
@@ -61,32 +62,55 @@ func (db *PGX) List(offset, limit int) ([]*ThingList, error) {
 	return res, nil
 }
 
-func (db *PGX) Get(id int32) (*Thing, error) {
-	//TODO implement me
-	panic("implement me")
+// Get will retrieve one thing with given id
+func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
+	db.log.Debug("trace : entering Get(%v)", id)
+	res := &Thing{}
+	err := pgxscan.Get(context.Background(), db.Conn, res, getThing, id)
+	if err != nil {
+		db.log.Error("Get(%d) pgxscan.Select unexpectedly failed, error : %v", id, err)
+		return nil, err
+	}
+	if res == nil {
+		db.log.Info(" Get(%d) returned no results ", id)
+		return nil, errors.New("records not found")
+	}
+	return res, nil
 }
 
-func (db *PGX) GetMaxId() (int32, error) {
-	//TODO implement me
-	panic("implement me")
+// Exist returns true only if a thing with the specified id exists in store.
+func (db *PGX) Exist(id uuid.UUID) bool {
+	db.log.Debug("trace : entering Exist(%d)", id)
+	count, err := db.dbi.GetQueryInt(existThing, id)
+	if err != nil {
+		db.log.Error("Exist(%d) could not be retrieved from DB. failed db.Query err: %v", id, err)
+		return false
+	}
+	if count > 0 {
+		db.log.Info(" Exist(%d) id does exist  count:%v", id, count)
+		return true
+	} else {
+		db.log.Info(" Exist(%d) id does not exist count:%v", id, count)
+		return false
+	}
 }
 
-func (db *PGX) Exist(id int32) bool {
-	//TODO implement me
-	panic("implement me")
-}
-
+// Count returns the number of users stored in DB
 func (db *PGX) Count() (int32, error) {
-	//TODO implement me
-	panic("implement me")
+	db.log.Debug("trace : entering Count()")
+	count, err := db.dbi.GetQueryInt(countThing)
+	if err != nil {
+		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
+		return 0, err
+	}
+	return int32(count), nil
 }
 
 // Create will store the new Thing in the database
 func (db *PGX) Create(t Thing) (*Thing, error) {
 	db.log.Debug("trace : entering Create(%q,%q)", t.Name, t.Id)
-	var lastInsertId int = 0
 
-	err := db.Conn.QueryRow(context.Background(), createThing,
+	rowsAffected, err := db.dbi.ExecActionQuery(createThing,
 		/*	INSERT INTO go_thing.thing
 			(id, type_id, name, description, comment, external_id, external_ref,
 				build_at, status, contained_by, contained_by_old,validated, validated_time, validated_by,
@@ -100,29 +124,46 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 		*/
 		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$14
-		&t.ManagedBy, t.CreateBy, &t.MoreData, t.PosX, t.PosY).Scan(&lastInsertId)
+		&t.ManagedBy, t.CreateBy, &t.MoreData, t.PosX, t.PosY)
 	if err != nil {
 		db.log.Error("Create(%q) unexpectedly failed. error : %v", t.Name, err)
 		return nil, err
 	}
-	db.log.Info(" Create(%q) created with id : %v", t.Name, lastInsertId)
+	if rowsAffected < 1 {
+		db.log.Error("Create(%q) no row was created so create as failed. error : %v", t.Name, err)
+		return nil, err
+	}
+	db.log.Info(" Create(%q) created with id : %v", t.Name, t.Id)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	createdThing, err := db.Get(int32(lastInsertId))
+	createdThing, err := db.Get(t.Id)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error %v: thing was created, but can not be retrieved", err))
 	}
 	return createdThing, nil
 }
 
-func (db *PGX) Update(id int32, thing Thing) (*Thing, error) {
+func (db *PGX) Update(id uuid.UUID, thing Thing) (*Thing, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (db *PGX) Delete(id int32) error {
-	//TODO implement me
-	panic("implement me")
+// Delete the thing stored in DB with given id
+func (db *PGX) Delete(id uuid.UUID) error {
+	db.log.Debug("trace : entering Delete(%d)", id)
+	rowsAffected, err := db.dbi.ExecActionQuery(deleteThing, id)
+	if err != nil {
+		msg := fmt.Sprintf("thing could not be deleted, err: %v", err)
+		db.log.Error(msg)
+		return errors.New(msg)
+	}
+	if rowsAffected < 1 {
+		msg := fmt.Sprintf("thing was not deleted, err: %v", err)
+		db.log.Error(msg)
+		return errors.New(msg)
+	}
+	// if we get to here all is good
+	return nil
 }
 
 func (db *PGX) SearchThingsByName(pattern string) ([]*ThingList, error) {
@@ -130,7 +171,7 @@ func (db *PGX) SearchThingsByName(pattern string) ([]*ThingList, error) {
 	panic("implement me")
 }
 
-func (db *PGX) IsThingActive(id int32) bool {
+func (db *PGX) IsThingActive(id uuid.UUID) bool {
 	//TODO implement me
 	panic("implement me")
 }

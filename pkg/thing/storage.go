@@ -3,6 +3,7 @@ package thing
 import (
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
@@ -12,23 +13,21 @@ type Storage interface {
 	// List returns the list of existing things with the given offset and limit.
 	List(offset, limit int) ([]*ThingList, error)
 	// Get returns the thing with the specified things ID.
-	Get(id int32) (*Thing, error)
-	// GetMaxId returns the maximum value of things id existing in store.
-	GetMaxId() (int32, error)
+	Get(id uuid.UUID) (*Thing, error)
 	// Exist returns true only if a things with the specified id exists in store.
-	Exist(id int32) bool
+	Exist(id uuid.UUID) bool
 	// Count returns the total number of things.
 	Count() (int32, error)
 	// Create saves a new things in the storage.
 	Create(thing Thing) (*Thing, error)
 	// Update updates the things with given ID in the storage.
-	Update(id int32, thing Thing) (*Thing, error)
+	Update(id uuid.UUID, thing Thing) (*Thing, error)
 	// Delete removes the things with given ID from the storage.
-	Delete(id int32) error
+	Delete(id uuid.UUID) error
 	// SearchThingsByName list of existing things where the name contains the given search pattern or err if not found
 	SearchThingsByName(pattern string) ([]*ThingList, error)
 	// IsThingActive returns true if the thing with the specified id has the is_active attribute set to true
-	IsThingActive(id int32) bool
+	IsThingActive(id uuid.UUID) bool
 	// CreateTypeThing saves a new typeThing in the storage.
 	CreateTypeThing(typeThing TypeThing) (*TypeThing, error)
 	// UpdateTypeThing updates the typeThing with given ID in the storage.

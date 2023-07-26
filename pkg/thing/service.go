@@ -22,7 +22,6 @@ type Service struct {
 
 // List returns a list of things in the store and return it as json
 // to test it with curl you can try :
-// curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $token" 'http://localhost:9090/goapi/v1/thing' |jq
 func (s Service) List(ctx echo.Context, params ListParams) error {
 	s.Log.Info("trace: entering Thing List() params:%+v", params)
 	// get the current user from JWT TOKEN
@@ -47,6 +46,8 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	return ctx.JSON(http.StatusOK, list)
 }
 
+// Create allows to insert a new thing
+// curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "9999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 2,"name": "GilTown","description": "just a nice test","external_id": 123456789,"inactivated": false,"more_data": null,"x":2537609.0 ,"y":1152611.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	s.Log.Debug("trace: entering Create()")
 	// get the current user from JWT TOKEN
@@ -78,7 +79,7 @@ func (s Service) Create(ctx echo.Context) error {
 	s.Log.Info("# Create() newThing : %#v\n", newThing)
 	thingCreated, err := s.Store.Create(*newThing)
 	if err != nil {
-		msg := fmt.Sprintf("CreateUser had an error saving user:%#v, err:%#v", *newThing, err)
+		msg := fmt.Sprintf("Create had an error saving thing:%#v, err:%#v", *newThing, err)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
