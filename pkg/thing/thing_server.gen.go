@@ -23,9 +23,6 @@ type ServerInterface interface {
 	// ListByExternalId returns a list of thing filtered by externalId
 	// (GET /thing/by-external-id/{externalId})
 	ListByExternalId(ctx echo.Context, externalId int32, params ListByExternalIdParams) error
-	// ListByType returns a list of thing filtered by type of thing
-	// (GET /thing/by-type/{typeId})
-	ListByType(ctx echo.Context, typeId int32, params ListByTypeParams) error
 	// Delete allows to delete a specific thingId
 	// (DELETE /thing/{thingId})
 	Delete(ctx echo.Context, thingId openapi_types.UUID) error
@@ -65,6 +62,34 @@ func (w *ServerInterfaceWrapper) List(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ListParams
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
+	}
+
+	// ------------- Optional query parameter "created_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "created_by", ctx.QueryParams(), &params.CreatedBy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter created_by: %s", err))
+	}
+
+	// ------------- Optional query parameter "inactivated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "inactivated", ctx.QueryParams(), &params.Inactivated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter inactivated: %s", err))
+	}
+
+	// ------------- Optional query parameter "validated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "validated", ctx.QueryParams(), &params.Validated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter validated: %s", err))
+	}
+
 	// ------------- Optional query parameter "limit" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
@@ -126,40 +151,6 @@ func (w *ServerInterfaceWrapper) ListByExternalId(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ListByExternalId(ctx, externalId, params)
-	return err
-}
-
-// ListByType converts echo context to params.
-func (w *ServerInterfaceWrapper) ListByType(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "typeId" -------------
-	var typeId int32
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "typeId", runtime.ParamLocationPath, ctx.Param("typeId"), &typeId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter typeId: %s", err))
-	}
-
-	ctx.Set(JWTAuthScopes, []string{""})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListByTypeParams
-	// ------------- Optional query parameter "limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "offset" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "offset", ctx.QueryParams(), &params.Offset)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter offset: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.ListByType(ctx, typeId, params)
 	return err
 }
 
@@ -340,7 +331,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/thing", wrapper.List)
 	router.POST(baseURL+"/thing", wrapper.Create)
 	router.GET(baseURL+"/thing/by-external-id/:externalId", wrapper.ListByExternalId)
-	router.GET(baseURL+"/thing/by-type/:typeId", wrapper.ListByType)
 	router.DELETE(baseURL+"/thing/:thingId", wrapper.Delete)
 	router.GET(baseURL+"/thing/:thingId", wrapper.Get)
 	router.PUT(baseURL+"/thing/:thingId", wrapper.Update)

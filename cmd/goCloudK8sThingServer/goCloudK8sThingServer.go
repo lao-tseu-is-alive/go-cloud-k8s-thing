@@ -99,7 +99,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 	msg := fmt.Sprintf("LoginUser(%s) succesfull login for user id (%d)", claims.Username, claims.Id)
 	s.Log.Info(msg)
 	return ctx.JSON(http.StatusOK, echo.Map{
-		"token": token.String(),
+		"TOKEN": token.String(),
 	})
 }
 

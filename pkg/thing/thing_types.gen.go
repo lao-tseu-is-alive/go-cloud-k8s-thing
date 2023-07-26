@@ -109,6 +109,18 @@ type TypeThingList struct {
 
 // ListParams defines parameters for List.
 type ListParams struct {
+	// TypeThing id to filter by the things to return
+	Type *int32 `form:"type,omitempty" json:"type,omitempty"`
+
+	// id of the creator to filter by the things to return
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// inactivated flag to filter the things to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+
+	// validation flag to filter the things to return
+	Validated *bool `form:"validated,omitempty" json:"validated,omitempty"`
+
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 
@@ -121,15 +133,6 @@ type CreateJSONBody = Thing
 
 // ListByExternalIdParams defines parameters for ListByExternalId.
 type ListByExternalIdParams struct {
-	// maximum number of results to return
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// offset rows to skip before returning rows
-	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
-}
-
-// ListByTypeParams defines parameters for ListByType.
-type ListByTypeParams struct {
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 

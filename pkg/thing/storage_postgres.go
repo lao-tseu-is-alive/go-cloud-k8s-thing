@@ -45,11 +45,12 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 }
 
 // List returns the list of existing things with the given offset and limit.
-func (db *PGX) List(offset, limit int) ([]*ThingList, error) {
-	db.log.Debug("trace : entering List()")
+func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) {
+	db.log.Debug("trace : entering List(params : %+v)", params)
 	var res []*ThingList
 
-	err := pgxscan.Select(context.Background(), db.Conn, &res, listThings, limit, offset)
+	err := pgxscan.Select(context.Background(), db.Conn, &res, listThings,
+		limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
 	if err != nil {
 		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
 		return nil, err
@@ -149,9 +150,9 @@ func (db *PGX) Update(id uuid.UUID, thing Thing) (*Thing, error) {
 }
 
 // Delete the thing stored in DB with given id
-func (db *PGX) Delete(id uuid.UUID) error {
+func (db *PGX) Delete(id uuid.UUID, userId int32) error {
 	db.log.Debug("trace : entering Delete(%d)", id)
-	rowsAffected, err := db.dbi.ExecActionQuery(deleteThing, id)
+	rowsAffected, err := db.dbi.ExecActionQuery(deleteThing, userId, id)
 	if err != nil {
 		msg := fmt.Sprintf("thing could not be deleted, err: %v", err)
 		db.log.Error(msg)
@@ -171,9 +172,38 @@ func (db *PGX) SearchThingsByName(pattern string) ([]*ThingList, error) {
 	panic("implement me")
 }
 
+// IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
 func (db *PGX) IsThingActive(id uuid.UUID) bool {
-	//TODO implement me
-	panic("implement me")
+	db.log.Debug("trace : entering IsThingActive(%d)", id)
+	count, err := db.dbi.GetQueryInt(isActiveThing, id)
+	if err != nil {
+		db.log.Error("IsThingActive(%d) could not be retrieved from DB. failed db.Query err: %v", id, err)
+		return false
+	}
+	if count > 0 {
+		db.log.Info(" IsThingActive(%d) is true  count:%v", id, count)
+		return true
+	} else {
+		db.log.Info(" IsThingActive(%d) is false count:%v", id, count)
+		return false
+	}
+}
+
+// IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
+func (db *PGX) IsUserOwner(id uuid.UUID, userId int32) bool {
+	db.log.Debug("trace : entering IsUserOwner(%v, %d)", id, userId)
+	count, err := db.dbi.GetQueryInt(existThingOwnedBy, id, userId)
+	if err != nil {
+		db.log.Error("IsUserOwner(%v, %d) could not be retrieved from DB. failed db.Query err: %v", id, userId, err)
+		return false
+	}
+	if count > 0 {
+		db.log.Info(" IsUserOwner(%v, %d) is true  count:%v", id, userId, count)
+		return true
+	} else {
+		db.log.Info(" IsUserOwner(%v, %d) is false count:%v", id, userId, count)
+		return false
+	}
 }
 
 func (db *PGX) CreateTypeThing(typeThing TypeThing) (*TypeThing, error) {
@@ -186,7 +216,7 @@ func (db *PGX) UpdateTypeThing(id int32, typeThing TypeThing) (*TypeThing, error
 	panic("implement me")
 }
 
-func (db *PGX) DeleteTypeThing(id int32) error {
+func (db *PGX) DeleteTypeThing(id int32, userId int32) error {
 	//TODO implement me
 	panic("implement me")
 }
