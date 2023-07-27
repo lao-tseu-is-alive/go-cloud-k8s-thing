@@ -166,6 +166,8 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	return ctx.JSON(http.StatusOK, thing)
 }
 
+// Update will change the attributes values for the thing identified by the given thingId
+// curl -s -XPUT -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test by GIL","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": {"info_value": 3230 },"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing/3999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	s.Log.Debug("trace: entering Update(id=%v)", thingId)
 	// get the current user from JWT TOKEN
