@@ -77,4 +77,33 @@ SET
     _deleted_by = $1,
     _deleted_at = CURRENT_TIMESTAMP
 WHERE id = $2;`
+	updateTing = `
+UPDATE go_thing.thing SET
+       type_id = $2,
+       name = $3,
+       description = $4,
+       comment = $5,
+       external_id = $6,
+       external_ref = $7,
+       build_at = $8,
+       status = $9,
+       contained_by = $10,
+       contained_by_old = $11,
+       inactivated = $12,
+       inactivated_time = $13,
+       inactivated_by = $14,
+       inactivated_reason = $15,
+       validated = $16,
+       validated_time = $17,
+       validated_by = $18,
+       managed_by = $19,
+       _last_modified_at = CURRENT_TIMESTAMP,
+       _last_modified_by =$20,
+       more_data =$21,
+       position = ST_SetSRID(ST_MakePoint($22,$23), 2056),
+       text_search = to_tsvector('french', unaccent($3) ||
+                             ' ' || coalesce(unaccent($4), ' ') ||
+                             ' ' || coalesce(unaccent($5), ' ') )
+WHERE id = $1;
+`
 )

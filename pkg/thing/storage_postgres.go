@@ -73,7 +73,7 @@ func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" Get(%d) returned no results ", id)
+		db.log.Info(" Get(%v) returned no results ", id)
 		return nil, errors.New("records not found")
 	}
 	return res, nil
@@ -84,11 +84,11 @@ func (db *PGX) Exist(id uuid.UUID) bool {
 	db.log.Debug("trace : entering Exist(%d)", id)
 	count, err := db.dbi.GetQueryInt(existThing, id)
 	if err != nil {
-		db.log.Error("Exist(%d) could not be retrieved from DB. failed db.Query err: %v", id, err)
+		db.log.Error("Exist(%v) could not be retrieved from DB. failed db.Query err: %v", id, err)
 		return false
 	}
 	if count > 0 {
-		db.log.Info(" Exist(%d) id does exist  count:%v", id, count)
+		db.log.Info(" Exist(%v) id does exist  count:%v", id, count)
 		return true
 	} else {
 		db.log.Info(" Exist(%d) id does not exist count:%v", id, count)
@@ -144,9 +144,31 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 	return createdThing, nil
 }
 
-func (db *PGX) Update(id uuid.UUID, thing Thing) (*Thing, error) {
-	//TODO implement me
-	panic("implement me")
+func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
+	db.log.Debug("trace : entering Update(%q)", t.Id)
+
+	rowsAffected, err := db.dbi.ExecActionQuery(updateTing,
+		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
+		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Inactivated, &t.InactivatedTime, &t.InactivatedBy, &t.InactivatedReason, //$15
+		t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$18
+		&t.ManagedBy, &t.LastModifiedBy, &t.MoreData, t.PosX, t.PosY) //$23
+	if err != nil {
+
+		db.log.Error("Create(%q) unexpectedly failed. error : %v", t.Id, err)
+		return nil, err
+	}
+	if rowsAffected < 1 {
+		db.log.Error("Create(%q) no row was created so create as failed. error : %v", t.Id, err)
+		return nil, err
+	}
+	//db.log.Info(" Create(%q) created with id : %v", t.Name, t.Id)
+
+	// if we get to here all is good, so let's retrieve a fresh copy to send it back
+	updatedThing, err := db.Get(t.Id)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
+	}
+	return updatedThing, nil
 }
 
 // Delete the thing stored in DB with given id

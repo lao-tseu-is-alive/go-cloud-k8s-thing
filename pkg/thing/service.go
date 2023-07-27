@@ -48,7 +48,8 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 }
 
 // Create allows to insert a new thing
-// curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "9999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 2,"name": "GilTown","description": "just a nice test","external_id": 123456789,"inactivated": false,"more_data": null,"x":2537609.0 ,"y":1152611.0   }' 'http://localhost:9090/goapi/v1/thing'
+// curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "9999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 2,"name": "GilTown","description": "just a nice test","external_id": 123456789,"inactivated": false,"more_data": null,"pos_x":2537609.0 ,"pos_y":1152611.0   }' 'http://localhost:9090/goapi/v1/thing'
+// curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": NULL,"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	s.Log.Debug("trace: entering Create()")
 	// get the current user from JWT TOKEN
@@ -69,22 +70,28 @@ func (s Service) Create(ctx echo.Context) error {
 		CreateBy: int32(currentUserId),
 	}
 	if err := ctx.Bind(newThing); err != nil {
-		return ctx.JSON(http.StatusBadRequest, fmt.Sprintf("Create has invalid format [%v]", err))
+		msg := fmt.Sprintf("Create has invalid format [%v]", err)
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(strings.Trim(newThing.Name, " ")) < 1 {
-		return ctx.JSON(http.StatusBadRequest, fmt.Sprint("Create name cannot be empty or spaces only"))
+		msg := fmt.Sprintf("Create name cannot be empty or contain only spaces")
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(newThing.Name) < 5 {
-		return ctx.JSON(http.StatusBadRequest, fmt.Sprintf("Create name minLength is 5 not (%d)", len(newThing.Name)))
+		msg := fmt.Sprintf("Create name minLength is 5 not (%d)", len(newThing.Name))
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# Create() newThing : %#v\n", newThing)
+	//s.Log.Info("# Create() before Store.Create newThing : %#v\n", newThing)
 	thingCreated, err := s.Store.Create(*newThing)
 	if err != nil {
 		msg := fmt.Sprintf("Create had an error saving thing:%#v, err:%#v", *newThing, err)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# Create() Thing %#v\n", thingCreated)
+	s.Log.Info("# Create() success Thing %#v\n", thingCreated)
 	return ctx.JSON(http.StatusCreated, thingCreated)
 }
 
@@ -112,13 +119,13 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	*/
 	if s.Store.Exist(thingId) == false {
 		msg := fmt.Sprintf("Delete(%v) cannot delete this id, it does not exist !", thingId)
-		s.Log.Info(msg)
+		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	} else {
 		err := s.Store.Delete(thingId, currentUserId)
 		if err != nil {
 			msg := fmt.Sprintf("Delete(%v) got an error: %#v ", thingId, err)
-			s.Log.Info(msg)
+			s.Log.Error(msg)
 			return echo.NewHTTPError(http.StatusInternalServerError, msg)
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -160,8 +167,54 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 }
 
 func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Debug("trace: entering Update(id=%v)", thingId)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
+	currentUserId := claims.Id
+	if !s.Store.IsUserOwner(thingId, currentUserId) {
+		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
+	}
+	/* TODO implement ACL & RBAC handling
+	if !s.Store.IsUserAllowedToCreate(currentUserId, typeThing) {
+		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
+	}
+	*/
+	if s.Store.Exist(thingId) == false {
+		msg := fmt.Sprintf("Update(%v) cannot update this id, it does not exist !", thingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
+	updateThing := new(Thing)
+	if err := ctx.Bind(updateThing); err != nil {
+		msg := fmt.Sprintf("Update has invalid format error:[%v]", err)
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(strings.Trim(updateThing.Name, " ")) < 1 {
+		msg := fmt.Sprintf("Update name cannot be empty or contain only spaces")
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(updateThing.Name) < 5 {
+		msg := fmt.Sprintf("Update name minLength is 5 not (%d)", len(updateThing.Name))
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	updateThing.LastModifiedBy = &currentUserId
+	thingUpdated, err := s.Store.Update(thingId, *updateThing)
+	if err != nil {
+		msg := fmt.Sprintf("Update had an error saving thing:%#v, err:%#v", *updateThing, err)
+		s.Log.Info(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	s.Log.Info("# Update success Thing %#v\n", thingUpdated)
+	return ctx.JSON(http.StatusCreated, thingUpdated)
 }
 
 func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params ListByExternalIdParams) error {
