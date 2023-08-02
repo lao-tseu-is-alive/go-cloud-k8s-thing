@@ -15,11 +15,20 @@ const (
 
 // Defines values for ThingStatus.
 const (
-	Abandonné      ThingStatus = "Abandonné"
-	Démoli         ThingStatus = "Démoli"
-	EnConstruction ThingStatus = "En Construction"
-	Planifié       ThingStatus = "Planifié"
-	Utilisé        ThingStatus = "Utilisé"
+	ThingStatusAbandonné      ThingStatus = "Abandonné"
+	ThingStatusDémoli         ThingStatus = "Démoli"
+	ThingStatusEnConstruction ThingStatus = "En Construction"
+	ThingStatusPlanifié       ThingStatus = "Planifié"
+	ThingStatusUtilisé        ThingStatus = "Utilisé"
+)
+
+// Defines values for ThingListStatus.
+const (
+	ThingListStatusAbandonné      ThingListStatus = "Abandonné"
+	ThingListStatusDémoli         ThingListStatus = "Démoli"
+	ThingListStatusEnConstruction ThingListStatus = "En Construction"
+	ThingListStatusPlanifié       ThingListStatus = "Planifié"
+	ThingListStatusUtilisé        ThingListStatus = "Utilisé"
 )
 
 // Error defines model for Error.
@@ -73,8 +82,15 @@ type ThingList struct {
 	Id          openapi_types.UUID `json:"id"`
 	Inactivated bool               `json:"inactivated"`
 	Name        string             `json:"name"`
+	PosX        *float64           `json:"pos_x,omitempty"`
+	PosY        *float64           `json:"pos_y,omitempty"`
+	Status      *ThingListStatus   `json:"status,omitempty"`
 	TypeId      int32              `json:"type_id"`
+	Validated   bool               `json:"validated"`
 }
+
+// ThingListStatus defines model for ThingList.Status.
+type ThingListStatus string
 
 // TypeThing defines model for TypeThing.
 type TypeThing struct {
@@ -133,6 +149,30 @@ type CreateJSONBody = Thing
 
 // ListByExternalIdParams defines parameters for ListByExternalId.
 type ListByExternalIdParams struct {
+	// maximum number of results to return
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// SearchParams defines parameters for Search.
+type SearchParams struct {
+	// text keywords to filter the things to return
+	Keywords *string `form:"keywords,omitempty" json:"keywords,omitempty"`
+
+	// TypeThing id to filter by the things to return
+	Type *int32 `form:"type,omitempty" json:"type,omitempty"`
+
+	// id of the creator to filter by the things to return
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// inactivated flag to filter the things to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+
+	// validation flag to filter the things to return
+	Validated *bool `form:"validated,omitempty" json:"validated,omitempty"`
+
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 

@@ -12,6 +12,10 @@ import (
 type Storage interface {
 	// List returns the list of existing things with the given offset and limit.
 	List(offset, limit int, params ListParams) ([]*ThingList, error)
+	// ListByExternalId returns the list of existing things having the given externalId with the given offset and limit.
+	ListByExternalId(offset, limit int, externalId int) ([]*ThingList, error)
+	// Search returns the list of existing things filtered by search params with the given offset and limit.
+	Search(offset, limit int, params SearchParams) ([]*ThingList, error)
 	// Get returns the thing with the specified things ID.
 	Get(id uuid.UUID) (*Thing, error)
 	// Exist returns true only if a things with the specified id exists in store.

@@ -256,6 +256,129 @@
         ]
       }
     },
+    "/thing/search": {
+      "get": {
+        "summary": "Search returns a list of thing based on search criterias",
+        "description": "Returns the thing in an array",
+        "operationId": "Search",
+        "parameters": [
+          {
+            "name": "keywords",
+            "in": "query",
+            "description": "text keywords to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "TypeThing id to filter by the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "created_by",
+            "in": "query",
+            "description": "id of the creator to filter by the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "inactivated",
+            "in": "query",
+            "description": "inactivated flag to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "validated",
+            "in": "query",
+            "description": "validation flag to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "maximum number of results to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "offset rows to skip before returning rows",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of thing response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ThingList"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/thing/{thingId}": {
       "get": {
         "summary": "Get will retrieve in backend all information about a specific thingId",
@@ -837,6 +960,7 @@
           "type_id",
           "name",
           "external_id",
+          "validated",
           "inactivated",
           "created_at",
           "created_by"
@@ -867,6 +991,21 @@
             "type": "boolean",
             "default": false
           },
+          "validated": {
+            "type": "boolean",
+            "default": false
+          },
+          "status": {
+            "enum": [
+              "Planifié",
+              "En Construction",
+              "Utilisé",
+              "Abandonné",
+              "Démoli"
+            ],
+            "format": "public.thing_status_type",
+            "type": "string"
+          },
           "created_by": {
             "type": "integer",
             "format": "int32"
@@ -874,6 +1013,14 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "pos_x": {
+            "type": "number",
+            "format": "double"
+          },
+          "pos_y": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

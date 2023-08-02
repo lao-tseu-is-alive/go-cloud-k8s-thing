@@ -1,23 +1,35 @@
 package thing
 
 const (
-	listThings = `SELECT 
+	baseThingListQuery = `
+SELECT 
 		id,
        type_id,
        name,
        description,
        external_id,
        inactivated,
+       validated,
+       status,
+       st_x(position) as pos_x,
+       st_y(position) as pos_y,
        _created_by as created_by,
        _created_at as created_at 
 FROM go_thing.thing
-WHERE _deleted = false
-AND type_id = coalesce($3, type_id)
-AND _created_by = coalesce($4, _created_by)
-AND inactivated = coalesce($5, inactivated)
---AND validated = $6
-ORDER BY _created_at DESC
-LIMIT $1 OFFSET $2;
+WHERE _deleted = false 
+`
+	thingListOrderBy     = " ORDER BY _created_at DESC LIMIT $1 OFFSET $2;"
+	listThingsConditions = `
+ AND type_id = coalesce($3, type_id)
+ AND _created_by = coalesce($4, _created_by)
+ AND inactivated = coalesce($5, inactivated) 
+`
+	listByExternalIdThingsCondition = " AND external_id = $3 "
+	searchThingsConditions          = `
+ AND type_id = coalesce($3, type_id)
+ AND _created_by = coalesce($4, _created_by)
+ AND inactivated = coalesce($5, inactivated)
+ AND text_search @@ plainto_tsquery('french', unaccent($6))
 `
 	typeThingCount = "SELECT COUNT(*) FROM go_thing.type_thing;"
 	createThing    = `

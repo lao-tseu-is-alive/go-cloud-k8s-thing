@@ -47,10 +47,20 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 // List returns the list of existing things with the given offset and limit.
 func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) {
 	db.log.Debug("trace : entering List(params : %+v)", params)
-	var res []*ThingList
-
-	err := pgxscan.Select(context.Background(), db.Conn, &res, listThings,
-		limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
+	var (
+		res []*ThingList
+		err error
+	)
+	listThings := baseThingListQuery + listThingsConditions
+	if &params.Validated != nil {
+		listThings += " AND validated = coalesce(null, validated) " + thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
+			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Validated)
+	} else {
+		listThings += thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
+			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
+	}
 	if err != nil {
 		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
 		return nil, err
@@ -59,7 +69,51 @@ func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) 
 		db.log.Info(" List returned no results ")
 		return nil, errors.New("records not found")
 	}
+	return res, nil
+}
 
+// ListByExternalId returns the list of existing things having given externalId with the given offset and limit.
+func (db *PGX) ListByExternalId(offset, limit int, externalId int) ([]*ThingList, error) {
+	db.log.Debug("trace : entering ListByExternalId(externalId : %v)", externalId)
+	var res []*ThingList
+	listByExternalIdThings := baseThingListQuery + listByExternalIdThingsCondition + thingListOrderBy
+	err := pgxscan.Select(context.Background(), db.Conn, &res, listByExternalIdThings, limit, offset, externalId)
+	if err != nil {
+		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
+		return nil, err
+	}
+	if res == nil {
+		db.log.Info(" List returned no results ")
+		return nil, errors.New("records not found")
+	}
+	return res, nil
+}
+
+func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, error) {
+	db.log.Debug("trace : entering Search(params : %+v)", params)
+	var (
+		res []*ThingList
+		err error
+	)
+	searchThings := baseThingListQuery + searchThingsConditions
+	if &params.Validated != nil {
+		searchThings += " AND validated = coalesce(null, validated) " + thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords, &params.Validated)
+	} else {
+		searchThings += thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords)
+	}
+
+	if err != nil {
+		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
+		return nil, err
+	}
+	if res == nil {
+		db.log.Info(" List returned no results ")
+		return nil, errors.New("records not found")
+	}
 	return res, nil
 }
 

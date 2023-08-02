@@ -13,11 +13,12 @@ import (
 )
 
 type Service struct {
-	Log         golog.MyLogger
-	dbConn      database.DB
-	Store       Storage
-	JwtSecret   []byte
-	JwtDuration int
+	Log              golog.MyLogger
+	dbConn           database.DB
+	Store            Storage
+	JwtSecret        []byte
+	JwtDuration      int
+	ListDefaultLimit int
 }
 
 // List sends a list of things in the store as json based of the given filters
@@ -32,7 +33,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	limit := 10
+	limit := s.ListDefaultLimit
 	if params.Limit != nil {
 		limit = int(*params.Limit)
 	}
@@ -219,10 +220,59 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	return ctx.JSON(http.StatusCreated, thingUpdated)
 }
 
+// ListByExternalId sends a list of things in the store as json based of the given filters
+// curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/by-external-id/345678912?limit=3&ofset=0' |jq
 func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params ListByExternalIdParams) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Info("trace: entering Thing ListByExternalId() externalId:%+v", externalId)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	limit := s.ListDefaultLimit
+	if params.Limit != nil {
+		limit = int(*params.Limit)
+	}
+	offset := 0
+	if params.Offset != nil {
+		offset = int(*params.Offset)
+	}
+	list, err := s.Store.ListByExternalId(offset, limit, int(externalId))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListByExternalId :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, list)
 }
+
+// Search returns a list of things in the store as json based of the given search criteria
+// curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/search?limit=3&ofset=0' |jq
+// curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/search?limit=3&type=112' |jq
+func (s Service) Search(ctx echo.Context, params SearchParams) error {
+	s.Log.Info("trace: entering Thing Search() params:%+v", params)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	limit := s.ListDefaultLimit
+	if params.Limit != nil {
+		limit = int(*params.Limit)
+	}
+	offset := 0
+	if params.Offset != nil {
+		offset = int(*params.Offset)
+	}
+	list, err := s.Store.Search(offset, limit, params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.Search :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, list)
+}
+
 func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) error {
 	//TODO implement me
 	panic("implement me")

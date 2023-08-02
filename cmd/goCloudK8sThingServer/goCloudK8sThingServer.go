@@ -245,10 +245,11 @@ func main() {
 	}
 	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
 	objService := thing.Service{
-		Log:         l,
-		Store:       thingStore,
-		JwtSecret:   []byte(secret),
-		JwtDuration: tokenDuration,
+		Log:              l,
+		Store:            thingStore,
+		JwtSecret:        []byte(secret),
+		JwtDuration:      tokenDuration,
+		ListDefaultLimit: 10,
 	}
 	thing.RegisterHandlers(r, &objService)
 
