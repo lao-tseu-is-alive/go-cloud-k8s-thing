@@ -21,7 +21,7 @@ type Service struct {
 	ListDefaultLimit int
 }
 
-// List sends a list of things in the store as json based of the given filters
+// List sends a list of things in the store based on the given parameters filters
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing?limit=3&ofset=0' |jq
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing?limit=3&type=112' |jq
 func (s Service) List(ctx echo.Context, params ListParams) error {
@@ -133,7 +133,7 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	}
 }
 
-// Get will retrieve the Thing in the store and return it
+// Get will retrieve the Thing with the given id in the store and return it
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/9999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	s.Log.Info("trace: entering Get(%v)", thingId)
@@ -273,27 +273,178 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	return ctx.JSON(http.StatusOK, list)
 }
 
+// TypeThingList sends a list of TypeThing based on the given TypeThingListParams parameters filters
 func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Info("trace: entering TypeThingList() params:%+v", params)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	limit := s.ListDefaultLimit
+	if params.Limit != nil {
+		limit = int(*params.Limit)
+	}
+	offset := 0
+	if params.Offset != nil {
+		offset = int(*params.Offset)
+	}
+	list, err := s.Store.ListTypeThing(offset, limit, params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListTypeThing :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, list)
 }
 
+// TypeThingCreate will insert a new TypeThing in the store
 func (s Service) TypeThingCreate(ctx echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Debug("trace: entering TypeThingCreate()")
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
+	currentUserId := claims.Id
+	if !claims.IsAdmin {
+		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
+	}
+	newTypeThing := &TypeThing{
+		CreateBy: int32(currentUserId),
+	}
+	if err := ctx.Bind(newTypeThing); err != nil {
+		msg := fmt.Sprintf("TypeThingCreate has invalid format [%v]", err)
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(strings.Trim(newTypeThing.Name, " ")) < 1 {
+		msg := fmt.Sprintf("TypeThingCreate name cannot be empty or contain only spaces")
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(newTypeThing.Name) < 5 {
+		msg := fmt.Sprintf("TypeThingCreate name minLength is 5 not (%d)", len(newTypeThing.Name))
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	//s.Log.Info("# Create() before Store.TypeThingCreate newThing : %#v\n", newThing)
+	typeThingCreated, err := s.Store.CreateTypeThing(*newTypeThing)
+	if err != nil {
+		msg := fmt.Sprintf("TypeThingCreate had an error saving thing:%#v, err:%#v", *newTypeThing, err)
+		s.Log.Info(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	s.Log.Info("# TypeThingCreate() success TypeThing %#v\n", typeThingCreated)
+	return ctx.JSON(http.StatusCreated, typeThingCreated)
 }
 
+// TypeThingDelete will remove the given TypeThing entry from the store, and if not present will return 400 Bad Request
 func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Debug("trace: entering TypeThingUpdate(id=%v)", typeThingId)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	currentUserId := claims.Id
+	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
+	if !claims.IsAdmin {
+		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
+	}
+	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	if err != nil || typeThingCount < 1 {
+		msg := fmt.Sprintf("TypeThingDelete(%v) cannot delete this id, it does not exist !", typeThingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	} else {
+		err := s.Store.DeleteTypeThing(typeThingId, currentUserId)
+		if err != nil {
+			msg := fmt.Sprintf("TypeThingDelete(%v) got an error: %#v ", typeThingId, err)
+			s.Log.Error(msg)
+			return echo.NewHTTPError(http.StatusInternalServerError, msg)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	}
 }
 
+// TypeThingGet will retrieve the Thing with the given id in the store and return it
 func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Info("trace: entering TypeThingGet(%v)", typeThingId)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// currentUserId := claims.Id
+	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
+	if !claims.IsAdmin {
+		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
+	}
+	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	if err != nil || typeThingCount < 1 {
+		msg := fmt.Sprintf("TypeThingGet(%v) cannot retrieve this id, it does not exist !", typeThingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
+
+	typeThing, err := s.Store.GetTypeThing(typeThingId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving TypeThing :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, typeThing)
 }
 
 func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
-	//TODO implement me
-	panic("implement me")
+	s.Log.Debug("trace: entering TypeThingUpdate(id=%v)", typeThingId)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
+	currentUserId := claims.Id
+	if !claims.IsAdmin {
+		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
+	}
+	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	if err != nil || typeThingCount < 1 {
+		msg := fmt.Sprintf("TypeThingUpdate(%v) cannot update this id, it does not exist !", typeThingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
+	uTypeThing := new(TypeThing)
+	if err := ctx.Bind(uTypeThing); err != nil {
+		msg := fmt.Sprintf("TypeThingUpdate has invalid format error:[%v]", err)
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(strings.Trim(uTypeThing.Name, " ")) < 1 {
+		msg := fmt.Sprintf("TypeThingUpdate name cannot be empty or contain only spaces")
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	if len(uTypeThing.Name) < 5 {
+		msg := fmt.Sprintf("TypeThingUpdate name minLength is 5 not (%d)", len(uTypeThing.Name))
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	uTypeThing.LastModifiedBy = &currentUserId
+	thingUpdated, err := s.Store.UpdateTypeThing(typeThingId, *uTypeThing)
+	if err != nil {
+		msg := fmt.Sprintf("TypeThingUpdate had an error saving typeThing:%#v, err:%#v", *uTypeThing, err)
+		s.Log.Info(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+	s.Log.Info("# TypeThingUpdate success updating TypeThing %#+v\n", thingUpdated)
+	return ctx.JSON(http.StatusCreated, thingUpdated)
 }

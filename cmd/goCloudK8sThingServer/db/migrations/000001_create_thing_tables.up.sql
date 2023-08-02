@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS go_thing.thing
     status             thing_status_type,
     contained_by       uuid,
     contained_by_old   integer,  -- to simplify initial import of data
-    inactivated        boolean          default false,
+    inactivated        boolean   not null      default false,
     inactivated_time   timestamp,
     inactivated_by     integer,
     inactivated_reason text,
@@ -770,3 +770,18 @@ INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, ta
                                  more_data_schema, geometry_type)
 VALUES (60, 'Rampe', 'Rampe', null, 60, 'ThiOuvrageRV', true, '2023-07-21 16:40:51.000000', 1, 'not used in goeland',
         10958, '2006-12-21 15:03:18.310000', 10958, null, null, false, null, null, null, 'bbox');
+
+
+
+
+ALTER TABLE go_thing.type_thing ADD COLUMN text_search tsvector;
+
+UPDATE go_thing.type_thing
+SET text_search = to_tsvector('french',
+                              unaccent(name) ||
+                              ' ' || coalesce(unaccent(description), ' ') ||
+                              ' ' || coalesce(unaccent(comment), ' '))
+WHERE text_search IS NULL;
+
+create index type_thing_text_search_index
+    on go_thing.type_thing using gin (text_search);

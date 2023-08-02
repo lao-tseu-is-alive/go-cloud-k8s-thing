@@ -51,15 +51,21 @@ func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) 
 		res []*ThingList
 		err error
 	)
+	isInactive := false
+	if params.Inactivated != nil {
+		isInactive = *params.Inactivated
+	}
 	listThings := baseThingListQuery + listThingsConditions
-	if &params.Validated != nil {
-		listThings += " AND validated = coalesce(null, validated) " + thingListOrderBy
+	if params.Validated != nil {
+		db.log.Debug("params.Validated is not nil ")
+		isValidated := *params.Validated
+		listThings += " AND validated = coalesce($6, validated) " + thingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
-			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Validated)
+			limit, offset, &params.Type, &params.CreatedBy, isInactive, isValidated)
 	} else {
 		listThings += thingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
-			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
+			limit, offset, &params.Type, &params.CreatedBy, isInactive)
 	}
 	if err != nil {
 		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
@@ -96,8 +102,8 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 		err error
 	)
 	searchThings := baseThingListQuery + searchThingsConditions
-	if &params.Validated != nil {
-		searchThings += " AND validated = coalesce(null, validated) " + thingListOrderBy
+	if params.Validated != nil {
+		searchThings += " AND validated = coalesce($7, validated) " + thingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
 			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords, &params.Validated)
 	} else {
@@ -117,13 +123,13 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 	return res, nil
 }
 
-// Get will retrieve one thing with given id
+// Get will retrieve the thing with given id
 func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
 	db.log.Debug("trace : entering Get(%v)", id)
 	res := &Thing{}
 	err := pgxscan.Get(context.Background(), db.Conn, res, getThing, id)
 	if err != nil {
-		db.log.Error("Get(%d) pgxscan.Select unexpectedly failed, error : %v", id, err)
+		db.log.Error("Get(%v) pgxscan.Select unexpectedly failed, error : %v", id, err)
 		return nil, err
 	}
 	if res == nil {
@@ -198,6 +204,7 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 	return createdThing, nil
 }
 
+// Update the thing stored in DB with given id and other information in struct
 func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
 	db.log.Debug("trace : entering Update(%q)", t.Id)
 
@@ -208,14 +215,13 @@ func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
 		&t.ManagedBy, &t.LastModifiedBy, &t.MoreData, t.PosX, t.PosY) //$23
 	if err != nil {
 
-		db.log.Error("Create(%q) unexpectedly failed. error : %v", t.Id, err)
+		db.log.Error("Update(%q) unexpectedly failed. error : %v", t.Id, err)
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("Create(%q) no row was created so create as failed. error : %v", t.Id, err)
+		db.log.Error("Update(%q) no row was created so create as failed. error : %v", t.Id, err)
 		return nil, err
 	}
-	//db.log.Info(" Create(%q) created with id : %v", t.Name, t.Id)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	updatedThing, err := db.Get(t.Id)
@@ -241,11 +247,6 @@ func (db *PGX) Delete(id uuid.UUID, userId int32) error {
 	}
 	// if we get to here all is good
 	return nil
-}
-
-func (db *PGX) SearchThingsByName(pattern string) ([]*ThingList, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 // IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
@@ -282,27 +283,135 @@ func (db *PGX) IsUserOwner(id uuid.UUID, userId int32) bool {
 	}
 }
 
-func (db *PGX) CreateTypeThing(typeThing TypeThing) (*TypeThing, error) {
-	//TODO implement me
-	panic("implement me")
+// CreateTypeThing will store the new TypeThing in the database
+func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
+	db.log.Debug("trace : entering CreateTypeThing(%q, userId)", tt.Name, tt.CreateBy)
+	var lastInsertId int = 0
+	err := db.Conn.QueryRow(context.Background(), createTypeThing,
+		/*	INSERT INTO go_thing.type_thing
+			    (name, description, comment, external_id, table_name, geometry_type,
+			     managed_by, _created_at, _created_by, more_data_schema, text_search)
+			VALUES ($1, $2, $3, $4, $5, $6,
+			        $7, CURRENT_TIMESTAMP, $8, $9,
+			        to_tsvector('french', unaccent($1) ||
+			                              ' ' || coalesce(unaccent($2), ' ') ||
+			                              ' ' || coalesce(unaccent($3), ' ') ));
+		*/
+		tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, &tt.GeometryType, //$6
+		&tt.ManagedBy, tt.CreateBy, &tt.MoreDataSchema).Scan(&lastInsertId)
+	if err != nil {
+		db.log.Error("CreateTypeThing(%q) unexpectedly failed. error : %v", tt.Name, err)
+		return nil, err
+	}
+	db.log.Info(" CreateTypeThing(%q) created with id : %v", tt.Name, &lastInsertId)
+
+	// if we get to here all is good, so let's retrieve a fresh copy to send it back
+	createdTypeThing, err := db.GetTypeThing(int32(lastInsertId))
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("error %v: typeThing was created, but can not be retrieved", err))
+	}
+	return createdTypeThing, nil
 }
 
-func (db *PGX) UpdateTypeThing(id int32, typeThing TypeThing) (*TypeThing, error) {
-	//TODO implement me
-	panic("implement me")
+// UpdateTypeThing updates the TypeThing stored in DB with given id and other information in struct
+func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
+	db.log.Debug("trace : entering UpdateTypeThing(%q)", id)
+
+	rowsAffected, err := db.dbi.ExecActionQuery(updateTypeTing,
+		/*		UPDATE go_thing.type_thing
+				SET
+				    name               = $2,
+				    description        = $3,
+				    comment            = $4,
+				    external_id        = $5,
+				    table_name         = $6,
+				    geometry_type      = $7,
+				    inactivated        = $8,
+				    inactivated_time   = $9,
+				    inactivated_by     = $10,
+				    inactivated_reason = $11,
+				    managed_by         = $12,
+				    _last_modified_at  = CURRENT_TIMESTAMP,
+				    _last_modified_by  = $13,
+				    more_data_schema   = $14,
+				    text_search = to_tsvector('french', unaccent($2) ||
+				                             ' ' || coalesce(unaccent($3), ' ') ||
+				                             ' ' || coalesce(unaccent($4), ' ') )
+				WHERE id = $1;
+		*/
+		tt.Id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
+		&tt.GeometryType, tt.Inactivated, &tt.InactivatedTime, &tt.InactivatedBy, &tt.InactivatedReason, //$11
+		&tt.ManagedBy, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
+	if err != nil {
+
+		db.log.Error("UpdateTypeThing(%q) unexpectedly failed. error : %v", id, err)
+		return nil, err
+	}
+	if rowsAffected < 1 {
+		db.log.Error("UpdateTypeThing(%q) no row was created so create as failed. error : %v", id, err)
+		return nil, err
+	}
+
+	// if we get to here all is good, so let's retrieve a fresh copy to send it back
+	updatedTypeThing, err := db.GetTypeThing(id)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
+	}
+	return updatedTypeThing, nil
 }
 
+// DeleteTypeThing deletes the TypeThing stored in DB with given id
 func (db *PGX) DeleteTypeThing(id int32, userId int32) error {
-	//TODO implement me
-	panic("implement me")
+	db.log.Debug("trace : entering DeleteTypeThing(%d)", id)
+	rowsAffected, err := db.dbi.ExecActionQuery(deleteTypeThing, userId, id)
+	if err != nil {
+		msg := fmt.Sprintf("typething could not be deleted, err: %v", err)
+		db.log.Error(msg)
+		return errors.New(msg)
+	}
+	if rowsAffected < 1 {
+		msg := fmt.Sprintf("typething was not deleted, err: %v", err)
+		db.log.Error(msg)
+		return errors.New(msg)
+	}
+	// if we get to here all is good
+	return nil
 }
 
-func (db *PGX) ListTypeThing(offset, limit int) ([]*TypeThingList, error) {
-	//TODO implement me
-	panic("implement me")
+// ListTypeThing returns the list of existing TypeThing with the given offset and limit.
+func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
+	db.log.Debug("trace : entering ListTypeThing")
+	var (
+		res []*TypeThingList
+		err error
+	)
+	listTypeThings := typeThingListQuery + listTypeThingsConditions + thingListOrderBy
+	err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
+		limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
+
+	if err != nil {
+		db.log.Error("ListTypeThing pgxscan.Select unexpectedly failed, error : %v", err)
+		return nil, err
+	}
+	if res == nil {
+		db.log.Info(" ListTypeThing returned no results ")
+		return nil, errors.New("records not found")
+	}
+	return res, nil
 }
 
+// GetTypeThing will retrieve the TypeThing with given id
 func (db *PGX) GetTypeThing(id int32) (*TypeThing, error) {
-	//TODO implement me
-	panic("implement me")
+	db.log.Debug("trace : entering GetTypeThing(%v)", id)
+	res := &TypeThing{}
+	err := pgxscan.Get(context.Background(), db.Conn, res, getTypeThing, id)
+	if err != nil {
+		db.log.Error("GetTypeThing(%d) pgxscan.Get unexpectedly failed, error : %v", id, err)
+		return nil, err
+	}
+	if res == nil {
+		db.log.Info(" GetTypeThing(%d) returned no results ", id)
+		return nil, errors.New("records not found")
+	}
+	return res, nil
 }

@@ -281,6 +281,34 @@ func (w *ServerInterfaceWrapper) TypeThingList(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params TypeThingListParams
+	// ------------- Optional query parameter "keywords" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "keywords", ctx.QueryParams(), &params.Keywords)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter keywords: %s", err))
+	}
+
+	// ------------- Optional query parameter "created_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "created_by", ctx.QueryParams(), &params.CreatedBy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter created_by: %s", err))
+	}
+
+	// ------------- Optional query parameter "external_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "external_id", ctx.QueryParams(), &params.ExternalId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter external_id: %s", err))
+	}
+
+	// ------------- Optional query parameter "inactivated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "inactivated", ctx.QueryParams(), &params.Inactivated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter inactivated: %s", err))
+	}
+
 	// ------------- Optional query parameter "limit" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)

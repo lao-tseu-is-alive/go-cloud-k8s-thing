@@ -10,11 +10,11 @@ SELECT
        external_id,
        inactivated,
        validated,
-       status,
-       st_x(position) as pos_x,
-       st_y(position) as pos_y,
+       status, 
        _created_by as created_by,
-       _created_at as created_at 
+       _created_at as created_at,
+	   st_x(position) as pos_x,
+       st_y(position) as pos_y
 FROM go_thing.thing
 WHERE _deleted = false 
 `
@@ -31,8 +31,7 @@ WHERE _deleted = false
  AND inactivated = coalesce($5, inactivated)
  AND text_search @@ plainto_tsquery('french', unaccent($6))
 `
-	typeThingCount = "SELECT COUNT(*) FROM go_thing.type_thing;"
-	createThing    = `
+	createThing = `
 INSERT INTO go_thing.thing
 (id, type_id, name, description, comment, external_id, external_ref,
  build_at, status, contained_by, contained_by_old,validated, validated_time, validated_by,

@@ -65,7 +65,7 @@ type Thing struct {
 	PosY              float64                 `json:"pos_y"`
 	Status            *ThingStatus            `json:"status,omitempty"`
 	TypeId            int32                   `json:"type_id"`
-	Validated         bool                    `json:"validated"`
+	Validated         *bool                   `json:"validated,omitempty"`
 	ValidatedBy       *int32                  `json:"validated_by,omitempty"`
 	ValidatedTime     *time.Time              `json:"validated_time,omitempty"`
 }
@@ -75,18 +75,18 @@ type ThingStatus string
 
 // ThingList defines model for ThingList.
 type ThingList struct {
-	CreatedAt   time.Time          `json:"created_at"`
-	CreatedBy   int32              `json:"created_by"`
+	CreatedAt   *time.Time         `json:"created_at,omitempty"`
+	CreatedBy   *int32             `json:"created_by,omitempty"`
 	Description *string            `json:"description,omitempty"`
-	ExternalId  int32              `json:"external_id"`
+	ExternalId  *int32             `json:"external_id,omitempty"`
 	Id          openapi_types.UUID `json:"id"`
 	Inactivated bool               `json:"inactivated"`
 	Name        string             `json:"name"`
-	PosX        *float64           `json:"pos_x,omitempty"`
-	PosY        *float64           `json:"pos_y,omitempty"`
+	PosX        float64            `json:"pos_x"`
+	PosY        float64            `json:"pos_y"`
 	Status      *ThingListStatus   `json:"status,omitempty"`
 	TypeId      int32              `json:"type_id"`
-	Validated   bool               `json:"validated"`
+	Validated   *bool              `json:"validated,omitempty"`
 }
 
 // ThingListStatus defines model for ThingList.Status.
@@ -96,7 +96,7 @@ type ThingListStatus string
 type TypeThing struct {
 	Comment           *string      `json:"comment,omitempty"`
 	CreateAt          *time.Time   `json:"create_at,omitempty"`
-	CreateBy          *int32       `json:"create_by,omitempty"`
+	CreateBy          int32        `json:"create_by"`
 	Deleted           bool         `json:"deleted"`
 	DeletedAt         *time.Time   `json:"deleted_at,omitempty"`
 	DeletedBy         *int32       `json:"deleted_by,omitempty"`
@@ -118,9 +118,12 @@ type TypeThing struct {
 
 // TypeThingList defines model for TypeThingList.
 type TypeThingList struct {
-	Id          int32  `json:"id"`
-	Inactivated bool   `json:"inactivated"`
-	Name        string `json:"name"`
+	ExternalId   *int32  `json:"external_id,omitempty"`
+	GeometryType *string `json:"geometry_type,omitempty"`
+	Id           int32   `json:"id"`
+	Inactivated  bool    `json:"inactivated"`
+	Name         string  `json:"name"`
+	TableName    *string `json:"table_name,omitempty"`
 }
 
 // ListParams defines parameters for List.
@@ -182,6 +185,18 @@ type SearchParams struct {
 
 // TypeThingListParams defines parameters for TypeThingList.
 type TypeThingListParams struct {
+	// text keywords to filter the things to return
+	Keywords *string `form:"keywords,omitempty" json:"keywords,omitempty"`
+
+	// id of the creator to filter by the things to return
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// id of the external id to filter by the things to return
+	ExternalId *int32 `form:"external_id,omitempty" json:"external_id,omitempty"`
+
+	// inactivated flag to filter the things to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+
 	// maximum number of results to return
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 

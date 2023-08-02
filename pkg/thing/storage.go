@@ -28,8 +28,6 @@ type Storage interface {
 	Update(id uuid.UUID, thing Thing) (*Thing, error)
 	// Delete removes the things with given ID from the storage.
 	Delete(id uuid.UUID, userId int32) error
-	// SearchThingsByName list of existing things where the name contains the given search pattern or err if not found
-	SearchThingsByName(pattern string) ([]*ThingList, error)
 	// IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
 	IsThingActive(id uuid.UUID) bool
 	// IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
@@ -41,7 +39,7 @@ type Storage interface {
 	// DeleteTypeThing removes the typeThing with given ID from the storage.
 	DeleteTypeThing(id int32, userId int32) error
 	// ListTypeThing returns the list of active typeThings with the given offset and limit.
-	ListTypeThing(offset, limit int) ([]*TypeThingList, error)
+	ListTypeThing(offset, limit int, params TypeThingListParams) ([]*TypeThingList, error)
 	// GetTypeThing returns the typeThing with the specified things ID.
 	GetTypeThing(id int32) (*TypeThing, error)
 }
