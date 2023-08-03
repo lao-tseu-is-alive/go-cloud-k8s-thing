@@ -58,6 +58,12 @@ type ServiceThing struct {
 	JwtDuration int
 }
 
+// UserLogin defines model for UserLogin.
+type UserLogin struct {
+	PasswordHash string `json:"password_hash"`
+	Username     string `json:"username"`
+}
+
 // login is just a trivial stupid example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component

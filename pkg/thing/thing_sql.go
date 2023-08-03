@@ -16,7 +16,7 @@ SELECT
 	   st_x(position) as pos_x,
        st_y(position) as pos_y
 FROM go_thing.thing
-WHERE _deleted = false 
+WHERE _deleted = false AND position IS NOT NULL
 `
 	thingListOrderBy     = " ORDER BY _created_at DESC LIMIT $1 OFFSET $2;"
 	listThingsConditions = `

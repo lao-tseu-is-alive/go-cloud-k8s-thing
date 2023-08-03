@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/gohttpclient"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DEBUG                           = false
+	DEBUG                           = true
 	assertCorrectStatusCodeExpected = "expected status code should be returned"
 )
 
@@ -25,21 +25,29 @@ type testStruct struct {
 	wantStatusCode int
 	wantBody       string
 	paramKeyValues map[string]string
-	r              *http.Request
+	httpMethod     string
+	url            string
+	body           string
 }
 
 // TestMainExec is instantiating the "real" main code using the env variable (in your .env files if you use the Makefile rule)
 func TestMainExec(t *testing.T) {
-	listenAddr := fmt.Sprintf("http://localhost:%d/", defaultPort)
-	err := os.Setenv("PORT", fmt.Sprintf("%d", defaultPort))
+	listenPort, err := config.GetPortFromEnv(defaultPort)
 	if err != nil {
-		t.Errorf("Unable to set env variable PORT")
+		t.Errorf("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
 		return
 	}
+	listenAddr := fmt.Sprintf("http://localhost%s", listenPort)
+	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
+
 	newRequest := func(method, url string, body string) *http.Request {
-		r, err := http.NewRequest(method, listenAddr+url, strings.NewReader(body))
+		fmt.Printf("INFO: 🚀🚀'newRequest %s on %s ##BODY : %+v'\n", method, url, body)
+		r, err := http.NewRequest(method, url, strings.NewReader(body))
 		if err != nil {
 			t.Fatalf("### ERROR http.NewRequest %s on [%s] error is :%v\n", method, url, err)
+		}
+		if method == http.MethodPost {
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 		return r
 	}
@@ -55,31 +63,39 @@ func TestMainExec(t *testing.T) {
 			contentType:    MIMEHtmlCharsetUTF8,
 			wantBody:       "<html",
 			paramKeyValues: make(map[string]string, 0),
-			r:              newRequest(http.MethodGet, "/", ""),
+			httpMethod:     http.MethodGet,
+			url:            "/",
+			body:           "",
 		},
 		{
 			name:           "2: Post on default get handler should return an http error method not allowed ",
 			wantStatusCode: http.StatusMethodNotAllowed,
 			contentType:    MIMEHtmlCharsetUTF8,
-			wantBody:       "",
+			wantBody:       "Method Not Allowed",
 			paramKeyValues: make(map[string]string, 0),
-			r:              newRequest(http.MethodPost, "/", `{"junk":"test with junk text"}`),
+			httpMethod:     http.MethodPost,
+			url:            "/",
+			body:           `{"junk":"test with junk text"}`,
 		},
 		{
 			name:           "3: Get on nonexistent route should return an http error not found ",
 			wantStatusCode: http.StatusNotFound,
 			contentType:    MIMEHtmlCharsetUTF8,
-			wantBody:       "",
+			wantBody:       "page not found",
 			paramKeyValues: make(map[string]string, 0),
-			r:              newRequest(http.MethodGet, "/aroutethatwillneverexisthere", ""),
+			httpMethod:     http.MethodGet,
+			url:            "/aroutethatwillneverexisthere",
+			body:           "",
 		},
 		{
 			name:           "4: POST to login with valid credential should return a JWT token ",
 			wantStatusCode: http.StatusOK,
-			contentType:    MIMEAppJSONCharsetUTF8,
-			wantBody:       "token",
+			contentType:    MIMEHtmlCharsetUTF8,
+			wantBody:       "TOKEN",
 			paramKeyValues: make(map[string]string, 0),
-			r:              newRequest(http.MethodPost, "/login", formLogin.Encode()),
+			httpMethod:     http.MethodPost,
+			url:            "/login",
+			body:           formLogin.Encode(),
 		},
 	}
 
@@ -92,32 +108,20 @@ func TestMainExec(t *testing.T) {
 	}()
 	gohttpclient.WaitForHttpServer(listenAddr, 1*time.Second, 10)
 
-	// let's test the default get handler
-	resp, err := http.Get(listenAddr)
-	if err != nil {
-		t.Fatalf("Cannot make http get: %v\n", err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "Should return an http status ok")
-
-	receivedHtml, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("Error reading response body: %v\n", err)
-	}
-	assert.Contains(t, string(receivedHtml), "<html", "Response should contain the html tag.")
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.r.Header.Set(HeaderContentType, tt.contentType)
-			resp, err := http.DefaultClient.Do(tt.r)
+
+			r := newRequest(tt.httpMethod, listenAddr+tt.url, tt.body)
+			//r.Header.Set(HeaderContentType, tt.contentType)
+			resp, err := http.DefaultClient.Do(r)
 			if DEBUG {
-				fmt.Printf("### %s : %s on %s\n", tt.name, tt.r.Method, tt.r.URL)
+				fmt.Printf("### %s : %s on %s\n", tt.name, r.Method, r.URL)
 			}
-			defer resp.Body.Close()
 			if err != nil {
-				fmt.Printf("### GOT ERROR : %s\n%s", err, resp.Body)
+				fmt.Printf("### GOT ERROR : %s\n%+v", err, resp)
 				t.Fatal(err)
 			}
+			defer resp.Body.Close()
 			assert.Equal(t, tt.wantStatusCode, resp.StatusCode, assertCorrectStatusCodeExpected)
 			receivedJson, _ := io.ReadAll(resp.Body)
 
