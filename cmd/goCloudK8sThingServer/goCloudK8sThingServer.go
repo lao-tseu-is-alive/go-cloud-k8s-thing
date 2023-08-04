@@ -74,7 +74,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 
 	// Throws unauthorized error
 	if username != defaultUsername || fakePassword != defaultFakeStupidPass {
-		return ctx.JSON(http.StatusUnauthorized, "username not found or password invalid")
+		return ctx.JSON(http.StatusUnauthorized, "{\"message\":\"unauthorized request: username not found or invalid password.\"}")
 	}
 
 	// Set custom claims
