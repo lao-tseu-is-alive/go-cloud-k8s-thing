@@ -49,7 +49,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 }
 
 // Create allows to insert a new thing
-// curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "9999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 2,"name": "GilTown","description": "just a nice test","external_id": 123456789,"inactivated": false,"more_data": null,"pos_x":2537609.0 ,"pos_y":1152611.0   }' 'http://localhost:9090/goapi/v1/thing'
+// with curl just type
 // curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": NULL,"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	s.Log.Debug("trace: entering Create()")
@@ -75,6 +75,7 @@ func (s Service) Create(ctx echo.Context) error {
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
+	s.Log.Info("Create Thing Bind ok : %+v ", newThing)
 	if len(strings.Trim(newThing.Name, " ")) < 1 {
 		msg := fmt.Sprintf("Create name cannot be empty or contain only spaces")
 		s.Log.Error(msg)
