@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
@@ -90,7 +91,7 @@ func (db *PGX) ListByExternalId(offset, limit int, externalId int) ([]*ThingList
 	}
 	if res == nil {
 		db.log.Info(" List returned no results ")
-		return nil, errors.New("records not found")
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
@@ -141,7 +142,7 @@ func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
 
 // Exist returns true only if a thing with the specified id exists in store.
 func (db *PGX) Exist(id uuid.UUID) bool {
-	db.log.Debug("trace : entering Exist(%d)", id)
+	db.log.Debug("trace : entering Exist(%v)", id)
 	count, err := db.dbi.GetQueryInt(existThing, id)
 	if err != nil {
 		db.log.Error("Exist(%v) could not be retrieved from DB. failed db.Query err: %v", id, err)
@@ -151,12 +152,12 @@ func (db *PGX) Exist(id uuid.UUID) bool {
 		db.log.Info(" Exist(%v) id does exist  count:%v", id, count)
 		return true
 	} else {
-		db.log.Info(" Exist(%d) id does not exist count:%v", id, count)
+		db.log.Info(" Exist(%v) id does not exist count:%v", id, count)
 		return false
 	}
 }
 
-// Count returns the number of users stored in DB
+// Count returns the number of thing stored in DB
 func (db *PGX) Count() (int32, error) {
 	db.log.Debug("trace : entering Count()")
 	count, err := db.dbi.GetQueryInt(countThing)
@@ -208,7 +209,7 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
 	db.log.Debug("trace : entering Update(%q)", t.Id)
 
-	rowsAffected, err := db.dbi.ExecActionQuery(updateTing,
+	rowsAffected, err := db.dbi.ExecActionQuery(updateThing,
 		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Inactivated, &t.InactivatedTime, &t.InactivatedBy, &t.InactivatedReason, //$15
 		t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$18

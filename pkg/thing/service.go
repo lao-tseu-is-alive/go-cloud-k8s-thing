@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cristalhq/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
@@ -86,7 +87,11 @@ func (s Service) Create(ctx echo.Context) error {
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	//s.Log.Info("# Create() before Store.Create newThing : %#v\n", newThing)
+	if s.Store.Exist(newThing.Id) {
+		msg := fmt.Sprintf("This id (%v) already exist !", newThing.Id)
+		s.Log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
 	thingCreated, err := s.Store.Create(*newThing)
 	if err != nil {
 		msg := fmt.Sprintf("Create had an error saving thing:%#v, err:%#v", *newThing, err)
@@ -109,6 +114,11 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
+	if s.Store.Exist(thingId) == false {
+		msg := fmt.Sprintf("Delete(%v) cannot delete this id, it does not exist !", thingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
 	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	currentUserId := claims.Id
 	if !s.Store.IsUserOwner(thingId, currentUserId) {
@@ -119,19 +129,14 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-	if s.Store.Exist(thingId) == false {
-		msg := fmt.Sprintf("Delete(%v) cannot delete this id, it does not exist !", thingId)
-		s.Log.Warn(msg)
-		return ctx.JSON(http.StatusNotFound, msg)
-	} else {
-		err := s.Store.Delete(thingId, currentUserId)
-		if err != nil {
-			msg := fmt.Sprintf("Delete(%v) got an error: %#v ", thingId, err)
-			s.Log.Error(msg)
-			return echo.NewHTTPError(http.StatusInternalServerError, msg)
-		}
-		return ctx.NoContent(http.StatusNoContent)
+	err = s.Store.Delete(thingId, currentUserId)
+	if err != nil {
+		msg := fmt.Sprintf("Delete(%v) got an error: %#v ", thingId, err)
+		s.Log.Error(msg)
+		return echo.NewHTTPError(http.StatusInternalServerError, msg)
 	}
+	return ctx.NoContent(http.StatusNoContent)
+
 }
 
 // Get will retrieve the Thing with the given id in the store and return it
@@ -147,6 +152,11 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	}
 	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	if s.Store.Exist(thingId) == false {
+		msg := fmt.Sprintf("Get(%v) cannot get this id, it does not exist !", thingId)
+		s.Log.Info(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
 	if !s.Store.IsUserOwner(thingId, currentUserId) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
@@ -155,11 +165,6 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-	if s.Store.Exist(thingId) == false {
-		msg := fmt.Sprintf("Get(%v) cannot delete this id, it does not exist !", thingId)
-		s.Log.Info(msg)
-		return ctx.JSON(http.StatusNotFound, msg)
-	}
 
 	thing, err := s.Store.Get(thingId)
 	if err != nil {
@@ -181,6 +186,11 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	}
 	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	if s.Store.Exist(thingId) == false {
+		msg := fmt.Sprintf("Update(%v) cannot update this id, it does not exist !", thingId)
+		s.Log.Warn(msg)
+		return ctx.JSON(http.StatusNotFound, msg)
+	}
 	if !s.Store.IsUserOwner(thingId, currentUserId) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
@@ -189,11 +199,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-	if s.Store.Exist(thingId) == false {
-		msg := fmt.Sprintf("Update(%v) cannot update this id, it does not exist !", thingId)
-		s.Log.Warn(msg)
-		return ctx.JSON(http.StatusNotFound, msg)
-	}
+
 	updateThing := new(Thing)
 	if err := ctx.Bind(updateThing); err != nil {
 		msg := fmt.Sprintf("Update has invalid format error:[%v]", err)
@@ -211,6 +217,8 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	updateThing.LastModifiedBy = &currentUserId
+	//TODO handle update of validated field correctly by adding validated time & user
+	//TODO handle update of managed_by field correctly by checking if user is a valid active one
 	thingUpdated, err := s.Store.Update(thingId, *updateThing)
 	if err != nil {
 		msg := fmt.Sprintf("Update had an error saving thing:%#v, err:%#v", *updateThing, err)
@@ -218,7 +226,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	s.Log.Info("# Update success Thing %#v\n", thingUpdated)
-	return ctx.JSON(http.StatusCreated, thingUpdated)
+	return ctx.JSON(http.StatusOK, thingUpdated)
 }
 
 // ListByExternalId sends a list of things in the store as json based of the given filters
@@ -242,7 +250,12 @@ func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params Lis
 	}
 	list, err := s.Store.ListByExternalId(offset, limit, int(externalId))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListByExternalId :%v", err))
+		if err != pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListByExternalId :%v", err))
+		} else {
+			list = make([]*ThingList, 0)
+			return ctx.JSON(http.StatusNotFound, list)
+		}
 	}
 	return ctx.JSON(http.StatusOK, list)
 }

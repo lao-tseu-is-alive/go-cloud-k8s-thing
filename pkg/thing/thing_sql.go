@@ -88,7 +88,7 @@ SET
     _deleted_by = $1,
     _deleted_at = CURRENT_TIMESTAMP
 WHERE id = $2;`
-	updateTing = `
+	updateThing = `
 UPDATE go_thing.thing SET
        type_id = $2,
        name = $3,
