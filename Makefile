@@ -13,7 +13,7 @@ ifneq ("$(wildcard .env)","")
 	# next line allows to export env variables to external process (like your Go app)
 	export $(shell sed 's/=.*//' .env)
 else
-	$(warning .env file was not found using default values for undefined variables )
+	$(info env file was not found using default values for undefined variables )
 	ENV_EXISTS := "FALSE"
 	DB_DRIVER ?= postgres
 	DB_HOST ?= 127.0.0.1
