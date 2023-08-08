@@ -240,7 +240,7 @@ func main() {
 	e := server.GetEcho()
 	e.GET("/readiness", server.GetReadinessHandler(yourService.checkReady, "Connection to DB"))
 	e.GET("/health", server.GetHealthHandler(yourService.checkHealthy, "Connection to DB"))
-	// Login route
+	//TODO  Find a way to allow Login route to be available only in dev environment
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
 	r.GET("/secret", yourService.restricted)

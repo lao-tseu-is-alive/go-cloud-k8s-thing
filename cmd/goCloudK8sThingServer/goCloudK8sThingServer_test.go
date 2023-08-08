@@ -377,7 +377,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /thing/by-external-id with non-existing id should return StatusNotFound",
 			wantStatusCode:               http.StatusNotFound,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "[]", // should retrun an empty array
+			wantBody:                     "[]", // should return an empty array
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/thing/by-external-id/2147483645",
