@@ -51,8 +51,6 @@ CREATE TABLE IF NOT EXISTS go_thing.thing
     more_data          jsonb,
     text_search        tsvector
 );
-alter table go_thing.thing
-    owner to go_cloud_k8s_thing;
 
 SELECT AddGeometryColumn('go_thing', 'thing', 'position', 2056, 'POINT', 2);
 CREATE INDEX idx_thing_geom_gist ON go_thing.thing USING gist (position);
@@ -86,9 +84,6 @@ CREATE TABLE IF NOT EXISTS go_thing.type_thing
     _deleted_by        integer,
     more_data_schema   jsonb
 );
-
-alter table go_thing.type_thing
-    owner to go_cloud_k8s_thing;
 
 alter table go_thing.thing
     add constraint thing_type_thing_id_fk
