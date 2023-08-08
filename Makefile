@@ -48,17 +48,22 @@ MAKEFLAGS += --silent
 # because it is the first target in this Makefile this is also the default rule
 .PHONY: run
 ## run:	will run a dev version of your Go application [DEFAULT RULE]
-run: check-env openapi-codegen
+run: check-env mod-download openapi-codegen
 	go run $(LDFLAGS) cmd/$(APP_EXECUTABLE)/${APP_EXECUTABLE}.go
+
+.PHONY: mod-download
+mod-download:
+	@echo "  >  Downloading go modules dependencies..."
+	go mod download
 
 .PHONY: build
 ## build:	will compile your server app binary and place it in the bin sub-folder
-build: check-env clean test openapi-codegen
+build: check-env clean mod-download test openapi-codegen
 	@echo "  >  Building your app binary inside bin directory..."
 	CGO_ENABLED=0 go build ${LDFLAGS} -a -o bin/$(APP_EXECUTABLE) cmd/$(APP_EXECUTABLE)/${APP_EXECUTABLE}.go
 
 .PHONY: test
-test: clean
+test: clean mod-download
 	@echo "  >  Running all tests code..."
 	go test -race ./... -coverprofile coverage.out
 
