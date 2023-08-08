@@ -194,14 +194,20 @@ func TestMainExec(t *testing.T) {
 		t.Fatalf("💥💥 error doing dbConn.GetVersion() error: %v", err)
 	}
 	fmt.Printf("connected to db version : %s", dbVersion)
-	// removing latest test record if exist
-	count, err := db.GetQueryInt("SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;", newThingId)
+	existTable, err := db.GetQueryBool("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'thing');")
 	if err != nil {
-		t.Fatalf("problem during cleanup before test DB. failed db.Query err: %v", err)
+		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
-	if count > 0 {
-		fmt.Printf(" This Id(%v) does exist  will cleanup before running test", newThingId)
-		db.ExecActionQuery("DELETE FROM  go_thing.thing WHERE id=$1", newThingId)
+	if existTable {
+		// removing latest test record if exist only if the thing table already exist
+		count, err := db.GetQueryInt("SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;", newThingId)
+		if err != nil {
+			t.Fatalf("problem during cleanup before test DB. failed db.Query err: %v", err)
+		}
+		if count > 0 {
+			fmt.Printf(" This Id(%v) does exist  will cleanup before running test", newThingId)
+			db.ExecActionQuery("DELETE FROM  go_thing.thing WHERE id=$1", newThingId)
+		}
 	}
 
 	tests := []testStruct{
