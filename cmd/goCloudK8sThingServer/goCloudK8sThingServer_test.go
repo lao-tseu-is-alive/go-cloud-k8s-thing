@@ -234,7 +234,7 @@ func TestMainExec(t *testing.T) {
 	if err != nil {
 		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
-	var existingMaxTypeThingId = 212
+	var existingMaxTypeThingId = 112
 	if existTableTypeThing {
 		sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
 		_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
