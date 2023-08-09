@@ -229,21 +229,28 @@ func TestMainExec(t *testing.T) {
 		}
 	}
 
-	// deleting type thing of previous run if it's still present
-	sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
-	_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
+	// deleting type thing of previous run if it's still present and if table type_thing exist only
+	existTableTypeThing, err := db.GetQueryBool("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'type_thing');")
 	if err != nil {
-		t.Fatalf("problem trying to delete type_thing from previous test doing cleanup before running tests. failed db.Query err: %v", err)
+		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
-	typeThingMaxIdSql := "SELECT MAX(id) FROM go_thing.type_thing"
-	existingMaxTypeThingId, err := db.GetQueryInt(typeThingMaxIdSql)
-	if err != nil {
-		t.Fatalf("problem trying to retrieve max id for typeThing cleanup before running test. failed db.Query err: %v", err)
-	}
-	resetSequence := "SELECT setval('go_thing.type_thing_id_seq', max(id)) FROM go_thing.type_thing;"
-	_, err = db.ExecActionQuery(resetSequence)
-	if err != nil {
-		t.Fatalf("problem trying to resetSequence to max id for type_thing_id_seq while doing cleanup before running tests. failed db.Query err: %v", err)
+	var existingMaxTypeThingId = 212
+	if existTableTypeThing {
+		sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
+		_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
+		if err != nil {
+			t.Fatalf("problem trying to delete type_thing from previous test doing cleanup before running tests. failed db.Query err: %v", err)
+		}
+		typeThingMaxIdSql := "SELECT MAX(id) FROM go_thing.type_thing"
+		existingMaxTypeThingId, err = db.GetQueryInt(typeThingMaxIdSql)
+		if err != nil {
+			t.Fatalf("problem trying to retrieve max id for typeThing cleanup before running test. failed db.Query err: %v", err)
+		}
+		resetSequence := "SELECT setval('go_thing.type_thing_id_seq', max(id)) FROM go_thing.type_thing;"
+		_, err = db.ExecActionQuery(resetSequence)
+		if err != nil {
+			t.Fatalf("problem trying to resetSequence to max id for type_thing_id_seq while doing cleanup before running tests. failed db.Query err: %v", err)
+		}
 	}
 	// incrementing one to get the real id of insert
 	existingMaxTypeThingId += 1
