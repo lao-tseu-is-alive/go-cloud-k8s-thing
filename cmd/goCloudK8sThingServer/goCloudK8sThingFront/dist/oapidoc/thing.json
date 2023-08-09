@@ -379,6 +379,103 @@
         ]
       }
     },
+    "/thing/count": {
+      "get": {
+        "summary": "Count returns the number of thing based on search criterias",
+        "description": "Returns the number of things found after filtering with passed criterias",
+        "operationId": "Count",
+        "parameters": [
+          {
+            "name": "keywords",
+            "in": "query",
+            "description": "text keywords to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "TypeThing id to filter by the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "created_by",
+            "in": "query",
+            "description": "id of the creator to filter by the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "inactivated",
+            "in": "query",
+            "description": "inactivated flag to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "validated",
+            "in": "query",
+            "description": "validation flag to filter the things to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get List of thing response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/thing/{thingId}": {
       "get": {
         "summary": "Get will retrieve in backend all information about a specific thingId",
@@ -858,6 +955,80 @@
           }
         ]
       }
+    },
+    "/types/count": {
+      "get": {
+        "summary": "Count returns the number of TypeThing based on search criterias",
+        "description": "Returns the number of TypeThings found after filtering with passed criterias",
+        "operationId": "TypeThingCount",
+        "parameters": [
+          {
+            "name": "keywords",
+            "in": "query",
+            "description": "text keywords to filter the TypeThing count",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_by",
+            "in": "query",
+            "description": "id of the creator to filter the TypeThing count",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "inactivated",
+            "in": "query",
+            "description": "inactivated flag to filter the TypeThing count to return",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get Number of TypeThing response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access token is missing or invalid"
+          },
+          "default": {
+            "description": "unexpected Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1075,7 +1246,7 @@
           "name",
           "inactivated",
           "deleted",
-          "create_by"
+          "created_by"
         ],
         "type": "object",
         "properties": {
@@ -1127,11 +1298,11 @@
             "format": "int32",
             "type": "integer"
           },
-          "create_at": {
+          "created_at": {
             "format": "date-time",
             "type": "string"
           },
-          "create_by": {
+          "created_by": {
             "format": "int32",
             "type": "integer"
           },
@@ -1164,7 +1335,8 @@
         "required": [
           "id",
           "name",
-          "inactivated"
+          "inactivated",
+          "created_at"
         ],
         "type": "object",
         "properties": {
@@ -1179,6 +1351,10 @@
           "external_id": {
             "format": "int32",
             "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
           },
           "table_name": {
             "format": "text",

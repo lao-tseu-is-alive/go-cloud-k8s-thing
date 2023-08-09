@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -56,6 +57,24 @@ const (
     "validated": false,
 	"comment": "À Noël la livraison de maïs, surtout après un Æquinoxe vernal est aussi hypothétique que la floraison des æschynanthes qui n'apparaîtra que dans l'Œil d'un cyclone métaphysique "
   }
+`
+	exampleTypeThing = `
+{
+  "description": "Piscine publique ou privée",
+  "geometry_type": "bbox", 
+  "external_id": 987654321,
+  "name": "Piscine"
+}
+
+`
+	exampleTypeThingUpdate = `
+{
+  "description": "Piscine publique ou privée, avec parfois des Dischidia nummularia ",
+  "comment": "Attention la piscine est 🤔 ...️⁉️⚠️  🏴 ‍☠️ 💀 ☠️ ☢️ ☣️ 💣 💥, ",
+  "geometry_type": "bbox", 
+  "external_id": 987654321,
+  "name": "Piscine"
+}
 `
 )
 
@@ -210,6 +229,25 @@ func TestMainExec(t *testing.T) {
 		}
 	}
 
+	// deleting type thing of previous run if it's still present
+	sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
+	_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
+	if err != nil {
+		t.Fatalf("problem trying to delete type_thing from previous test doing cleanup before running tests. failed db.Query err: %v", err)
+	}
+	typeThingMaxIdSql := "SELECT MAX(id) FROM go_thing.type_thing"
+	existingMaxTypeThingId, err := db.GetQueryInt(typeThingMaxIdSql)
+	if err != nil {
+		t.Fatalf("problem trying to retrieve max id for typeThing cleanup before running test. failed db.Query err: %v", err)
+	}
+	resetSequence := "SELECT setval('go_thing.type_thing_id_seq', max(id)) FROM go_thing.type_thing;"
+	_, err = db.ExecActionQuery(resetSequence)
+	if err != nil {
+		t.Fatalf("problem trying to resetSequence to max id for type_thing_id_seq while doing cleanup before running tests. failed db.Query err: %v", err)
+	}
+	// incrementing one to get the real id of insert
+	existingMaxTypeThingId += 1
+
 	tests := []testStruct{
 		{
 			name:                         "GET /  should contain html tag",
@@ -284,6 +322,18 @@ func TestMainExec(t *testing.T) {
 			body:                         formLoginWrong.Encode(),
 		},
 		{
+			name:                         "POST /types with valid JWT token should create a new typeThings",
+			wantStatusCode:               http.StatusCreated,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "created_by",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodPost,
+			url:                          defaultSecuredApi + "/types",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         exampleTypeThing,
+		},
+		{
 			name:                         "POST /thing with valid JWT token should create a new Things",
 			wantStatusCode:               http.StatusCreated,
 			contentType:                  MIMEHtmlCharsetUTF8,
@@ -344,6 +394,18 @@ func TestMainExec(t *testing.T) {
 			body:                         "",
 		},
 		{
+			name:                         "GET /thing/count without filter params should return an int > 1",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "1",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/thing/count",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
 			name:                         "PUT /thing with existing id should return the valid thing",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
@@ -392,6 +454,30 @@ func TestMainExec(t *testing.T) {
 			body:                         "",
 		},
 		{
+			name:                         "GET /thing/search with existing keyword should return the valid thing",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "\"id\":\"" + newThingId + "\"",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/thing/search?limit=1&offset=0&keywords=æschynanthes",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /thing/search with non-existing id should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "[]", // should return an empty array
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/thing/search?limit=1&offset=0&keywords=anticonstitutionnellement",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
 			name:                         "DELETE /thing with existing id should return StatusNoContent",
 			wantStatusCode:               http.StatusNoContent,
 			contentType:                  MIMEHtmlCharsetUTF8,
@@ -411,6 +497,163 @@ func TestMainExec(t *testing.T) {
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodDelete,
 			url:                          defaultSecuredApi + "/thing/11111111-4444-5555-6666-777777777777",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		// TypeThing scenarios
+		{
+			name:                         "GET /types without JWT token should return an error",
+			wantStatusCode:               http.StatusUnauthorized,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "missing or malformed jwt",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  false,
+			body:                         formLoginWrong.Encode(),
+		},
+		{
+			name:                         "GET /types with valid JWT token should return an list of Things",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "created_at",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types?limit=1&offset=0&type=2&created_by=999",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         formLoginWrong.Encode(),
+		},
+		{
+			name:                         "GET /types with existing id should return the valid typeThing",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types with non-existing id should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types/8876541",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "PUT /types with existing id should return the valid typeThing",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "\"comment\":\"Attention la piscine est 🤔",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodPut,
+			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         exampleTypeThingUpdate,
+		},
+		{
+			name:                         "PUT /types with non-existing id should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "cannot update this id, it does not exist",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodPut,
+			url:                          defaultSecuredApi + "/types/8876541",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types with with existing external_id should return the valid typeThing",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types?external-id=987654321&limit=1&offset=0",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types with with non-existing external_id should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "[]", // should return an empty array
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types?external_id=2147483645&limit=1&offset=0",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types with existing keyword should return the valid typeThing",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types?limit=1&offset=0&keywords=Dischidia",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types with non-existing keyword should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "[]", // should return an empty array
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types?limit=1&offset=0&keywords=anticonstitutionnellement",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "GET /types/count should return the max id",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     strconv.Itoa(existingMaxTypeThingId),
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/types/count",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "DELETE /types with existing id should return StatusNoContent",
+			wantStatusCode:               http.StatusNoContent,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodDelete,
+			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
+			name:                         "DELETE /types with non-existing id should return StatusNotFound",
+			wantStatusCode:               http.StatusNotFound,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "",
+			paramKeyValues:               make(map[string]string, 0),
+			httpMethod:                   http.MethodDelete,
+			url:                          defaultSecuredApi + "/types/8876541",
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",

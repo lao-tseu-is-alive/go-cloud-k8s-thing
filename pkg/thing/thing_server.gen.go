@@ -23,6 +23,9 @@ type ServerInterface interface {
 	// ListByExternalId returns a list of thing filtered by externalId
 	// (GET /thing/by-external-id/{externalId})
 	ListByExternalId(ctx echo.Context, externalId int32, params ListByExternalIdParams) error
+	// Count returns the number of thing based on search criterias
+	// (GET /thing/count)
+	Count(ctx echo.Context, params CountParams) error
 	// Search returns a list of thing based on search criterias
 	// (GET /thing/search)
 	Search(ctx echo.Context, params SearchParams) error
@@ -41,6 +44,9 @@ type ServerInterface interface {
 	// TypeThingCreate will create a new group
 	// (POST /types)
 	TypeThingCreate(ctx echo.Context) error
+	// Count returns the number of TypeThing based on search criterias
+	// (GET /types/count)
+	TypeThingCount(ctx echo.Context, params TypeThingCountParams) error
 	// TypeThingDelete allows to delete a specific typeThingId
 	// (DELETE /types/{typeThingId})
 	TypeThingDelete(ctx echo.Context, typeThingId int32) error
@@ -154,6 +160,54 @@ func (w *ServerInterfaceWrapper) ListByExternalId(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.ListByExternalId(ctx, externalId, params)
+	return err
+}
+
+// Count converts echo context to params.
+func (w *ServerInterfaceWrapper) Count(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(JWTAuthScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CountParams
+	// ------------- Optional query parameter "keywords" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "keywords", ctx.QueryParams(), &params.Keywords)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter keywords: %s", err))
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
+	}
+
+	// ------------- Optional query parameter "created_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "created_by", ctx.QueryParams(), &params.CreatedBy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter created_by: %s", err))
+	}
+
+	// ------------- Optional query parameter "inactivated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "inactivated", ctx.QueryParams(), &params.Inactivated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter inactivated: %s", err))
+	}
+
+	// ------------- Optional query parameter "validated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "validated", ctx.QueryParams(), &params.Validated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter validated: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.Count(ctx, params)
 	return err
 }
 
@@ -339,6 +393,40 @@ func (w *ServerInterfaceWrapper) TypeThingCreate(ctx echo.Context) error {
 	return err
 }
 
+// TypeThingCount converts echo context to params.
+func (w *ServerInterfaceWrapper) TypeThingCount(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(JWTAuthScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params TypeThingCountParams
+	// ------------- Optional query parameter "keywords" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "keywords", ctx.QueryParams(), &params.Keywords)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter keywords: %s", err))
+	}
+
+	// ------------- Optional query parameter "created_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "created_by", ctx.QueryParams(), &params.CreatedBy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter created_by: %s", err))
+	}
+
+	// ------------- Optional query parameter "inactivated" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "inactivated", ctx.QueryParams(), &params.Inactivated)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter inactivated: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.TypeThingCount(ctx, params)
+	return err
+}
+
 // TypeThingDelete converts echo context to params.
 func (w *ServerInterfaceWrapper) TypeThingDelete(ctx echo.Context) error {
 	var err error
@@ -424,12 +512,14 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/thing", wrapper.List)
 	router.POST(baseURL+"/thing", wrapper.Create)
 	router.GET(baseURL+"/thing/by-external-id/:externalId", wrapper.ListByExternalId)
+	router.GET(baseURL+"/thing/count", wrapper.Count)
 	router.GET(baseURL+"/thing/search", wrapper.Search)
 	router.DELETE(baseURL+"/thing/:thingId", wrapper.Delete)
 	router.GET(baseURL+"/thing/:thingId", wrapper.Get)
 	router.PUT(baseURL+"/thing/:thingId", wrapper.Update)
 	router.GET(baseURL+"/types", wrapper.TypeThingList)
 	router.POST(baseURL+"/types", wrapper.TypeThingCreate)
+	router.GET(baseURL+"/types/count", wrapper.TypeThingCount)
 	router.DELETE(baseURL+"/types/:typeThingId", wrapper.TypeThingDelete)
 	router.GET(baseURL+"/types/:typeThingId", wrapper.TypeThingGet)
 	router.PUT(baseURL+"/types/:typeThingId", wrapper.TypeThingUpdate)

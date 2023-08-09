@@ -15,7 +15,7 @@ import (
 
 type Service struct {
 	Log              golog.MyLogger
-	dbConn           database.DB
+	DbConn           database.DB
 	Store            Storage
 	JwtSecret        []byte
 	JwtDuration      int
@@ -50,7 +50,6 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 }
 
 // Create allows to insert a new thing
-// with curl just type
 // curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": NULL,"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	s.Log.Debug("trace: entering Create()")
@@ -100,6 +99,26 @@ func (s Service) Create(ctx echo.Context) error {
 	}
 	s.Log.Info("# Create() success Thing %#v\n", thingCreated)
 	return ctx.JSON(http.StatusCreated, thingCreated)
+}
+
+// Count returns the number of things found after filtering data with any given CountParams
+// curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/count' |jq
+func (s Service) Count(ctx echo.Context, params CountParams) error {
+	s.Log.Info("trace: entering Count()")
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
+	// currentUserId := claims.Id
+	numThings, err := s.Store.Count(params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, numThings)
 }
 
 // Delete will remove the given thingId entry from the store, and if not present will return 400 Bad Request
@@ -282,7 +301,12 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	}
 	list, err := s.Store.Search(offset, limit, params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.Search :%v", err))
+		if err != pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.Search :%v", err))
+		} else {
+			list = make([]*ThingList, 0)
+			return ctx.JSON(http.StatusNotFound, list)
+		}
 	}
 	return ctx.JSON(http.StatusOK, list)
 }
@@ -307,7 +331,12 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 	}
 	list, err := s.Store.ListTypeThing(offset, limit, params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListTypeThing :%v", err))
+		if err != pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListTypeThing :%v", err))
+		} else {
+			list = make([]*TypeThingList, 0)
+			return ctx.JSON(http.StatusNotFound, list)
+		}
 	}
 	return ctx.JSON(http.StatusOK, list)
 }
@@ -328,7 +357,26 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
 	}
 	newTypeThing := &TypeThing{
-		CreateBy: int32(currentUserId),
+		Comment:           nil,
+		CreatedAt:         nil,
+		CreatedBy:         int32(currentUserId),
+		Deleted:           false,
+		DeletedAt:         nil,
+		DeletedBy:         nil,
+		Description:       nil,
+		ExternalId:        nil,
+		GeometryType:      nil,
+		Id:                0,
+		Inactivated:       false,
+		InactivatedBy:     nil,
+		InactivatedReason: nil,
+		InactivatedTime:   nil,
+		LastModifiedAt:    nil,
+		LastModifiedBy:    nil,
+		ManagedBy:         nil,
+		MoreDataSchema:    nil,
+		Name:              "",
+		TableName:         nil,
 	}
 	if err := ctx.Bind(newTypeThing); err != nil {
 		msg := fmt.Sprintf("TypeThingCreate has invalid format [%v]", err)
@@ -356,6 +404,24 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, typeThingCreated)
 }
 
+func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) error {
+	s.Log.Info("trace: entering TypeThingCount()")
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
+	// currentUserId := claims.Id
+	numThings, err := s.Store.CountTypeThing(params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
+	}
+	return ctx.JSON(http.StatusOK, numThings)
+}
+
 // TypeThingDelete will remove the given TypeThing entry from the store, and if not present will return 400 Bad Request
 func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 	s.Log.Debug("trace: entering TypeThingUpdate(id=%v)", typeThingId)
@@ -371,7 +437,7 @@ func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
 	}
-	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingDelete(%v) cannot delete this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
@@ -402,7 +468,7 @@ func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
 	}
-	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingGet(%v) cannot retrieve this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
@@ -430,7 +496,7 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
 	}
-	typeThingCount, err := s.dbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingUpdate(%v) cannot update this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
@@ -460,5 +526,5 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	s.Log.Info("# TypeThingUpdate success updating TypeThing %#+v\n", thingUpdated)
-	return ctx.JSON(http.StatusCreated, thingUpdated)
+	return ctx.JSON(http.StatusOK, thingUpdated)
 }

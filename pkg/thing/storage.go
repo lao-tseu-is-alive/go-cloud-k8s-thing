@@ -21,7 +21,7 @@ type Storage interface {
 	// Exist returns true only if a things with the specified id exists in store.
 	Exist(id uuid.UUID) bool
 	// Count returns the total number of things.
-	Count() (int32, error)
+	Count(params CountParams) (int32, error)
 	// Create saves a new things in the storage.
 	Create(thing Thing) (*Thing, error)
 	// Update updates the things with given ID in the storage.
@@ -42,6 +42,8 @@ type Storage interface {
 	ListTypeThing(offset, limit int, params TypeThingListParams) ([]*TypeThingList, error)
 	// GetTypeThing returns the typeThing with the specified things ID.
 	GetTypeThing(id int32) (*TypeThing, error)
+	// CountTypeThing returns the number of TypeThing based on search criteria
+	CountTypeThing(params TypeThingCountParams) (int32, error)
 }
 
 func GetStorageInstance(dbDriver string, db database.DB, l golog.MyLogger) (Storage, error) {

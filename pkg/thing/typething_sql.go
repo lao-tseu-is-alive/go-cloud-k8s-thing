@@ -1,22 +1,29 @@
 package thing
 
 const (
+	typeThingMaxId     = "SELECT MAX(id) FROM go_thing.type_thing"
 	typeThingListQuery = `
 SELECT id,
     name,
     external_id,
+    _created_at as created_at,
     table_name,
     geometry_type,
     inactivated
 FROM go_thing.type_thing
 WHERE _deleted = false 
 `
-	typeThingListOrderBy     = " ORDER BY id DESC LIMIT $1 OFFSET $2;"
-	listTypeThingsConditions = `
- AND text_search @@ plainto_tsquery('french', unaccent($3)
+	typeThingListOrderBy                 = " ORDER BY id DESC LIMIT $1 OFFSET $2;"
+	listTypeThingsConditionsWithKeywords = `
+ AND text_search @@ plainto_tsquery('french', unaccent($3))
  AND _created_by = coalesce($4, _created_by)
  AND external_id = coalesce($5, external_id)
- AND inactivated = coalesce($6, inactivated)  
+ AND inactivated = coalesce($6, inactivated)
+`
+	listTypeThingsConditionsWithoutKeywords = ` 
+ AND _created_by = coalesce($3, _created_by)
+ AND external_id = coalesce($4, external_id)
+ AND inactivated = coalesce($5, inactivated)
 `
 	typeThingCount  = "SELECT COUNT(*) FROM go_thing.type_thing;"
 	createTypeThing = `
@@ -44,8 +51,8 @@ SELECT id,
        inactivated_by,
        inactivated_reason,
        managed_by,
-       _created_at as create_at,
-       _created_by as create_by,
+       _created_at as created_at,
+       _created_by as created_by,
        _last_modified_at as last_modified_at,
        _last_modified_by as last_modified_by,
        _deleted as deleted,
@@ -58,7 +65,7 @@ WHERE id = $1;
 	existTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND  _deleted = false;`
 	isActiveTypeThing     = `SELECT COUNT(*) FROM go_thing.type_thing WHERE inactivated=false AND id = $1;`
 	existTypeThingOwnedBy = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND _created_by = $2;`
-	countTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing;`
+	countTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing`
 	deleteTypeThing       = `
 UPDATE go_thing.type_thing
 SET

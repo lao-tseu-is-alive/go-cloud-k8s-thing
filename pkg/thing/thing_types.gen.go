@@ -95,8 +95,8 @@ type ThingListStatus string
 // TypeThing defines model for TypeThing.
 type TypeThing struct {
 	Comment           *string      `json:"comment,omitempty"`
-	CreateAt          *time.Time   `json:"create_at,omitempty"`
-	CreateBy          int32        `json:"create_by"`
+	CreatedAt         *time.Time   `json:"created_at,omitempty"`
+	CreatedBy         int32        `json:"created_by"`
 	Deleted           bool         `json:"deleted"`
 	DeletedAt         *time.Time   `json:"deleted_at,omitempty"`
 	DeletedBy         *int32       `json:"deleted_by,omitempty"`
@@ -118,12 +118,13 @@ type TypeThing struct {
 
 // TypeThingList defines model for TypeThingList.
 type TypeThingList struct {
-	ExternalId   *int32  `json:"external_id,omitempty"`
-	GeometryType *string `json:"geometry_type,omitempty"`
-	Id           int32   `json:"id"`
-	Inactivated  bool    `json:"inactivated"`
-	Name         string  `json:"name"`
-	TableName    *string `json:"table_name,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	ExternalId   *int32    `json:"external_id,omitempty"`
+	GeometryType *string   `json:"geometry_type,omitempty"`
+	Id           int32     `json:"id"`
+	Inactivated  bool      `json:"inactivated"`
+	Name         string    `json:"name"`
+	TableName    *string   `json:"table_name,omitempty"`
 }
 
 // ListParams defines parameters for List.
@@ -157,6 +158,24 @@ type ListByExternalIdParams struct {
 
 	// offset rows to skip before returning rows
 	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// CountParams defines parameters for Count.
+type CountParams struct {
+	// text keywords to filter the things to return
+	Keywords *string `form:"keywords,omitempty" json:"keywords,omitempty"`
+
+	// TypeThing id to filter by the things to return
+	Type *int32 `form:"type,omitempty" json:"type,omitempty"`
+
+	// id of the creator to filter by the things to return
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// inactivated flag to filter the things to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+
+	// validation flag to filter the things to return
+	Validated *bool `form:"validated,omitempty" json:"validated,omitempty"`
 }
 
 // SearchParams defines parameters for Search.
@@ -206,6 +225,18 @@ type TypeThingListParams struct {
 
 // TypeThingCreateJSONBody defines parameters for TypeThingCreate.
 type TypeThingCreateJSONBody = TypeThing
+
+// TypeThingCountParams defines parameters for TypeThingCount.
+type TypeThingCountParams struct {
+	// text keywords to filter the TypeThing count
+	Keywords *string `form:"keywords,omitempty" json:"keywords,omitempty"`
+
+	// id of the creator to filter the TypeThing count
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// inactivated flag to filter the TypeThing count to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+}
 
 // CreateJSONRequestBody defines body for Create for application/json ContentType.
 type CreateJSONRequestBody = CreateJSONBody

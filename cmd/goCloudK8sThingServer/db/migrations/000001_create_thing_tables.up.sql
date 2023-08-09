@@ -780,3 +780,5 @@ WHERE text_search IS NULL;
 
 create index type_thing_text_search_index
     on go_thing.type_thing using gin (text_search);
+
+SELECT setval('go_thing.type_thing_id_seq', max(id)) FROM go_thing.type_thing;

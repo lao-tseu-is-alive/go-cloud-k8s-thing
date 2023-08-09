@@ -92,7 +92,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 		Name:     "Bill Whatever",
 		Email:    "bill@whatever.com",
 		Username: defaultUsername,
-		IsAdmin:  false,
+		IsAdmin:  true,
 	}
 
 	// Create token with claims
@@ -252,6 +252,7 @@ func main() {
 	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
 	objService := thing.Service{
 		Log:              l,
+		DbConn:           db,
 		Store:            thingStore,
 		JwtSecret:        []byte(secret),
 		JwtDuration:      tokenDuration,

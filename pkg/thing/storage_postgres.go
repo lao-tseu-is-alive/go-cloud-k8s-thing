@@ -119,7 +119,7 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 	}
 	if res == nil {
 		db.log.Info(" List returned no results ")
-		return nil, errors.New("records not found")
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
@@ -158,9 +158,32 @@ func (db *PGX) Exist(id uuid.UUID) bool {
 }
 
 // Count returns the number of thing stored in DB
-func (db *PGX) Count() (int32, error) {
+func (db *PGX) Count(params CountParams) (int32, error) {
 	db.log.Debug("trace : entering Count()")
-	count, err := db.dbi.GetQueryInt(countThing)
+	var (
+		count int
+		err   error
+	)
+	queryCount := countThing + " WHERE 1 = 1 "
+	withoutSearchParameters := true
+	if params.Keywords != nil {
+		withoutSearchParameters = false
+		queryCount += `AND text_search @@ plainto_tsquery('french', unaccent($1))
+		AND type_id = coalesce($2, type_id)
+		AND _created_by = coalesce($3, _created_by)
+		AND inactivated = coalesce($4, inactivated)
+`
+		count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated)
+	}
+	if withoutSearchParameters {
+		queryCount += `
+		AND type_id = coalesce($1, type_id)
+		AND _created_by = coalesce($2, _created_by)
+		AND inactivated = coalesce($3, inactivated)
+`
+		count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated)
+
+	}
 	if err != nil {
 		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
 		return 0, err
@@ -286,7 +309,7 @@ func (db *PGX) IsUserOwner(id uuid.UUID, userId int32) bool {
 
 // CreateTypeThing will store the new TypeThing in the database
 func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
-	db.log.Debug("trace : entering CreateTypeThing(%q, userId)", tt.Name, tt.CreateBy)
+	db.log.Debug("trace : entering CreateTypeThing(%q, userId)", tt.Name, tt.CreatedBy)
 	var lastInsertId int = 0
 	err := db.Conn.QueryRow(context.Background(), createTypeThing,
 		/*	INSERT INTO go_thing.type_thing
@@ -299,7 +322,7 @@ func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
 			                              ' ' || coalesce(unaccent($3), ' ') ));
 		*/
 		tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, &tt.GeometryType, //$6
-		&tt.ManagedBy, tt.CreateBy, &tt.MoreDataSchema).Scan(&lastInsertId)
+		&tt.ManagedBy, tt.CreatedBy, &tt.MoreDataSchema).Scan(&lastInsertId)
 	if err != nil {
 		db.log.Error("CreateTypeThing(%q) unexpectedly failed. error : %v", tt.Name, err)
 		return nil, err
@@ -316,7 +339,7 @@ func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
 
 // UpdateTypeThing updates the TypeThing stored in DB with given id and other information in struct
 func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
-	db.log.Debug("trace : entering UpdateTypeThing(%q)", id)
+	db.log.Debug("trace : entering UpdateTypeThing(%d)", id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(updateTypeTing,
 		/*		UPDATE go_thing.type_thing
@@ -340,7 +363,7 @@ func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
 				                             ' ' || coalesce(unaccent($4), ' ') )
 				WHERE id = $1;
 		*/
-		tt.Id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
+		id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
 		&tt.GeometryType, tt.Inactivated, &tt.InactivatedTime, &tt.InactivatedBy, &tt.InactivatedReason, //$11
 		&tt.ManagedBy, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
 	if err != nil {
@@ -386,9 +409,16 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 		res []*TypeThingList
 		err error
 	)
-	listTypeThings := typeThingListQuery + listTypeThingsConditions + thingListOrderBy
-	err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
-		limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
+	listTypeThings := typeThingListQuery
+	if params.Keywords != nil {
+		listTypeThings += listTypeThingsConditionsWithKeywords + thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
+			limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
+	} else {
+		listTypeThings += listTypeThingsConditionsWithoutKeywords + thingListOrderBy
+		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
+			limit, offset, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
+	}
 
 	if err != nil {
 		db.log.Error("ListTypeThing pgxscan.Select unexpectedly failed, error : %v", err)
@@ -396,7 +426,7 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 	}
 	if res == nil {
 		db.log.Info(" ListTypeThing returned no results ")
-		return nil, errors.New("records not found")
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
@@ -415,4 +445,47 @@ func (db *PGX) GetTypeThing(id int32) (*TypeThing, error) {
 		return nil, errors.New("records not found")
 	}
 	return res, nil
+}
+
+// CountTypeThing returns the number of TypeThing based on search criteria
+func (db *PGX) CountTypeThing(params TypeThingCountParams) (int32, error) {
+	db.log.Debug("trace : entering CountTypeThing()")
+	var (
+		count int
+		err   error
+	)
+	queryCount := countTypeThing + " WHERE 1 = 1 "
+	withoutSearchParameters := true
+	if params.Keywords != nil {
+		withoutSearchParameters = false
+		queryCount += `AND text_search @@ plainto_tsquery('french', unaccent($1))
+		AND _created_by = coalesce($2, _created_by)
+		AND inactivated = coalesce($3, inactivated)
+`
+		count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.CreatedBy, &params.Inactivated)
+	}
+	if withoutSearchParameters {
+		queryCount += `
+		AND _created_by = coalesce($1, _created_by)
+		AND inactivated = coalesce($2, inactivated)
+`
+		count, err = db.dbi.GetQueryInt(queryCount, &params.CreatedBy, &params.Inactivated)
+
+	}
+	if err != nil {
+		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
+		return 0, err
+	}
+	return int32(count), nil
+}
+
+// GetTypeThingMaxId will retrieve maximum value of TypeThing id existing in store.
+func (db *PGX) GetTypeThingMaxId(id int32) (int32, error) {
+	db.log.Debug("trace : entering GetTypeThingMaxId(%v)")
+	existingMaxId, err := db.dbi.GetQueryInt(typeThingMaxId)
+	if err != nil {
+		db.log.Error("GetTypeThingMaxId() failed, error : %v", err)
+		return 0, err
+	}
+	return int32(existingMaxId), nil
 }
