@@ -65,14 +65,27 @@ build: check-env clean mod-download test openapi-codegen
 .PHONY: test
 test: clean mod-download
 	@echo "  >  Running all tests code..."
-	go test -race ./... -coverprofile coverage.out
+	GOROOT=/usr/local/go GOPATH=/home/cgil/go /usr/local/go/bin/go test -c -coverpkg=./... -covermode=atomic -o ___goCloudK8sThingServer_test_go.test github.com/lao-tseu-is-alive/go-cloud-k8s-thing/cmd/goCloudK8sThingServer; \
+	go tool test2json -t ./___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E -test.coverprofile coverage.out
+
+.PHONY: env-test
+env-test:
+	export $(shell sed 's/=.*//' .env_testing )
+
+.PHONY: test-all
+test-all: clean mod-download env-test
+	@echo "  >  Running all tests code..."
+	@echo "mode: count" > coverage-all.out
+	@$(foreach pkg,$(PACKAGES), \
+		go test -race -p=1 -cover -covermode=atomic -coverprofile=coverage.out ${pkg}; \
+		tail -n +2 coverage.out >> coverage-all.out;)
 
 
 .PHONY: clean
 ## clean:	will delete you server app binary and remove temporary files like coverage output
 clean:
 	@echo "  >  Removing $(APP_EXECUTABLE) from bin directory..."
-	rm -rf bin/$(APP_EXECUTABLE) coverage.out coverage-all.out
+	rm -rf bin/$(APP_EXECUTABLE) coverage.out coverage-all.out ___goCloudK8sThingServer_test_go.test
 
 .PHONY: release
 ## release:	will build & tag a clean repo with a version release and push the tag to the remote git
