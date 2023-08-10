@@ -65,8 +65,8 @@ build: check-env clean mod-download test openapi-codegen
 .PHONY: test
 test: clean mod-download
 	@echo "  >  Running all tests code..."
-	GOROOT=/usr/local/go GOPATH=/home/cgil/go /usr/local/go/bin/go test -c -coverpkg=./... -covermode=atomic -o ___goCloudK8sThingServer_test_go.test github.com/lao-tseu-is-alive/go-cloud-k8s-thing/cmd/goCloudK8sThingServer; \
-	go tool test2json -t ___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E -test.coverprofile coverage.out
+	go test -c -coverpkg=./... -covermode=atomic -o ./___goCloudK8sThingServer_test_go.test github.com/lao-tseu-is-alive/go-cloud-k8s-thing/cmd/goCloudK8sThingServer; \
+	go tool test2json -t ./___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E -test.coverprofile coverage.out
 
 .PHONY: env-test
 env-test:
