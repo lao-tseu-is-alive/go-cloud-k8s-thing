@@ -62,11 +62,15 @@ build: check-env clean mod-download test openapi-codegen
 	@echo "  >  Building your app binary inside bin directory..."
 	CGO_ENABLED=0 go build ${LDFLAGS} -a -o bin/$(APP_EXECUTABLE) cmd/$(APP_EXECUTABLE)/${APP_EXECUTABLE}.go
 
+## old test using
+ # go test -c -coverpkg=$(go list github.com/lao-tseu-is-alive/go-cloud-k8s-thing/...|tr "\n" ",") -race -covermode=atomic -o ./___goCloudK8sThingServer_test_go.test ./...; \
+ #	go tool test2json -t ./___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E -test.coverprofile coverage.out
+
 .PHONY: test
 test: clean mod-download
 	@echo "  >  Running all tests code..."
-	go test -c -coverpkg=./... -covermode=atomic -o ./___goCloudK8sThingServer_test_go.test github.com/lao-tseu-is-alive/go-cloud-k8s-thing/cmd/goCloudK8sThingServer; \
-	go tool test2json -t ./___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E -test.coverprofile coverage.out
+	go test -race -coverprofile coverage.out -coverpkg=$(go list github.com/lao-tseu-is-alive/go-cloud-k8s-thing/...|tr "\n" ",") ./...
+
 
 .PHONY: env-test
 env-test:
