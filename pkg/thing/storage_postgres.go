@@ -69,12 +69,12 @@ func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) 
 			limit, offset, &params.Type, &params.CreatedBy, isInactive)
 	}
 	if err != nil {
-		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
+		db.log.Error(SelectFailedInNWithErrorE, "List", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" List returned no results ")
-		return nil, errors.New("records not found")
+		db.log.Info(FunctionNReturnedNoResults, "List")
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
@@ -86,11 +86,11 @@ func (db *PGX) ListByExternalId(offset, limit int, externalId int) ([]*ThingList
 	listByExternalIdThings := baseThingListQuery + listByExternalIdThingsCondition + thingListOrderBy
 	err := pgxscan.Select(context.Background(), db.Conn, &res, listByExternalIdThings, limit, offset, externalId)
 	if err != nil {
-		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
+		db.log.Error(SelectFailedInNWithErrorE, "ListByExternalId", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" List returned no results ")
+		db.log.Info(FunctionNReturnedNoResults, "ListByExternalId")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -114,11 +114,11 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 	}
 
 	if err != nil {
-		db.log.Error("List pgxscan.Select unexpectedly failed, error : %v", err)
+		db.log.Error(SelectFailedInNWithErrorE, "Search", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" List returned no results ")
+		db.log.Info(FunctionNReturnedNoResults, "Search")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -130,12 +130,12 @@ func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
 	res := &Thing{}
 	err := pgxscan.Get(context.Background(), db.Conn, res, getThing, id)
 	if err != nil {
-		db.log.Error("Get(%v) pgxscan.Select unexpectedly failed, error : %v", id, err)
+		db.log.Error(SelectFailedInNWithErrorE, "Get", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" Get(%v) returned no results ", id)
-		return nil, errors.New("records not found")
+		db.log.Info(FunctionNReturnedNoResults, "Get")
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
@@ -421,11 +421,11 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 	}
 
 	if err != nil {
-		db.log.Error("ListTypeThing pgxscan.Select unexpectedly failed, error : %v", err)
+		db.log.Error(SelectFailedInNWithErrorE, "ListTypeThing", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" ListTypeThing returned no results ")
+		db.log.Info(FunctionNReturnedNoResults, "ListTypeThing")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -437,12 +437,12 @@ func (db *PGX) GetTypeThing(id int32) (*TypeThing, error) {
 	res := &TypeThing{}
 	err := pgxscan.Get(context.Background(), db.Conn, res, getTypeThing, id)
 	if err != nil {
-		db.log.Error("GetTypeThing(%d) pgxscan.Get unexpectedly failed, error : %v", id, err)
+		db.log.Error(SelectFailedInNWithErrorE, "GetTypeThing", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(" GetTypeThing(%d) returned no results ", id)
-		return nil, errors.New("records not found")
+		db.log.Info(FunctionNReturnedNoResults, "GetTypeThing", id)
+		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }

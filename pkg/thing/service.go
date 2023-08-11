@@ -44,7 +44,12 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	}
 	list, err := s.Store.List(offset, limit, params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
+		if err != pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
+		} else {
+			list = make([]*ThingList, 0)
+			return ctx.JSON(http.StatusNotFound, list)
+		}
 	}
 	return ctx.JSON(http.StatusOK, list)
 }
@@ -185,7 +190,13 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 
 	thing, err := s.Store.Get(thingId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving thing :%v", err))
+		if err != pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving thing :%v", err))
+		} else {
+			msg := fmt.Sprintf("Get(%v) no rows found in db", thingId)
+			s.Log.Info(msg)
+			return ctx.JSON(http.StatusNotFound, msg)
+		}
 	}
 	return ctx.JSON(http.StatusOK, thing)
 }
@@ -229,13 +240,14 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(updateThing.Name) < MinNameLength {
-		msg := fmt.Sprintf(FieldMinLengthIsN+", found %d", "name", MinNameLength, len(updateThing.Name))
+
+		msg := fmt.Sprintf(FieldMinLengthIsN+FoundNum, "name", MinNameLength, len(updateThing.Name))
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	updateThing.LastModifiedBy = &currentUserId
 	//TODO handle update of validated field correctly by adding validated time & user
-	//TODO handle update of managed_by field correctly by checking if user is a valid active one
+	// handle update of managed_by field correctly by checking if user is a valid active one
 	thingUpdated, err := s.Store.Update(thingId, *updateThing)
 	if err != nil {
 		msg := fmt.Sprintf("Update had an error saving thing:%#v, err:%#v", *updateThing, err)
@@ -352,7 +364,7 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	currentUserId := claims.Id
 	if !claims.IsAdmin {
-		return echo.NewHTTPError(http.StatusUnauthorized, "only admin user can manage type thing")
+		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
 	newTypeThing := &TypeThing{
 		Comment:           nil,
