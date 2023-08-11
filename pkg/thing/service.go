@@ -77,12 +77,13 @@ func (s Service) Create(ctx echo.Context) error {
 	}
 	s.Log.Info("Create Thing Bind ok : %+v ", newThing)
 	if len(strings.Trim(newThing.Name, " ")) < 1 {
-		msg := fmt.Sprintf("Create name cannot be empty or contain only spaces")
+
+		msg := fmt.Sprintf(FieldCannotBeEmpty, "name")
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	if len(newThing.Name) < 5 {
-		msg := fmt.Sprintf("Create name minLength is 5 not (%d)", len(newThing.Name))
+	if len(newThing.Name) < MinNameLength {
+		msg := fmt.Sprintf(FieldMinLengthIsN, "name", MinNameLength)
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
@@ -223,12 +224,12 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(strings.Trim(updateThing.Name, " ")) < 1 {
-		msg := fmt.Sprintf("Update name cannot be empty or contain only spaces")
+		msg := fmt.Sprintf(FieldCannotBeEmpty, "name")
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	if len(updateThing.Name) < 5 {
-		msg := fmt.Sprintf("Update name minLength is 5 not (%d)", len(updateThing.Name))
+	if len(updateThing.Name) < MinNameLength {
+		msg := fmt.Sprintf(FieldMinLengthIsN+", found %d", "name", MinNameLength, len(updateThing.Name))
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
@@ -381,12 +382,12 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(strings.Trim(newTypeThing.Name, " ")) < 1 {
-		msg := fmt.Sprintf("TypeThingCreate name cannot be empty or contain only spaces")
+		msg := fmt.Sprintf(FieldCannotBeEmpty, "name")
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	if len(newTypeThing.Name) < 5 {
-		msg := fmt.Sprintf("TypeThingCreate name minLength is 5 not (%d)", len(newTypeThing.Name))
+	if len(newTypeThing.Name) < MinNameLength {
+		msg := fmt.Sprintf(FieldMinLengthIsN+", found %d", "name", MinNameLength, len(newTypeThing.Name))
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
@@ -506,12 +507,12 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	if len(strings.Trim(uTypeThing.Name, " ")) < 1 {
-		msg := fmt.Sprintf("TypeThingUpdate name cannot be empty or contain only spaces")
+		msg := fmt.Sprintf(FieldCannotBeEmpty, "name")
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	if len(uTypeThing.Name) < 5 {
-		msg := fmt.Sprintf("TypeThingUpdate name minLength is 5 not (%d)", len(uTypeThing.Name))
+	if len(uTypeThing.Name) < MinNameLength {
+		msg := fmt.Sprintf(FieldMinLengthIsN+", found %d", "name", MinNameLength, len(uTypeThing.Name))
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}

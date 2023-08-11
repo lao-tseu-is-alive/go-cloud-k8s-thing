@@ -11,6 +11,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/gohttpclient"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -27,7 +28,12 @@ import (
 const (
 	DEBUG                           = false
 	assertCorrectStatusCodeExpected = "expected status code should be returned"
+	urlLogin                        = "/login"
+	urlThing                        = "/thing"
+	urlTypeThing                    = "/types"
 	newThingId                      = "24466b0c-686d-42a3-87ef-bf6cefeb3d35"
+	urlNewThingId                   = "/thing/" + newThingId
+	bodyIdNewThing                  = "\"id\":\"" + newThingId + "\""
 	newThingExternalId              = "1234567890"
 	exampleThing                    = `
 {
@@ -144,7 +150,9 @@ func TestMainExec(t *testing.T) {
 	}
 	listenAddr := fmt.Sprintf("http://localhost%s", listenPort)
 	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
-
+	// common messages
+	nameCannotBeEmpty := fmt.Sprintf(thing.FieldCannotBeEmpty, "name")
+	nameMinLenghtMsg := fmt.Sprintf(thing.FieldMinLengthIsN, "name", thing.MinNameLength)
 	newRequest := func(method, url string, body string, useFormUrlencodedContentType bool) *http.Request {
 		fmt.Printf("INFO: 🚀🚀'newRequest %s on %s ##BODY : %+v'\n", method, url, body)
 		r, err := http.NewRequest(method, url, strings.NewReader(body))
@@ -165,7 +173,7 @@ func TestMainExec(t *testing.T) {
 
 	getValidToken := func() string {
 		// let's get first a valid JWT TOKEN
-		req := newRequest(http.MethodPost, listenAddr+"/login", formLogin.Encode(), true)
+		req := newRequest(http.MethodPost, listenAddr+urlLogin, formLogin.Encode(), true)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			fmt.Printf("###getValidToken: Problem requesting JWT TOKEN 💥💥 ERROR : %s\n%+v", err, resp)
@@ -254,6 +262,7 @@ func TestMainExec(t *testing.T) {
 	}
 	// incrementing one to get the real id of insert
 	existingMaxTypeThingId += 1
+	urTypeThingNewId := "/types/" + strconv.Itoa(existingMaxTypeThingId)
 
 	tests := []testStruct{
 		{
@@ -299,7 +308,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "TOKEN",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          "/login",
+			url:                          urlLogin,
 			useFormUrlencodedContentType: true,
 			useJwtToken:                  false,
 			body:                         formLogin.Encode(),
@@ -311,7 +320,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "unauthorized request: username not found or invalid password",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          "/login",
+			url:                          urlLogin,
 			useFormUrlencodedContentType: true,
 			useJwtToken:                  false,
 			body:                         formLoginWrong.Encode(),
@@ -323,7 +332,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "missing or malformed jwt",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/thing",
+			url:                          defaultSecuredApi + urlThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  false,
 			body:                         formLoginWrong.Encode(),
@@ -332,10 +341,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /types with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name cannot be empty",
+			wantBody:                     nameCannotBeEmpty,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/types",
+			url:                          defaultSecuredApi + urlTypeThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         `{ "geometry_type": "bbox",    "external_id": 987654321,   "name": " " } `,
@@ -344,10 +353,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /types with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name minLength is 5",
+			wantBody:                     nameMinLenghtMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/types",
+			url:                          defaultSecuredApi + urlTypeThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         `{ "geometry_type": "bbox",    "external_id": 987654321,   "name": "tutu" } `,
@@ -359,7 +368,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "created_by",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/types",
+			url:                          defaultSecuredApi + urlTypeThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         exampleTypeThing,
@@ -368,10 +377,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /thing with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name cannot be empty",
+			wantBody:                     nameCannotBeEmpty,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/thing",
+			url:                          defaultSecuredApi + urlThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         `{ "created_by": 999999, "external_id": 1234567890,     "id": "34466b0c-686d-42a3-87ef-bf6cefeb3d35","name": " ",     "pos_x": 2537607.64,     "pos_y": 1152609.12,     "type_id": 2,     "validated": false   } `,
@@ -380,10 +389,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /thing with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name minLength is 5",
+			wantBody:                     nameMinLenghtMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/thing",
+			url:                          defaultSecuredApi + urlThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         ` { "created_by": 999999, "external_id": 1234567890,     "id": "34466b0c-686d-42a3-87ef-bf6cefeb3d35","name": "toto",     "pos_x": 2537607.64,     "pos_y": 1152609.12,     "type_id": 2,     "validated": false   } `,
@@ -395,7 +404,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "create_at",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/thing",
+			url:                          defaultSecuredApi + urlThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         exampleThing,
@@ -407,7 +416,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "already exist",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
-			url:                          defaultSecuredApi + "/thing",
+			url:                          defaultSecuredApi + urlThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         exampleThing,
@@ -428,10 +437,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /thing with existing id should return the valid thing",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "\"id\":\"" + newThingId + "\"",
+			wantBody:                     bodyIdNewThing,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/thing/" + newThingId,
+			url:                          defaultSecuredApi + urlNewThingId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",
@@ -464,10 +473,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /thing with existing id but empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name cannot be empty",
+			wantBody:                     nameCannotBeEmpty,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/thing/" + newThingId,
+			url:                          defaultSecuredApi + urlNewThingId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         `{ "created_by": 999999, "external_id": 1234567890,     "id": "34466b0c-686d-42a3-87ef-bf6cefeb3d35","name": " ",     "pos_x": 2537607.64,     "pos_y": 1152609.12,     "type_id": 2,     "validated": false   } `,
@@ -476,10 +485,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /thing with existing id but name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name minLength is 5",
+			wantBody:                     nameMinLenghtMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/thing/" + newThingId,
+			url:                          defaultSecuredApi + urlNewThingId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         `{ "created_by": 999999, "external_id": 1234567890,     "id": "34466b0c-686d-42a3-87ef-bf6cefeb3d35","name": "titi",     "pos_x": 2537607.64,     "pos_y": 1152609.12,     "type_id": 2,     "validated": false   } `,
@@ -492,7 +501,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "\"comment\":\"À Noël ",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/thing/" + newThingId,
+			url:                          defaultSecuredApi + urlNewThingId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         exampleThingUpdate,
@@ -513,7 +522,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /thing/by-external-id with existing id should return the valid thing",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "\"id\":\"" + newThingId + "\"",
+			wantBody:                     bodyIdNewThing,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/thing/by-external-id/" + newThingExternalId + "?limit=1&offset=0",
@@ -537,7 +546,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /thing/search with existing keyword should return the valid thing",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "\"id\":\"" + newThingId + "\"",
+			wantBody:                     bodyIdNewThing,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/thing/search?limit=1&offset=0&keywords=æschynanthes",
@@ -564,7 +573,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodDelete,
-			url:                          defaultSecuredApi + "/thing/" + newThingId,
+			url:                          defaultSecuredApi + urlNewThingId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",
@@ -589,7 +598,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "missing or malformed jwt",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/types",
+			url:                          defaultSecuredApi + urlTypeThing,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  false,
 			body:                         formLoginWrong.Encode(),
@@ -613,7 +622,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",
@@ -634,10 +643,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /types with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name cannot be empty",
+			wantBody:                     nameCannotBeEmpty,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         ` { "geometry_type": "bbox",    "external_id": 987654321,   "name": " " } `,
@@ -646,10 +655,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /types with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "name minLength is 5",
+			wantBody:                     nameMinLenghtMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         ` { "geometry_type": "bbox",    "external_id": 987654321,   "name": "zuzu" } `,
@@ -661,7 +670,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "\"comment\":\"Attention la piscine est 🤔",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
-			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         exampleTypeThingUpdate,
@@ -745,7 +754,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodDelete,
-			url:                          defaultSecuredApi + "/types/" + strconv.Itoa(existingMaxTypeThingId),
+			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",
