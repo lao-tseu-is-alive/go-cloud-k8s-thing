@@ -19,3 +19,7 @@ ___goCloudK8sThingServer_test_go.test
 /goCloudK8sThing.conf
 .idea
 /openapitools.json
+/coverage.out
+/.env_testing
+/go_cloud_k8s_thing_testing.conf
+/postgRest/thing_postgrest.conf
