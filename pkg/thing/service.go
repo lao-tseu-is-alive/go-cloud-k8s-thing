@@ -170,14 +170,11 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
 	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
-	currentUserId := claims.Id
+	// currentUserId := claims.Id
 	if s.Store.Exist(thingId) == false {
 		msg := fmt.Sprintf("Get(%v) cannot get this id, it does not exist !", thingId)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
-	}
-	if !s.Store.IsUserOwner(thingId, currentUserId) {
-		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
 	/* TODO implement ACL & RBAC handling
 	if !s.Store.IsUserAllowedToDelete(currentUserId, typeThing) {
