@@ -5,7 +5,10 @@
 [![cve-trivy-scan](https://github.com/lao-tseu-is-alive/go-cloud-k8s-thing/actions/workflows/cve-trivy-scan.yml/badge.svg)](https://github.com/lao-tseu-is-alive/go-cloud-k8s-thing/actions/workflows/cve-trivy-scan.yml)
 [![codecov](https://codecov.io/gh/lao-tseu-is-alive/go-cloud-k8s-thing/branch/main/graph/badge.svg?token=02AHW79CES)](https://codecov.io/gh/lao-tseu-is-alive/go-cloud-k8s-thing)
 # go-cloud-k8s-thing
-go-cloud-k8s-thing  is a an thing  microservice written in Golang using JWT authentication from  go-cloud-k8s-user-group. 
+go-cloud-k8s-thing  is a Thing  microservice written in Golang using [JWT](https://jwt.io) authentication from  go-cloud-k8s-user-group.
+
+You can find the [requirements](https://github.com/lao-tseu-is-alive/go-cloud-k8s-thing/blob/main/documentation/Requirements.md) in the documentation folder.
+
 
 _This project showcases how to build a container image with nerdctl, in a secured way (scan of CVE done with Trivy) and how to deploy it on Kubernetes_
 
