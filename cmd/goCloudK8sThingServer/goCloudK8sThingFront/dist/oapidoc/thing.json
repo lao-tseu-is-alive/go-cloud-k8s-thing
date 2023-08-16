@@ -1079,15 +1079,7 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              "Planifié",
-              "En Construction",
-              "Utilisé",
-              "Abandonné",
-              "Démoli"
-            ],
-            "format": "public.thing_status_type",
-            "type": "string"
+            "$ref": "#/components/schemas/ThingStatus"
           },
           "contained_by": {
             "format": "uuid,",
@@ -1212,15 +1204,7 @@
             "default": false
           },
           "status": {
-            "enum": [
-              "Planifié",
-              "En Construction",
-              "Utilisé",
-              "Abandonné",
-              "Démoli"
-            ],
-            "format": "public.thing_status_type",
-            "type": "string"
+            "$ref": "#/components/schemas/ThingStatus"
           },
           "created_by": {
             "type": "integer",
@@ -1369,6 +1353,17 @@
             "default": false
           }
         }
+      },
+      "ThingStatus": {
+        "type": "string",
+        "enum": [
+          "Planifié",
+          "En Construction",
+          "Utilisé",
+          "Abandonné",
+          "Démoli"
+        ],
+        "format": "public.thing_status_type"
       },
       "Error": {
         "required": [

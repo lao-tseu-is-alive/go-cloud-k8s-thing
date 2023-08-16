@@ -15,20 +15,11 @@ const (
 
 // Defines values for ThingStatus.
 const (
-	ThingStatusAbandonné      ThingStatus = "Abandonné"
-	ThingStatusDémoli         ThingStatus = "Démoli"
-	ThingStatusEnConstruction ThingStatus = "En Construction"
-	ThingStatusPlanifié       ThingStatus = "Planifié"
-	ThingStatusUtilisé        ThingStatus = "Utilisé"
-)
-
-// Defines values for ThingListStatus.
-const (
-	ThingListStatusAbandonné      ThingListStatus = "Abandonné"
-	ThingListStatusDémoli         ThingListStatus = "Démoli"
-	ThingListStatusEnConstruction ThingListStatus = "En Construction"
-	ThingListStatusPlanifié       ThingListStatus = "Planifié"
-	ThingListStatusUtilisé        ThingListStatus = "Utilisé"
+	Abandonné      ThingStatus = "Abandonné"
+	Démoli         ThingStatus = "Démoli"
+	EnConstruction ThingStatus = "En Construction"
+	Planifié       ThingStatus = "Planifié"
+	Utilisé        ThingStatus = "Utilisé"
 )
 
 // Error defines model for Error.
@@ -70,9 +61,6 @@ type Thing struct {
 	ValidatedTime     *time.Time              `json:"validated_time,omitempty"`
 }
 
-// ThingStatus defines model for Thing.Status.
-type ThingStatus string
-
 // ThingList defines model for ThingList.
 type ThingList struct {
 	CreatedAt   *time.Time         `json:"created_at,omitempty"`
@@ -84,13 +72,13 @@ type ThingList struct {
 	Name        string             `json:"name"`
 	PosX        float64            `json:"pos_x"`
 	PosY        float64            `json:"pos_y"`
-	Status      *ThingListStatus   `json:"status,omitempty"`
+	Status      *ThingStatus       `json:"status,omitempty"`
 	TypeId      int32              `json:"type_id"`
 	Validated   *bool              `json:"validated,omitempty"`
 }
 
-// ThingListStatus defines model for ThingList.Status.
-type ThingListStatus string
+// ThingStatus defines model for ThingStatus.
+type ThingStatus string
 
 // TypeThing defines model for TypeThing.
 type TypeThing struct {

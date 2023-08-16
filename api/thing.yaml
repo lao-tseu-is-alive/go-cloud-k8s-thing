@@ -721,14 +721,7 @@ components:
           format: date,
           type: string
         status:
-          enum:
-            - "Planifié"
-            - "En Construction"
-            - "Utilisé"
-            - "Abandonné"
-            - "Démoli"
-          format: "public.thing_status_type"
-          type: string
+          $ref: '#/components/schemas/ThingStatus'
         contained_by:
           format: uuid,
           type: string
@@ -822,14 +815,7 @@ components:
           type: boolean
           default: false
         status:
-          enum:
-            - "Planifié"
-            - "En Construction"
-            - "Utilisé"
-            - "Abandonné"
-            - "Démoli"
-          format: "public.thing_status_type"
-          type: string
+          $ref: '#/components/schemas/ThingStatus'
         created_by:
           type: integer
           format: int32
@@ -939,6 +925,15 @@ components:
         inactivated:
           type: boolean
           default: false
+    ThingStatus:
+      type: string
+      enum:
+            - "Planifié"
+            - "En Construction"
+            - "Utilisé"
+            - "Abandonné"
+            - "Démoli"
+      format: "public.thing_status_type"
     Error:
       required:
         - code
