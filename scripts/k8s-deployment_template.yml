@@ -189,6 +189,8 @@ spec:
         image: GO_CONTAINER_REGISTRY_PREFIX/APP_NAME:APP_VERSION
         imagePullPolicy: Always
         securityContext:
+          seccompProfile:
+            type: RuntimeDefault
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 12121           # using the user 'gouser' created in Dockerfile

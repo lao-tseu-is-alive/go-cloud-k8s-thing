@@ -189,6 +189,8 @@ spec:
         image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.0.4
         imagePullPolicy: Always
         securityContext:
+          seccompProfile:
+            type: RuntimeDefault
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 12121           # using the user 'gouser' created in Dockerfile
