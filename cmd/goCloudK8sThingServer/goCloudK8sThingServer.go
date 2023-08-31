@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/cristalhq/jwt/v4"
 	"github.com/golang-migrate/migrate/v4"
@@ -32,6 +34,7 @@ const (
 	defaultSecuredApi          = "/goapi/v1"
 	defaultUsername            = "bill"
 	defaultFakeStupidPass      = "board"
+	defaultFakeStupidPassHash  = "859169b38185780daa5497983ff20d2994390058d8a71f2847ac7846f970971e"
 	charsetUTF8                = "charset=UTF-8"
 	MIMEAppJSON                = "application/json"
 	MIMEHtml                   = "text/html"
@@ -69,11 +72,22 @@ type UserLogin struct {
 // and share the same secret with the above component
 func (s ServiceThing) login(ctx echo.Context) error {
 	s.Log.Debug("++ entering %v login()", ctx.Request().Method)
+	uLogin := new(UserLogin)
 	username := ctx.FormValue("login")
 	fakePassword := ctx.FormValue("pass")
-
+	s.Log.Debug("username: %s , password: %s", username, fakePassword)
+	// maybe it was not a form but a fetch data post
+	if len(strings.Trim(username, " ")) < 1 {
+		if err := ctx.Bind(uLogin); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid user login or json format in request body")
+		}
+	} else {
+		uLogin.Username = username
+		uLogin.PasswordHash = fakePassword
+	}
+	s.Log.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 	// Throws unauthorized error
-	if username != defaultUsername || fakePassword != defaultFakeStupidPass {
+	if uLogin.Username != defaultUsername || uLogin.PasswordHash != defaultFakeStupidPassHash {
 		return ctx.JSON(http.StatusUnauthorized, "{\"message\":\"unauthorized request: username not found or invalid password.\"}")
 	}
 
@@ -105,7 +119,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 	msg := fmt.Sprintf("LoginUser(%s) succesfull login for user id (%d)", claims.Username, claims.Id)
 	s.Log.Info(msg)
 	return ctx.JSON(http.StatusOK, echo.Map{
-		"TOKEN": token.String(),
+		"token": token.String(),
 	})
 }
 
@@ -119,6 +133,25 @@ func (s ServiceThing) restricted(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
 	return ctx.JSON(http.StatusCreated, claims)
+}
+
+func (s ServiceThing) GetStatus(ctx echo.Context) error {
+	s.Log.Debug("trace: entering GetStatus()")
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	username := claims.Username
+	idUser := claims.Id
+	res, err := json.Marshal(claims)
+	if err != nil {
+		echo.NewHTTPError(http.StatusInternalServerError, "JWT User Data Could Not Be Marshaled To Json")
+	}
+	s.Log.Info("info: GetStatus(user:%s, id:%d)", username, idUser)
+	return ctx.JSONBlob(http.StatusOK, res)
 }
 
 func (s ServiceThing) IsDBAlive() bool {
@@ -219,7 +252,7 @@ func main() {
 	err = m.Up()
 	if err != nil {
 		//if err == m.
-		if err != migrate.ErrNoChange {
+		if !errors.Is(err, migrate.ErrNoChange) {
 			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
 		}
 	}
@@ -244,6 +277,7 @@ func main() {
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
 	r.GET("/secret", yourService.restricted)
+	r.GET("/status", yourService.GetStatus)
 
 	thingStore, err := thing.GetStorageInstance("pgx", db, l)
 	if err != nil {
