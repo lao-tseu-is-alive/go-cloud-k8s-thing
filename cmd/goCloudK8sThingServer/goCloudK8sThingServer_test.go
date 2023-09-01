@@ -169,7 +169,7 @@ func TestMainExec(t *testing.T) {
 	// preparing for testing a pseudo-valid authentication
 	formLogin := make(url.Values)
 	formLogin.Set("login", defaultUsername)
-	formLogin.Set("pass", defaultFakeStupidPass)
+	formLogin.Set("pass", defaultFakeStupidPassHash)
 
 	getValidToken := func() string {
 		// let's get first a valid JWT TOKEN
@@ -305,7 +305,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /login with valid credential should return a JWT token ",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "TOKEN",
+			wantBody:                     "token",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          urlLogin,
