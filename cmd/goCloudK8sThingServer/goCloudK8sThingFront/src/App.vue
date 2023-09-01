@@ -8,7 +8,7 @@
       <v-btn variant="text" icon="mdi-filter"></v-btn>
       <v-btn variant="text" icon="mdi-dots-vertical"></v-btn>
       <template v-if="isUserAuthenticated">
-        <v-btn variant="text" icon="mdi-door" title="Logout" @click="logout"></v-btn>
+        <v-btn variant="text" icon="mdi-logout" title="Logout" @click="logout"></v-btn>
       </template>
     </v-app-bar>
     <v-main>
@@ -62,7 +62,7 @@ const feedback = ref(null);
 const feedbackMsg = ref(`${APP}, v.${VERSION}`);
 const feedbackType: Ref<LevelAlert> = ref("info");
 const feedbackVisible = ref(false);
-let autoLogoutTimer: string | number | NodeJS.Timeout | null | undefined = null;
+let autoLogoutTimer: number | undefined = 0;
 const displayFeedBack = (text: string, type: LevelAlert = 'info') => {
   log.t(`displayFeedBack() text:'${text}' type:'${type}'`);
   feedbackType.value = type;

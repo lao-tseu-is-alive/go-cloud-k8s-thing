@@ -1,10 +1,10 @@
-import sha256 from 'crypto-js/sha256';
+import {SHA256} from 'crypto-es/lib/sha256';
 import axios from 'axios';
-import { getLog, APP, BACKEND_URL } from '../config';
+import {getLog, APP, BACKEND_URL} from '../config';
 
 const log = getLog('Login', 4, 1);
 
-export const getPasswordHash = (password) => sha256(password);
+export const getPasswordHash = (password) => SHA256(password);
 
 export const parseJwt = (token) => {
   const base64Url = token.split('.')[1];
@@ -62,7 +62,7 @@ export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
     dExpires.setUTCSeconds(res.data.exp);
     const msg = `getTokenStatus() JWT token expiration : ${dExpires}`;
     log.w(msg);
-    const { data } = res;
+    const {data} = res;
     return {
       msg, err: null, status: res.status, data,
     };
@@ -81,7 +81,7 @@ export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
   }
 };
 
-export const clearSessionStorage = () => {
+export const clearSessionStorage = ():void => {
   // Code for localStorage/sessionStorage.
   sessionStorage.removeItem(`${APP}_goapi_jwt_session_token`);
   sessionStorage.removeItem(`${APP}_goapi_idgouser`);
@@ -106,35 +106,45 @@ export const logoutAndResetToken = (baseServerUrl) => {
     });
 };
 
-export const doesCurrentSessionExist = () => {
+export const doesCurrentSessionExist = ():boolean => {
   log.t('# IN doesCurrentSessionExist() ');
   if (sessionStorage.getItem(`${APP}_goapi_jwt_session_token`) == null) return false;
   if (sessionStorage.getItem(`${APP}_goapi_idgouser`) == null) return false;
   if (sessionStorage.getItem(`${APP}_goapi_isadmin`) == null) return false;
   if (sessionStorage.getItem(`${APP}_goapi_email`) == null) return false;
   if (sessionStorage.getItem(`${APP}_goapi_date_expiration`) !== null) {
-    const dateExpire = new Date(sessionStorage.getItem(`${APP}_goapi_date_expiration`));
+    const dateExpire = new Date(getDateExpiration);
     const now = new Date();
     if (now > dateExpire) {
       clearSessionStorage();
       log.w('# IN doesCurrentSessionExist() SESSION EXPIRED');
       return false;
     }
-    // attention qu'une session existe en local veut pas dire que le jwt token est encore valide !
+    // attention meme si une session existe en local il faut que le jwt token soit  encore valide !
     return true;
   }
   log.w('# IN doesCurrentSessionExist() goapi_date_expiration was null ');
   return false;
 };
 
-export const getLocalJwtTokenAuth = () => {
+export const getLocalJwtTokenAuth = ():string => {
   if (doesCurrentSessionExist()) {
     return `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`;
   }
   return '';
 };
 
-export const getUserEmail = () => {
+export const getDateExpiration = ():number => {
+  if (doesCurrentSessionExist()) {
+    const val = sessionStorage.getItem(`${APP}_goapi_date_expiration`)
+    if (val !== null) {
+      return  parseInt( val, 10);
+    }
+  }
+  return 0;
+};
+
+export const getUserEmail = ():string => {
   if (doesCurrentSessionExist()) {
     return `${sessionStorage.getItem(`${APP}_goapi_email`)}`;
   }
