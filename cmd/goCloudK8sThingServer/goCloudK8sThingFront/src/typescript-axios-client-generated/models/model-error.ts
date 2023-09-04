@@ -12,14 +12,21 @@
  * Do not edit the class manually.
  */
 /**
- *
+ * 
  * @export
- * @enum {string}
+ * @interface ModelError
  */
-export enum ThingStatus {
-  Planifie = "Planifié",
-  EnConstruction = "En Construction",
-  Utilise = "Utilisé",
-  Abandonne = "Abandonné",
-  Demoli = "Démoli",
+export interface ModelError {
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelError
+     */
+    code: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelError
+     */
+    message: string;
 }

@@ -690,7 +690,7 @@ components:
         - type_id
         - name
         - inactivated
-        - create_by
+        - created_by
         - deleted
         - pos_x
         - pos_y
@@ -699,95 +699,132 @@ components:
         id:
           type: string
           format: uuid
+          title: "identifiant uuid v4"
+          description: "cet Universally unique identifier (UUID) sera généré automatiquement pour vous "
         type_id:
           type: integer
           format: int32
+          title: "identifiant du type d'objet"
+          description: "FK sur la clé primaire du TypeThing de cet objet"
         name:
           format: text
           type: string
+          title: "nom de cet objet"
         description:
           format: text
           type: string
+          title: "description"
         comment:
           format: text
           type: string
+          title: "commentaire"
         external_id:
           format: int32
           type: integer
+          title: "identifiant numérique externe"
         external_ref:
           format: text
           type: string
+          title: "référence externe"
         build_at:
           format: date,
           type: string
+          title: "date de construction"
         status:
           $ref: '#/components/schemas/ThingStatus'
         contained_by:
           format: uuid,
           type: string
+          title: "contenu par"
         contained_by_old:
           format: int32
           type: integer
         inactivated:
           default: false,
           type: boolean
+          title: "inactivé?"
         inactivated_time:
           format: date-time
           type: string
+          title: "date d'inactivation"
         inactivated_by:
           format: int32
           type: integer
+          title: "utilisateur ayant désactivé"
         inactivated_reason:
           format: text
           type: string
+          title: "raison de'inactivation"
         validated:
           default: false,
           type: boolean
+          title: "validé?"
         validated_time:
           format: date-time
           type: string
+          title: "date de validation"
         validated_by:
           format: int32
           type: integer
+          title: "utiliateur ayant validé"
         managed_by:
           format: int32
           type: integer
-        create_at:
+          title: "utilisateur/groupe manager"
+        created_at:
           format: date-time
           type: string
-        create_by:
+          title: "date création"
+          description: "date de création de cet enregistrement dans la base"
+        created_by:
           format: int32
           type: integer
+          title: "utilisateur ayant créé cet enregistrement"
+          description: "identifiant de l'utilisateur ayant créé cet enregistrement"
         last_modified_at:
           format: date-time
           type: string
+          title: "date modification"
+          description: "date de la dernière modication de cet enregistrement"
         last_modified_by:
           format: int32
           type: integer
+          title: "utilisateur ayant effectué la modification"
+          description: "utilisateur ayant effectué la dernière modication de cet enregistrement"
         deleted:
           default: false,
           type: boolean
+          title: "effacé?"
+          description: "cet enregisrement a été marqué comme effacé"
         deleted_at:
           format: date-time
           type: string
+          title: "date effacé"
+          description: "date à laquelle cet enregisrement a été marqué comme effacé"
         deleted_by:
           format: int32
           type: integer
+          title: "utilisateur ayant effacé"
+          description: "utilisateur ayant demandé de marquer cet enregisrement comme effacé"
         more_data:
           type: object
+          title: "Informations complémentaires"
+          description: "permet de stocker des attributs complémentaires au format json"
         pos_x:
           type: number
           format: double
+          title: "Coordonnées X de cet objet"
         pos_y:
           type: number
           format: double
+          title: "Coordonnées Y de cet objet"
     ThingList:
       required:
         - id
         - type_id
         - name
         - inactivated
-        - create_by
+        - created_by
         - deleted
         - pos_x
         - pos_y

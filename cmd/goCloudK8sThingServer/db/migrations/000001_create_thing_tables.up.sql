@@ -11,6 +11,8 @@ CREATE TYPE thing_status_type AS ENUM (
     'Abandonné', -- The thing is no longer in use, being utilized
     'Démoli'
     );
+-- TO LIST THOSE ENUM VALUES:
+--SELECT unnest(enum_range(NULL::thing_status_type))
 /*
 -- Table structure for table thing for project go-cloud-k8s-thing
 -- version : 0.0.4

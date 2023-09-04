@@ -107,7 +107,7 @@ func (s Service) Create(ctx echo.Context) error {
 	}
 	*/
 	newThing := &Thing{
-		CreateBy: int32(currentUserId),
+		CreatedBy: int32(currentUserId),
 	}
 	if err := ctx.Bind(newThing); err != nil {
 		msg := fmt.Sprintf("Create has invalid format [%v]", err)

@@ -24,3 +24,5 @@ ___goCloudK8sThingServer_test_go.test
 /go_cloud_k8s_thing_testing.conf
 /postgRest/thing_postgrest.conf
 /documentation/design+microservices+v2.pdf
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/openapitools.json
+/cmd/goCloudK8sThingServer/typescript-axios-client-generated.zip

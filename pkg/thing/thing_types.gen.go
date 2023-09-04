@@ -30,41 +30,61 @@ type Error struct {
 
 // Thing defines model for Thing.
 type Thing struct {
-	BuildAt           *string                 `json:"build_at,omitempty"`
-	Comment           *string                 `json:"comment,omitempty"`
-	ContainedBy       *string                 `json:"contained_by,omitempty"`
-	ContainedByOld    *int32                  `json:"contained_by_old,omitempty"`
-	CreateAt          *time.Time              `json:"create_at,omitempty"`
-	CreateBy          int32                   `json:"create_by"`
-	Deleted           bool                    `json:"deleted"`
-	DeletedAt         *time.Time              `json:"deleted_at,omitempty"`
-	DeletedBy         *int32                  `json:"deleted_by,omitempty"`
-	Description       *string                 `json:"description,omitempty"`
-	ExternalId        *int32                  `json:"external_id,omitempty"`
-	ExternalRef       *string                 `json:"external_ref,omitempty"`
-	Id                openapi_types.UUID      `json:"id"`
-	Inactivated       bool                    `json:"inactivated"`
-	InactivatedBy     *int32                  `json:"inactivated_by,omitempty"`
-	InactivatedReason *string                 `json:"inactivated_reason,omitempty"`
-	InactivatedTime   *time.Time              `json:"inactivated_time,omitempty"`
-	LastModifiedAt    *time.Time              `json:"last_modified_at,omitempty"`
-	LastModifiedBy    *int32                  `json:"last_modified_by,omitempty"`
-	ManagedBy         *int32                  `json:"managed_by,omitempty"`
-	MoreData          *map[string]interface{} `json:"more_data,omitempty"`
-	Name              string                  `json:"name"`
-	PosX              float64                 `json:"pos_x"`
-	PosY              float64                 `json:"pos_y"`
-	Status            *ThingStatus            `json:"status,omitempty"`
-	TypeId            int32                   `json:"type_id"`
-	Validated         *bool                   `json:"validated,omitempty"`
-	ValidatedBy       *int32                  `json:"validated_by,omitempty"`
-	ValidatedTime     *time.Time              `json:"validated_time,omitempty"`
+	BuildAt        *string `json:"build_at,omitempty"`
+	Comment        *string `json:"comment,omitempty"`
+	ContainedBy    *string `json:"contained_by,omitempty"`
+	ContainedByOld *int32  `json:"contained_by_old,omitempty"`
+
+	// date de création de cet enregistrement dans la base
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// identifiant de l'utilisateur ayant créé cet enregistrement
+	CreatedBy int32 `json:"created_by"`
+
+	// cet enregisrement a été marqué comme effacé
+	Deleted bool `json:"deleted"`
+
+	// date à laquelle cet enregisrement a été marqué comme effacé
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+
+	// utilisateur ayant demandé de marquer cet enregisrement comme effacé
+	DeletedBy   *int32  `json:"deleted_by,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ExternalId  *int32  `json:"external_id,omitempty"`
+	ExternalRef *string `json:"external_ref,omitempty"`
+
+	// cet Universally unique identifier (UUID) sera généré automatiquement pour vous
+	Id                openapi_types.UUID `json:"id"`
+	Inactivated       bool               `json:"inactivated"`
+	InactivatedBy     *int32             `json:"inactivated_by,omitempty"`
+	InactivatedReason *string            `json:"inactivated_reason,omitempty"`
+	InactivatedTime   *time.Time         `json:"inactivated_time,omitempty"`
+
+	// date de la dernière modication de cet enregistrement
+	LastModifiedAt *time.Time `json:"last_modified_at,omitempty"`
+
+	// utilisateur ayant effectué la dernière modication de cet enregistrement
+	LastModifiedBy *int32 `json:"last_modified_by,omitempty"`
+	ManagedBy      *int32 `json:"managed_by,omitempty"`
+
+	// permet de stocker des attributs complémentaires au format json
+	MoreData *map[string]interface{} `json:"more_data,omitempty"`
+	Name     string                  `json:"name"`
+	PosX     float64                 `json:"pos_x"`
+	PosY     float64                 `json:"pos_y"`
+	Status   *ThingStatus            `json:"status,omitempty"`
+
+	// FK sur la clé primaire du TypeThing de cet objet
+	TypeId        int32      `json:"type_id"`
+	Validated     *bool      `json:"validated,omitempty"`
+	ValidatedBy   *int32     `json:"validated_by,omitempty"`
+	ValidatedTime *time.Time `json:"validated_time,omitempty"`
 }
 
 // ThingList defines model for ThingList.
 type ThingList struct {
 	CreatedAt   *time.Time         `json:"created_at,omitempty"`
-	CreatedBy   *int32             `json:"created_by,omitempty"`
+	CreatedBy   int32              `json:"created_by"`
 	Description *string            `json:"description,omitempty"`
 	ExternalId  *int32             `json:"external_id,omitempty"`
 	Id          openapi_types.UUID `json:"id"`

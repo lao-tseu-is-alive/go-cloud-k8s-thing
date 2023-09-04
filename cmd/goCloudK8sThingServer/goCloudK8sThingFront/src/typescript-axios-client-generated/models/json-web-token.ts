@@ -12,14 +12,15 @@
  * Do not edit the class manually.
  */
 /**
- *
+ * 
  * @export
- * @enum {string}
+ * @interface JsonWebToken
  */
-export enum ThingStatus {
-  Planifie = "Planifié",
-  EnConstruction = "En Construction",
-  Utilise = "Utilisé",
-  Abandonne = "Abandonné",
-  Demoli = "Démoli",
+export interface JsonWebToken {
+    /**
+     * 
+     * @type {string}
+     * @memberof JsonWebToken
+     */
+    token: string;
 }

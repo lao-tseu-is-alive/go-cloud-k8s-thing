@@ -102,7 +102,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 			IssuedAt:  &jwt.NumericDate{Time: time.Now()},
 			NotBefore: nil,
 		},
-		Id:       999,
+		Id:       999999,
 		Name:     "Bill Whatever",
 		Email:    "bill@whatever.com",
 		Username: defaultUsername,

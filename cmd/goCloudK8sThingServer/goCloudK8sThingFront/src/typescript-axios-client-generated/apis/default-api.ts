@@ -11,7 +11,6 @@
  * https://github.com/swagger-api/swagger-codegen.git
  * Do not edit the class manually.
  */
-import { BACKEND_URL, getLog, log } from "../../config";
 import globalAxios, { AxiosResponse, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { Configuration } from '../configuration';
 // Some imports not used depending on template conditions
@@ -22,8 +21,6 @@ import { ThingList } from '../models';
 import { ThingStatus } from '../models';
 import { TypeThing } from '../models';
 import { TypeThingList } from '../models';
-
-const log = getLog("ThingListVue", 4, 2)
 /**
  * DefaultApi - axios parameter creator
  * @export
@@ -45,7 +42,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/thing/{thingId}`
                 .replace(`{${"thingId"}}`, encodeURIComponent(String(thingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -93,7 +90,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         count: async (keywords?: string, type?: number, createdBy?: number, inactivated?: boolean, validated?: boolean, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/thing/count`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -161,7 +158,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
             const localVarPath = `/thing`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -214,7 +211,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/thing/{thingId}`
                 .replace(`{${"thingId"}}`, encodeURIComponent(String(thingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -263,7 +260,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         list: async (type?: number, createdBy?: number, inactivated?: boolean, validated?: boolean, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/thing`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -338,7 +335,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/thing/by-external-id/{externalId}`
                 .replace(`{${"externalId"}}`, encodeURIComponent(String(externalId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -396,7 +393,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         search: async (keywords?: string, type?: number, createdBy?: number, inactivated?: boolean, validated?: boolean, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/thing/search`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -470,7 +467,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         typeThingCount: async (keywords?: string, createdBy?: number, inactivated?: boolean, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/types/count`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -530,7 +527,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
             const localVarPath = `/types`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -583,7 +580,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/types/{typeThingId}`
                 .replace(`{${"typeThingId"}}`, encodeURIComponent(String(typeThingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -632,7 +629,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/types/{typeThingId}`
                 .replace(`{${"typeThingId"}}`, encodeURIComponent(String(typeThingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -681,7 +678,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         typeThingList: async (keywords?: string, createdBy?: number, externalId?: number, inactivated?: boolean, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/types`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -743,26 +740,26 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} [id]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [tableName]
-         * @param {string} [geometryType]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {number} [managedBy]
-         * @param {Date} [createdAt]
-         * @param {number} [createdBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreDataSchema]
+         * @param {number} [id] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [tableName] 
+         * @param {string} [geometryType] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreDataSchema] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -774,7 +771,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/types/{typeThingId}`
                 .replace(`{${"typeThingId"}}`, encodeURIComponent(String(typeThingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -794,83 +791,83 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-            if (id !== undefined) {
+            if (id !== undefined) { 
                 localVarFormParams.set('id', id as any);
             }
 
-            if (name !== undefined) {
+            if (name !== undefined) { 
                 localVarFormParams.set('name', name as any);
             }
 
-            if (description !== undefined) {
+            if (description !== undefined) { 
                 localVarFormParams.set('description', description as any);
             }
 
-            if (comment !== undefined) {
+            if (comment !== undefined) { 
                 localVarFormParams.set('comment', comment as any);
             }
 
-            if (externalId !== undefined) {
+            if (externalId !== undefined) { 
                 localVarFormParams.set('external_id', externalId as any);
             }
 
-            if (tableName !== undefined) {
+            if (tableName !== undefined) { 
                 localVarFormParams.set('table_name', tableName as any);
             }
 
-            if (geometryType !== undefined) {
+            if (geometryType !== undefined) { 
                 localVarFormParams.set('geometry_type', geometryType as any);
             }
 
-            if (inactivated !== undefined) {
+            if (inactivated !== undefined) { 
                 localVarFormParams.set('inactivated', inactivated as any);
             }
 
-            if (inactivatedTime !== undefined) {
+            if (inactivatedTime !== undefined) { 
                 localVarFormParams.set('inactivated_time', inactivatedTime as any);
             }
 
-            if (inactivatedBy !== undefined) {
+            if (inactivatedBy !== undefined) { 
                 localVarFormParams.set('inactivated_by', inactivatedBy as any);
             }
 
-            if (inactivatedReason !== undefined) {
+            if (inactivatedReason !== undefined) { 
                 localVarFormParams.set('inactivated_reason', inactivatedReason as any);
             }
 
-            if (managedBy !== undefined) {
+            if (managedBy !== undefined) { 
                 localVarFormParams.set('managed_by', managedBy as any);
             }
 
-            if (createdAt !== undefined) {
+            if (createdAt !== undefined) { 
                 localVarFormParams.set('created_at', createdAt as any);
             }
 
-            if (createdBy !== undefined) {
+            if (createdBy !== undefined) { 
                 localVarFormParams.set('created_by', createdBy as any);
             }
 
-            if (lastModifiedAt !== undefined) {
+            if (lastModifiedAt !== undefined) { 
                 localVarFormParams.set('last_modified_at', lastModifiedAt as any);
             }
 
-            if (lastModifiedBy !== undefined) {
+            if (lastModifiedBy !== undefined) { 
                 localVarFormParams.set('last_modified_by', lastModifiedBy as any);
             }
 
-            if (deleted !== undefined) {
+            if (deleted !== undefined) { 
                 localVarFormParams.set('deleted', deleted as any);
             }
 
-            if (deletedAt !== undefined) {
+            if (deletedAt !== undefined) { 
                 localVarFormParams.set('deleted_at', deletedAt as any);
             }
 
-            if (deletedBy !== undefined) {
+            if (deletedBy !== undefined) { 
                 localVarFormParams.set('deleted_by', deletedBy as any);
             }
 
-            if (moreDataSchema !== undefined) {
+            if (moreDataSchema !== undefined) { 
                 localVarFormParams.set('more_data_schema', moreDataSchema as any);
             }
             localVarHeaderParameter['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -895,39 +892,39 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} [id]
-         * @param {number} [typeId]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [externalRef]
-         * @param {string} [buildAt]
-         * @param {ThingStatus} [status]
-         * @param {string} [containedBy]
-         * @param {number} [containedByOld]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {boolean} [validated]
-         * @param {Date} [validatedTime]
-         * @param {number} [validatedBy]
-         * @param {number} [managedBy]
-         * @param {Date} [createAt]
-         * @param {number} [createBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreData]
-         * @param {number} [posX]
-         * @param {number} [posY]
+         * @param {string} [id] 
+         * @param {number} [typeId] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [externalRef] 
+         * @param {string} [buildAt] 
+         * @param {ThingStatus} [status] 
+         * @param {string} [containedBy] 
+         * @param {number} [containedByOld] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {boolean} [validated] 
+         * @param {Date} [validatedTime] 
+         * @param {number} [validatedBy] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreData] 
+         * @param {number} [posX] 
+         * @param {number} [posY] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateForm: async (thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createAt?: Date, createBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateForm: async (thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createdAt?: Date, createdBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'thingId' is not null or undefined
             if (thingId === null || thingId === undefined) {
                 throw new RequiredError('thingId','Required parameter thingId was null or undefined when calling updateForm.');
@@ -935,7 +932,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarPath = `/thing/{thingId}`
                 .replace(`{${"thingId"}}`, encodeURIComponent(String(thingId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, BACKEND_URL);
+            const localVarUrlObj = new URL(localVarPath, 'https://example.com');
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
@@ -955,119 +952,119 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-            if (id !== undefined) {
+            if (id !== undefined) { 
                 localVarFormParams.set('id', id as any);
             }
 
-            if (typeId !== undefined) {
+            if (typeId !== undefined) { 
                 localVarFormParams.set('type_id', typeId as any);
             }
 
-            if (name !== undefined) {
+            if (name !== undefined) { 
                 localVarFormParams.set('name', name as any);
             }
 
-            if (description !== undefined) {
+            if (description !== undefined) { 
                 localVarFormParams.set('description', description as any);
             }
 
-            if (comment !== undefined) {
+            if (comment !== undefined) { 
                 localVarFormParams.set('comment', comment as any);
             }
 
-            if (externalId !== undefined) {
+            if (externalId !== undefined) { 
                 localVarFormParams.set('external_id', externalId as any);
             }
 
-            if (externalRef !== undefined) {
+            if (externalRef !== undefined) { 
                 localVarFormParams.set('external_ref', externalRef as any);
             }
 
-            if (buildAt !== undefined) {
+            if (buildAt !== undefined) { 
                 localVarFormParams.set('build_at', buildAt as any);
             }
 
-            if (status !== undefined) {
+            if (status !== undefined) { 
                 localVarFormParams.set('status', status as any);
             }
 
-            if (containedBy !== undefined) {
+            if (containedBy !== undefined) { 
                 localVarFormParams.set('contained_by', containedBy as any);
             }
 
-            if (containedByOld !== undefined) {
+            if (containedByOld !== undefined) { 
                 localVarFormParams.set('contained_by_old', containedByOld as any);
             }
 
-            if (inactivated !== undefined) {
+            if (inactivated !== undefined) { 
                 localVarFormParams.set('inactivated', inactivated as any);
             }
 
-            if (inactivatedTime !== undefined) {
+            if (inactivatedTime !== undefined) { 
                 localVarFormParams.set('inactivated_time', inactivatedTime as any);
             }
 
-            if (inactivatedBy !== undefined) {
+            if (inactivatedBy !== undefined) { 
                 localVarFormParams.set('inactivated_by', inactivatedBy as any);
             }
 
-            if (inactivatedReason !== undefined) {
+            if (inactivatedReason !== undefined) { 
                 localVarFormParams.set('inactivated_reason', inactivatedReason as any);
             }
 
-            if (validated !== undefined) {
+            if (validated !== undefined) { 
                 localVarFormParams.set('validated', validated as any);
             }
 
-            if (validatedTime !== undefined) {
+            if (validatedTime !== undefined) { 
                 localVarFormParams.set('validated_time', validatedTime as any);
             }
 
-            if (validatedBy !== undefined) {
+            if (validatedBy !== undefined) { 
                 localVarFormParams.set('validated_by', validatedBy as any);
             }
 
-            if (managedBy !== undefined) {
+            if (managedBy !== undefined) { 
                 localVarFormParams.set('managed_by', managedBy as any);
             }
 
-            if (createAt !== undefined) {
-                localVarFormParams.set('create_at', createAt as any);
+            if (createdAt !== undefined) { 
+                localVarFormParams.set('created_at', createdAt as any);
             }
 
-            if (createBy !== undefined) {
-                localVarFormParams.set('create_by', createBy as any);
+            if (createdBy !== undefined) { 
+                localVarFormParams.set('created_by', createdBy as any);
             }
 
-            if (lastModifiedAt !== undefined) {
+            if (lastModifiedAt !== undefined) { 
                 localVarFormParams.set('last_modified_at', lastModifiedAt as any);
             }
 
-            if (lastModifiedBy !== undefined) {
+            if (lastModifiedBy !== undefined) { 
                 localVarFormParams.set('last_modified_by', lastModifiedBy as any);
             }
 
-            if (deleted !== undefined) {
+            if (deleted !== undefined) { 
                 localVarFormParams.set('deleted', deleted as any);
             }
 
-            if (deletedAt !== undefined) {
+            if (deletedAt !== undefined) { 
                 localVarFormParams.set('deleted_at', deletedAt as any);
             }
 
-            if (deletedBy !== undefined) {
+            if (deletedBy !== undefined) { 
                 localVarFormParams.set('deleted_by', deletedBy as any);
             }
 
-            if (moreData !== undefined) {
+            if (moreData !== undefined) { 
                 localVarFormParams.set('more_data', moreData as any);
             }
 
-            if (posX !== undefined) {
+            if (posX !== undefined) { 
                 localVarFormParams.set('pos_x', posX as any);
             }
 
-            if (posY !== undefined) {
+            if (posY !== undefined) { 
                 localVarFormParams.set('pos_y', posY as any);
             }
             localVarHeaderParameter['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -1173,7 +1170,6 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await DefaultApiAxiosParamCreator(configuration).list(type, createdBy, inactivated, validated, limit, offset, options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs :AxiosRequestConfig = {...localVarAxiosArgs.options, url: basePath + localVarAxiosArgs.url};
-              log.w("axios request ",axiosRequestArgs)
                 return axios.request(axiosRequestArgs);
             };
         },
@@ -1294,26 +1290,26 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} [id]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [tableName]
-         * @param {string} [geometryType]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {number} [managedBy]
-         * @param {Date} [createdAt]
-         * @param {number} [createdBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreDataSchema]
+         * @param {number} [id] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [tableName] 
+         * @param {string} [geometryType] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreDataSchema] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1328,40 +1324,40 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} [id]
-         * @param {number} [typeId]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [externalRef]
-         * @param {string} [buildAt]
-         * @param {ThingStatus} [status]
-         * @param {string} [containedBy]
-         * @param {number} [containedByOld]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {boolean} [validated]
-         * @param {Date} [validatedTime]
-         * @param {number} [validatedBy]
-         * @param {number} [managedBy]
-         * @param {Date} [createAt]
-         * @param {number} [createBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreData]
-         * @param {number} [posX]
-         * @param {number} [posY]
+         * @param {string} [id] 
+         * @param {number} [typeId] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [externalRef] 
+         * @param {string} [buildAt] 
+         * @param {ThingStatus} [status] 
+         * @param {string} [containedBy] 
+         * @param {number} [containedByOld] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {boolean} [validated] 
+         * @param {Date} [validatedTime] 
+         * @param {number} [validatedBy] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreData] 
+         * @param {number} [posX] 
+         * @param {number} [posY] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createAt?: Date, createBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<Thing>>> {
-            const localVarAxiosArgs = await DefaultApiAxiosParamCreator(configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createAt, createBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options);
+        async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createdAt?: Date, createdBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<Thing>>> {
+            const localVarAxiosArgs = await DefaultApiAxiosParamCreator(configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createdAt, createdBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs :AxiosRequestConfig = {...localVarAxiosArgs.options, url: basePath + localVarAxiosArgs.url};
                 return axios.request(axiosRequestArgs);
@@ -1524,26 +1520,26 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} [id]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [tableName]
-         * @param {string} [geometryType]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {number} [managedBy]
-         * @param {Date} [createdAt]
-         * @param {number} [createdBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreDataSchema]
+         * @param {number} [id] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [tableName] 
+         * @param {string} [geometryType] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreDataSchema] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1554,40 +1550,40 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} [id]
-         * @param {number} [typeId]
-         * @param {string} [name]
-         * @param {string} [description]
-         * @param {string} [comment]
-         * @param {number} [externalId]
-         * @param {string} [externalRef]
-         * @param {string} [buildAt]
-         * @param {ThingStatus} [status]
-         * @param {string} [containedBy]
-         * @param {number} [containedByOld]
-         * @param {boolean} [inactivated]
-         * @param {Date} [inactivatedTime]
-         * @param {number} [inactivatedBy]
-         * @param {string} [inactivatedReason]
-         * @param {boolean} [validated]
-         * @param {Date} [validatedTime]
-         * @param {number} [validatedBy]
-         * @param {number} [managedBy]
-         * @param {Date} [createAt]
-         * @param {number} [createBy]
-         * @param {Date} [lastModifiedAt]
-         * @param {number} [lastModifiedBy]
-         * @param {boolean} [deleted]
-         * @param {Date} [deletedAt]
-         * @param {number} [deletedBy]
-         * @param {any} [moreData]
-         * @param {number} [posX]
-         * @param {number} [posY]
+         * @param {string} [id] 
+         * @param {number} [typeId] 
+         * @param {string} [name] 
+         * @param {string} [description] 
+         * @param {string} [comment] 
+         * @param {number} [externalId] 
+         * @param {string} [externalRef] 
+         * @param {string} [buildAt] 
+         * @param {ThingStatus} [status] 
+         * @param {string} [containedBy] 
+         * @param {number} [containedByOld] 
+         * @param {boolean} [inactivated] 
+         * @param {Date} [inactivatedTime] 
+         * @param {number} [inactivatedBy] 
+         * @param {string} [inactivatedReason] 
+         * @param {boolean} [validated] 
+         * @param {Date} [validatedTime] 
+         * @param {number} [validatedBy] 
+         * @param {number} [managedBy] 
+         * @param {Date} [createdAt] 
+         * @param {number} [createdBy] 
+         * @param {Date} [lastModifiedAt] 
+         * @param {number} [lastModifiedBy] 
+         * @param {boolean} [deleted] 
+         * @param {Date} [deletedAt] 
+         * @param {number} [deletedBy] 
+         * @param {any} [moreData] 
+         * @param {number} [posX] 
+         * @param {number} [posY] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createAt?: Date, createBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig): Promise<AxiosResponse<Thing>> {
-            return DefaultApiFp(configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createAt, createBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options).then((request) => request(axios, basePath));
+        async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createdAt?: Date, createdBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig): Promise<AxiosResponse<Thing>> {
+            return DefaultApiFp(configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createdAt, createdBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1759,26 +1755,26 @@ export class DefaultApi extends BaseAPI {
      * Updates the information related to a typeThing
      * @summary TypeThingUpdate allows to modify information about a specific typeThingId
      * @param {number} typeThingId Id of the typeThing
-     * @param {number} [id]
-     * @param {string} [name]
-     * @param {string} [description]
-     * @param {string} [comment]
-     * @param {number} [externalId]
-     * @param {string} [tableName]
-     * @param {string} [geometryType]
-     * @param {boolean} [inactivated]
-     * @param {Date} [inactivatedTime]
-     * @param {number} [inactivatedBy]
-     * @param {string} [inactivatedReason]
-     * @param {number} [managedBy]
-     * @param {Date} [createdAt]
-     * @param {number} [createdBy]
-     * @param {Date} [lastModifiedAt]
-     * @param {number} [lastModifiedBy]
-     * @param {boolean} [deleted]
-     * @param {Date} [deletedAt]
-     * @param {number} [deletedBy]
-     * @param {any} [moreDataSchema]
+     * @param {number} [id] 
+     * @param {string} [name] 
+     * @param {string} [description] 
+     * @param {string} [comment] 
+     * @param {number} [externalId] 
+     * @param {string} [tableName] 
+     * @param {string} [geometryType] 
+     * @param {boolean} [inactivated] 
+     * @param {Date} [inactivatedTime] 
+     * @param {number} [inactivatedBy] 
+     * @param {string} [inactivatedReason] 
+     * @param {number} [managedBy] 
+     * @param {Date} [createdAt] 
+     * @param {number} [createdBy] 
+     * @param {Date} [lastModifiedAt] 
+     * @param {number} [lastModifiedBy] 
+     * @param {boolean} [deleted] 
+     * @param {Date} [deletedAt] 
+     * @param {number} [deletedBy] 
+     * @param {any} [moreDataSchema] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
@@ -1790,40 +1786,40 @@ export class DefaultApi extends BaseAPI {
      * Updates the status of a thing
      * @summary Update allows to modify information about a specific thingId
      * @param {string} thingId Id of the thing
-     * @param {string} [id]
-     * @param {number} [typeId]
-     * @param {string} [name]
-     * @param {string} [description]
-     * @param {string} [comment]
-     * @param {number} [externalId]
-     * @param {string} [externalRef]
-     * @param {string} [buildAt]
-     * @param {ThingStatus} [status]
-     * @param {string} [containedBy]
-     * @param {number} [containedByOld]
-     * @param {boolean} [inactivated]
-     * @param {Date} [inactivatedTime]
-     * @param {number} [inactivatedBy]
-     * @param {string} [inactivatedReason]
-     * @param {boolean} [validated]
-     * @param {Date} [validatedTime]
-     * @param {number} [validatedBy]
-     * @param {number} [managedBy]
-     * @param {Date} [createAt]
-     * @param {number} [createBy]
-     * @param {Date} [lastModifiedAt]
-     * @param {number} [lastModifiedBy]
-     * @param {boolean} [deleted]
-     * @param {Date} [deletedAt]
-     * @param {number} [deletedBy]
-     * @param {any} [moreData]
-     * @param {number} [posX]
-     * @param {number} [posY]
+     * @param {string} [id] 
+     * @param {number} [typeId] 
+     * @param {string} [name] 
+     * @param {string} [description] 
+     * @param {string} [comment] 
+     * @param {number} [externalId] 
+     * @param {string} [externalRef] 
+     * @param {string} [buildAt] 
+     * @param {ThingStatus} [status] 
+     * @param {string} [containedBy] 
+     * @param {number} [containedByOld] 
+     * @param {boolean} [inactivated] 
+     * @param {Date} [inactivatedTime] 
+     * @param {number} [inactivatedBy] 
+     * @param {string} [inactivatedReason] 
+     * @param {boolean} [validated] 
+     * @param {Date} [validatedTime] 
+     * @param {number} [validatedBy] 
+     * @param {number} [managedBy] 
+     * @param {Date} [createdAt] 
+     * @param {number} [createdBy] 
+     * @param {Date} [lastModifiedAt] 
+     * @param {number} [lastModifiedBy] 
+     * @param {boolean} [deleted] 
+     * @param {Date} [deletedAt] 
+     * @param {number} [deletedBy] 
+     * @param {any} [moreData] 
+     * @param {number} [posX] 
+     * @param {number} [posY] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
      */
-    public async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createAt?: Date, createBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig) : Promise<AxiosResponse<Thing>> {
-        return DefaultApiFp(this.configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createAt, createBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options).then((request) => request(this.axios, this.basePath));
+    public async updateForm(thingId: string, id?: string, typeId?: number, name?: string, description?: string, comment?: string, externalId?: number, externalRef?: string, buildAt?: string, status?: ThingStatus, containedBy?: string, containedByOld?: number, inactivated?: boolean, inactivatedTime?: Date, inactivatedBy?: number, inactivatedReason?: string, validated?: boolean, validatedTime?: Date, validatedBy?: number, managedBy?: number, createdAt?: Date, createdBy?: number, lastModifiedAt?: Date, lastModifiedBy?: number, deleted?: boolean, deletedAt?: Date, deletedBy?: number, moreData?: any, posX?: number, posY?: number, options?: AxiosRequestConfig) : Promise<AxiosResponse<Thing>> {
+        return DefaultApiFp(this.configuration).updateForm(thingId, id, typeId, name, description, comment, externalId, externalRef, buildAt, status, containedBy, containedByOld, inactivated, inactivatedTime, inactivatedBy, inactivatedReason, validated, validatedTime, validatedBy, managedBy, createdAt, createdBy, lastModifiedAt, lastModifiedBy, deleted, deletedAt, deletedBy, moreData, posX, posY, options).then((request) => request(this.axios, this.basePath));
     }
 }

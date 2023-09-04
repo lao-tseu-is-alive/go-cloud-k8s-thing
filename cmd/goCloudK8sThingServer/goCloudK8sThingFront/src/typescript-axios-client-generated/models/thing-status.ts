@@ -12,14 +12,15 @@
  * Do not edit the class manually.
  */
 /**
- *
+ * 
  * @export
  * @enum {string}
  */
 export enum ThingStatus {
-  Planifie = "Planifié",
-  EnConstruction = "En Construction",
-  Utilise = "Utilisé",
-  Abandonne = "Abandonné",
-  Demoli = "Démoli",
+    Planifi = 'Planifié',
+    EnConstruction = 'En Construction',
+    Utilis = 'Utilisé',
+    Abandonn = 'Abandonné',
+    Dmoli = 'Démoli'
 }
+

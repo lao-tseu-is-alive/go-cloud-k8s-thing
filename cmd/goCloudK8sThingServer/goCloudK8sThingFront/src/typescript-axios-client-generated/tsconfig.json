@@ -5,7 +5,7 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "outDir": "dist",
-//    "rootDir": ".",
+    "rootDir": ".",
     "lib": [
       "es6",
       "dom"

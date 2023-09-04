@@ -209,7 +209,7 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 		*/
 		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$14
-		&t.ManagedBy, t.CreateBy, &t.MoreData, t.PosX, t.PosY)
+		&t.ManagedBy, t.CreatedBy, &t.MoreData, t.PosX, t.PosY)
 	if err != nil {
 		db.log.Error("Create(%q) unexpectedly failed. error : %v", t.Name, err)
 		return nil, err
