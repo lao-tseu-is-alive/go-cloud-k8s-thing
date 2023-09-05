@@ -132,28 +132,17 @@ export default {
         try {
           const res = getToken(this.base_server_url, this.username, this.password_hash)
             .then((val) => {
-              if (val instanceof Error) {
-                log.e("# getJwtToken() ERROR err: ", val)
-                if (val.message === "Network Error") {
-                  this.displayFeedBack(`Il semble qu'il y a un problème de réseau !${val}`, "error")
+              if (val.data == null) {
+                if (!isNullOrUndefined(val.err)) {
+                  log.e(`# getJwtToken() ${val.msg}, ERROR is: `, val.err)
+                  this.displayFeedBack(`Problème réseau :${val.msg}`, "error")
                 }
-                log.e("# getJwtToken() ERROR err.response: ", val.response)
-                log.w("# getJwtToken() ERROR err.response.data: ", val.response.data)
-                if (!isNullOrUndefined(val.response)) {
-                  const reason = val.response.data.message
-                  log.w(`# getJwtToken() SERVER SAYS REASON : ${reason}`)
-                  if (reason.match(/wrong password/gi) !== null || reason.match(/no records found/gi) !== null) {
-                    this.displayFeedBack("Vos informations de connexions sont erronées !", "warning")
-                  } else {
-                    this.displayFeedBack(`Erreur serveur : ${reason}`, "error")
-                  }
-                } else {
-                  this.displayFeedBack(`ERREUR SERVEUR :  ${val}`, "error")
-                }
-                this.$emit("loginError", "LOGIN FAILED", val)
+                log.w(`# getToken received status ${val.status}`, val)
+                this.displayFeedBack("Vos informations de connexions sont erronées !", "warning")
+                this.$emit("loginError", "LOGIN FAILED", val.err)
               } else {
-                log.l("# getJwtToken() SUCCESS res: ", val)
-                this.$emit("login-ok", "LOGIN SUCCESS", val)
+                log.l("# getJwtToken() SUCCESS val.data: ", val.data)
+                this.$emit("login-ok", "LOGIN SUCCESS")
               }
             })
             .catch((err) => {

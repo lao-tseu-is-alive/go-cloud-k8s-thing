@@ -12,9 +12,10 @@
       </template>
     </v-app-bar>
     <v-main>
-      <template v-if="feedbackVisible">
-        <v-alert closable :type="feedbackType" :color="feedbackType" elevation="2" :text="feedbackMsg"> </v-alert>
-      </template>
+      <v-snackbar v-model="feedbackVisible" :timeout="feedbackTimeout"
+                  rounded="pill" :color="feedbackType" location="top">
+        <v-alert :type="feedbackType" :color="feedbackType" :text="feedbackMsg"> </v-alert>
+      </v-snackbar>
       <template v-if="isUserAuthenticated">
         <ThingList></ThingList>
       </template>
@@ -29,7 +30,7 @@
 import { onMounted, ref } from "vue"
 import type { Ref } from "vue"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, HOME, getLog, DEV, BUILD_DATE, VERSION } from "@/config"
+import { APP, APP_TITLE, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
 import { getUserIsAdmin, getTokenStatus, clearSessionStorage, doesCurrentSessionExist } from "@/components/Login"
@@ -42,15 +43,16 @@ const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
 const isNetworkOk = ref(true)
 const drawer = ref(false)
-const feedback = ref(null)
+const feedbackTimeout = ref(3000) // default display time
 const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType: Ref<LevelAlert> = ref("info")
 const feedbackVisible = ref(false)
-let autoLogoutTimer: number | undefined = 0
-const displayFeedBack = (text: string, type: LevelAlert = "info") => {
+let autoLogoutTimer: NodeJS.Timer | undefined
+const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: number = feedbackTimeout.value) => {
   log.t(`displayFeedBack() text:'${text}' type:'${type}'`)
   feedbackType.value = type
   feedbackMsg.value = text
+  feedbackTimeout.value = timeout
   feedbackVisible.value = true
 }
 
@@ -69,26 +71,15 @@ const logout = () => {
 }
 
 const checkIsSessionTokenValid = () => {
-  log.t("# IN checkIsSessionTokenValid()")
+  log.t("# entering...  ")
   if (doesCurrentSessionExist()) {
     getTokenStatus()
       .then((val) => {
-        if (val instanceof Error) {
-          log.e("# getTokenStatus() ERROR err: ", val)
-          if (val.message === "Network Error") {
-            displayFeedBack(`Il semble qu'il y a un problème de réseau !${val}`, "error")
-          }
-          log.e("# getTokenStatus() ERROR err.response: ", val.response)
-          log.w("# getTokenStatus() ERROR err.response.data: ", val.response.data)
-          if (!isNullOrUndefined(val.response)) {
-            let reason = val.response.data
-            if (!isNullOrUndefined(val.response.data.message)) {
-              reason = val.response.data.message
-            }
-            log.w(`# getTokenStatus() SERVER SAYS REASON : ${reason}`)
-          }
+        if (val.data == null) {
+          log.e(`# getTokenStatus() ${val.msg}, ERROR is: `, val.err)
+          displayFeedBack(`Problème réseau :${val.msg}`, "error")
         } else {
-          log.l("# getTokenStatus() SUCCESS res: ", val)
+          log.l(`# getTokenStatus() SUCCESS ${val.msg} data: `, val.data)
           if (isNullOrUndefined(val.err) && val.status === 200) {
             // everything is okay, session is still valid
             isUserAuthenticated.value = true
@@ -99,10 +90,10 @@ const checkIsSessionTokenValid = () => {
             // jwt token is no more valid
             isUserAuthenticated.value = false
             isUserAdmin.value = false
-            displayFeedBack("Votre session a expiré !", "warn")
+            displayFeedBack("Votre session a expiré !", "warning")
             logout()
           }
-          displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "err")
+          displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error")
         }
       })
       .catch((err) => {
@@ -111,11 +102,12 @@ const checkIsSessionTokenValid = () => {
       })
   } else {
     log.w("SESSION DOES NOT EXIST OR HAS EXPIRED !")
+    logout()
   }
 }
 
-const loginSuccess = (v) => {
-  log.t(" loginSuccess()", v)
+const loginSuccess = (v: string) => {
+  log.t(`# entering... val:${v} `)
   isUserAuthenticated.value = true
   isUserAdmin.value = getUserIsAdmin()
   feedbackVisible.value = false
@@ -126,8 +118,8 @@ const loginSuccess = (v) => {
   }
 }
 
-const loginFailure = (v) => {
-  log.w("loginFailure()", v)
+const loginFailure = (v: string) => {
+  log.w(`# entering... val:${v} `)
   isUserAuthenticated.value = false
   isUserAdmin.value = false
 }

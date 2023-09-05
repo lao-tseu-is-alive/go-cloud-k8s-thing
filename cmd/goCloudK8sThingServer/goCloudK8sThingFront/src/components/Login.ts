@@ -24,7 +24,7 @@ export const getToken = async (baseServerUrl: string, username: string, password
     username,
     password_hash: `${passwordHash}`,
   }
-  log.t("# IN getToken() data:", data)
+  log.t("# entering...  data :", data)
   let response = null
   try {
     response = await axios.post(`${baseServerUrl}/login`, data) // .then((response) => {
@@ -46,25 +46,44 @@ export const getToken = async (baseServerUrl: string, username: string, password
         sessionStorage.setItem(`${APP}_goapi_groups`, jwtValues.groups)
         sessionStorage.setItem(`${APP}_goapi_date_expiration`, jwtValues.exp)
       }
-      return response.data
+      return {
+        msg: "getToken() axios.post Success.",
+        err: null,
+        status: response.status,
+        data: response.data,
+      }
     }
     log.w("axios get a bad status ! response was:", response)
-    return response
+    return {
+      msg: `getToken() axios.post Failure got a bad status: ${response.status} !`,
+      err: null,
+      status: response.status,
+      data: null,
+    }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      log.e("getToken() ## Try Catch ERROR ## error :", error)
-      log.e("axios response was:", error.response)
-      log.e("axios message is:", error.message)
-      return error.message
+      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
+      log.l("Axios error.response:", error.response)
+      return {
+        msg: `getToken() Try Catch Axios ERROR: ${error.message} !`,
+        err: error,
+        status: error.status,
+        data: null,
+      }
     } else {
       log.e("unexpected error: ", error)
-      return `An unexpected error occurred ${error}`
+      return {
+        msg: `getToken() Try Catch unexpected ERROR: ${error} !`,
+        err: error,
+        status: null,
+        data: null,
+      }
     }
   }
 }
 
 export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
-  log.t("# IN getTokenStatus() ")
+  log.t("# entering...  ")
   axios.defaults.headers.common.Authorization = `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
   try {
     const res = await axios.get(`${baseServerUrl}/goapi/v1/status`)
@@ -72,7 +91,7 @@ export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
     const dExpires = new Date(0)
     dExpires.setUTCSeconds(res.data.exp)
     const msg = `getTokenStatus() JWT token expiration : ${dExpires}`
-    log.w(msg)
+    log.l(msg)
     const { data } = res
     return {
       msg,
@@ -135,20 +154,27 @@ export const logoutAndResetToken = (baseServerUrl: string) => {
 }
 
 export const doesCurrentSessionExist = (): boolean => {
-  log.t("# IN doesCurrentSessionExist() ")
+  log.t("# entering...  ")
   if (sessionStorage.getItem(`${APP}_goapi_jwt_session_token`) == null) return false
   if (sessionStorage.getItem(`${APP}_goapi_idgouser`) == null) return false
   if (sessionStorage.getItem(`${APP}_goapi_isadmin`) == null) return false
   if (sessionStorage.getItem(`${APP}_goapi_email`) == null) return false
   if (sessionStorage.getItem(`${APP}_goapi_date_expiration`) !== null) {
-    const dateExpire = new Date(getDateExpiration) //TODO check why calling getDateExpiration() crashes
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const goapi_token_expires = parseInt(sessionStorage.getItem(`${APP}_goapi_date_expiration`), 10)
+    //log.l("goapi_token_expires : ", goapi_token_expires)
+    const dateExpire = new Date(goapi_token_expires * 1000)
+    //log.l("dateExpire : ", dateExpire)
     const now = new Date()
+    const minutesUntilExpire = Math.floor((dateExpire.getTime() - now.getTime()) / 1000 / 60)
     if (now > dateExpire) {
       clearSessionStorage()
       log.w("# IN doesCurrentSessionExist() SESSION EXPIRED")
       return false
     }
     // attention meme si une session existe en local il faut que le jwt token soit  encore valide !
+    log.l(`Yes session exists, valid for ${minutesUntilExpire} minutes...`)
     return true
   }
   log.w("# IN doesCurrentSessionExist() goapi_date_expiration was null ")
@@ -158,16 +184,20 @@ export const doesCurrentSessionExist = (): boolean => {
 export const getLocalJwtTokenAuth = (): string => {
   if (doesCurrentSessionExist()) {
     //return `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
-    //Bearer not needed
-    return `${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
+    const goapi_jwt_session = sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)
+    if (goapi_jwt_session !== null) {
+      return goapi_jwt_session
+    }
   }
   return ""
 }
 
 export const getDateExpiration = (): number => {
-  const val = sessionStorage.getItem(`${APP}_goapi_date_expiration`)
-  if (val !== null) {
-    return parseInt(val, 10)
+  if (doesCurrentSessionExist()) {
+    const val = sessionStorage.getItem(`${APP}_goapi_date_expiration`)
+    if (val !== null) {
+      return parseInt(val, 10)
+    }
   }
   return 0
 }

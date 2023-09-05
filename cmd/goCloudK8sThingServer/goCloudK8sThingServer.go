@@ -88,6 +88,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 	s.Log.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 	// Throws unauthorized error
 	if uLogin.Username != defaultUsername || uLogin.PasswordHash != defaultFakeStupidPassHash {
+		s.Log.Warn("unauthorized request: username not found or invalid password")
 		return ctx.JSON(http.StatusUnauthorized, "{\"message\":\"unauthorized request: username not found or invalid password.\"}")
 	}
 
