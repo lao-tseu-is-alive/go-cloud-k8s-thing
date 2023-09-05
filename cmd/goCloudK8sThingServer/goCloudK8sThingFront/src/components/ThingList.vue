@@ -2,6 +2,9 @@
 <template>
   <v-container class="fill-height">
     <v-responsive class="d-flex align-center text-center fill-height">
+      <v-row>
+        <v-col cols="12">filtres:{{ propsValues }}</v-col>
+      </v-row>
       <v-row class="d-flex align-center justify-center">
         <v-col cols="12">
           <v-data-table :headers="headers" :items="records" :sort-by="[{ key: 'external_id', order: 'asc' }]" class="elevation-1">
@@ -13,7 +16,7 @@
                 <!-- BEGIN FORM EDIT  -->
                 <v-dialog v-model="dialog" max-width="500px">
                   <template #activator="{ props }">
-                    <v-btn color="primary" dark class="mb-2" v-bind="props"> Nouveau Thing </v-btn>
+                    <v-btn color="primary" dark class="mb-2" v-bind="props"> Nouveau Thing</v-btn>
                   </template>
                   <v-card>
                     <v-card-title>
@@ -24,7 +27,7 @@
                       <v-container>
                         <v-row>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.name" label="Nom de lobjet"></v-text-field>
+                            <v-text-field v-model="editedItem.name" label="Nom de l'objet"></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
                             <v-text-field v-model="editedItem.typeId" label="Type"></v-text-field>
@@ -44,8 +47,8 @@
 
                     <v-card-actions>
                       <v-spacer></v-spacer>
-                      <v-btn color="blue-darken-1" variant="text" @click="close"> Cancel </v-btn>
-                      <v-btn color="blue-darken-1" variant="text" @click="save"> Save </v-btn>
+                      <v-btn color="blue-darken-1" variant="text" @click="close"> Cancel</v-btn>
+                      <v-btn color="blue-darken-1" variant="text" @click="save"> Save</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
@@ -72,12 +75,12 @@
             </template>
 
             <template #item.actions="{ item }">
-              <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil </v-icon>
-              <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete </v-icon>
+              <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil</v-icon>
+              <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete</v-icon>
             </template>
             <template #no-data>
               <v-alert type="warning">No data available</v-alert>
-              <v-btn color="primary" @click="initialize"> Reset </v-btn>
+              <v-btn color="primary" @click="initialize"> Reset</v-btn>
             </template>
           </v-data-table>
         </v-col>
@@ -98,6 +101,7 @@ import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
 const log = getLog("ThingListVue", 4, 2)
+const areWeReady = ref(false)
 let myApi: DefaultApi
 const dialog = ref(false)
 const dialogDelete = ref(false)
@@ -168,27 +172,57 @@ const defaultItem: Ref<Thing> = ref({
   posY: 0,
 })
 const editedItem: Ref<Thing> = ref(Object.assign({}, defaultItem))
+//// PROPS SECTION
+/*const myProps = defineProps({
+  typeThing: { type: Number, required: false, default: 0 },
+  createdBy: { type: Number, required: false, default: 0 },
+  inactivated: { type: Boolean, required: false, default: false },
+  validated: { type: Boolean, required: false },
+  limit: { type: Number, required: false, default: 150 },
+  offset: { type: Number, required: false, default: 0 },
+})*/
 
-watch(
-  () => dialog,
-  (val, oldValue) => {
-    log.t(` watch dialog old: ${oldValue}, new val: ${val}`)
-    val || close()
-  }
-)
-watch(
-  () => dialogDelete,
-  (val, oldValue) => {
-    log.t(` watch dialogDelete old: ${oldValue}, new val: ${val}`)
-    val || closeDelete()
-  }
-)
+const myProps = defineProps<{
+  typeThing?: number | undefined
+  createdBy?: number | undefined
+  inactivated?: boolean | undefined
+  validated?: boolean | undefined
+  limit?: number | undefined
+  offset?: number | undefined
+}>()
 
-//computed
+// const triggerRefresh = toRef(myProps, "trigger-refresh")
+//// WATCH SECTION
+watch(
+  () => myProps.typeThing,
+  (val, oldValue) => {
+    log.t(` watch myProps.type old: ${oldValue}, new val: ${val}`, oldValue, val)
+    if (val !== undefined && areWeReady.value == true) {
+      if (val !== oldValue) {
+        retrieveList()
+      }
+    }
+  }
+  //  { immediate: true }
+)
+watch(dialog, (val, oldValue) => {
+  log.t(` watch dialog old: ${oldValue}, new val: ${val}`)
+  val || close()
+})
+watch(dialogDelete, (val, oldValue) => {
+  log.t(` watch dialogDelete old: ${oldValue}, new val: ${val}`)
+  val || closeDelete()
+})
+//// COMPUTED SECTION
 const formTitle = computed(() => {
   return editedIndex.value === -1 ? "New Item" : "Edit Item"
 })
 
+const propsValues = computed(() => {
+  return JSON.stringify(myProps, undefined, 3)
+})
+
+//// FUNCTIONS SECTION
 const editItem = (item: Thing) => {
   editedIndex.value = records.indexOf(item)
   editedItem.value = Object.assign({}, item)
@@ -230,20 +264,31 @@ const save = () => {
   }
   close()
 }
-const initialize = () => {
-  const token = getLocalJwtTokenAuth()
-  const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
-  myApi = new DefaultApi(myConf)
-  myApi.list().then((resp) => {
+
+const retrieveList = () => {
+  const typeThing = myProps.typeThing == 0 ? undefined : myProps.typeThing
+  const createdBy = myProps.createdBy == 0 ? undefined : myProps.createdBy
+  myApi.list(typeThing, createdBy, myProps.inactivated, myProps.validated, myProps.limit, myProps.offset).then((resp) => {
     log.l("myAPi.list : ", resp)
     if (resp.status == 200) {
+      if (records.length > 0) {
+        records.splice(0)
+      }
       resp.data.forEach((r) => {
         records.push(r)
       })
     } else {
-      //display alert with status code > 200
+      log.w("retrieveList got problem", resp)
     }
   })
+}
+
+const initialize = () => {
+  const token = getLocalJwtTokenAuth()
+  const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
+  myApi = new DefaultApi(myConf)
+  areWeReady.value = true
+  retrieveList()
 }
 
 onMounted(() => {

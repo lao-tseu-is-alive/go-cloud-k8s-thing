@@ -11,9 +11,9 @@ SELECT id,
     geometry_type,
     inactivated
 FROM go_thing.type_thing
-WHERE _deleted = false 
+WHERE _deleted = false
 `
-	typeThingListOrderBy                 = " ORDER BY id DESC LIMIT $1 OFFSET $2;"
+	typeThingListOrderBy                 = " ORDER BY name ASC LIMIT $1 OFFSET $2;"
 	listTypeThingsConditionsWithKeywords = `
  AND text_search @@ plainto_tsquery('french', unaccent($3))
  AND _created_by = coalesce($4, _created_by)

@@ -411,11 +411,11 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 	)
 	listTypeThings := typeThingListQuery
 	if params.Keywords != nil {
-		listTypeThings += listTypeThingsConditionsWithKeywords + thingListOrderBy
+		listTypeThings += listTypeThingsConditionsWithKeywords + typeThingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
 			limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	} else {
-		listTypeThings += listTypeThingsConditionsWithoutKeywords + thingListOrderBy
+		listTypeThings += listTypeThingsConditionsWithoutKeywords + typeThingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
 			limit, offset, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	}

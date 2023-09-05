@@ -5,19 +5,51 @@
       <v-toolbar-title>{{ `${APP}:v${VERSION}` }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn variant="text" icon="mdi-magnify"></v-btn>
-      <v-btn variant="text" icon="mdi-filter"></v-btn>
+      <v-btn variant="text" icon="mdi-filter" title="afficher les critères de filtrage" @click="showSearchCriteria = !showSearchCriteria"></v-btn>
       <v-btn variant="text" icon="mdi-dots-vertical"></v-btn>
       <template v-if="isUserAuthenticated">
         <v-btn variant="text" icon="mdi-logout" title="Logout" @click="logout"></v-btn>
       </template>
     </v-app-bar>
     <v-main>
-      <v-snackbar v-model="feedbackVisible" :timeout="feedbackTimeout"
-                  rounded="pill" :color="feedbackType" location="top">
-        <v-alert :type="feedbackType" :color="feedbackType" :text="feedbackMsg"> </v-alert>
+      <v-snackbar v-model="feedbackVisible" :timeout="feedbackTimeout" rounded="pill" :color="feedbackType" location="top">
+        <v-alert :type="feedbackType" theme="dark" :text="feedbackMsg"></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
-        <ThingList></ThingList>
+        <template v-if="showSearchCriteria">
+          <v-card density="compact">
+            <v-card-title>
+              <span class="text-h5">Critères de filtrages</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field v-model="searchOffset" density="compact" label="Offset row" />
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select v-model="searchType" item-title="name" item-value="id" :items="arrListTypeThing" density="compact" label="TypeObjet*"></v-select>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-checkbox v-model="searchInactivated" density="compact" label="Inactivated" />
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-checkbox v-model="searchValidated" density="compact" label="Validated" />
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field v-model="searchCreatedBy" density="compact" label="Id of user creator" />
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+          </v-card>
+        </template>
+        <ThingList :limit="searchLimit" :offset="searchOffset" :type-thing="searchType" :created-by="searchCreatedBy" :inactivated="searchInactivated" :validated="searchValidated" />
       </template>
       <template v-else>
         <Login :msg="`Authentification ${APP_TITLE}:`" :backend="APP_TITLE" :disabled="!isNetworkOk" @login-ok="loginSuccess" @login-error="loginFailure" />
@@ -27,27 +59,39 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
-import type { Ref } from "vue"
+import { onMounted, ref, Ref, reactive } from "vue"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
+import { APP, APP_TITLE, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL } from "@/config"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
-import { getUserIsAdmin, getTokenStatus, clearSessionStorage, doesCurrentSessionExist } from "@/components/Login"
+import { TypeThingList } from "@/typescript-axios-client-generated/models/type-thing-list"
+import { getUserIsAdmin, getTokenStatus, clearSessionStorage, doesCurrentSessionExist, getLocalJwtTokenAuth } from "@/components/Login"
+import { Configuration } from "@/typescript-axios-client-generated/configuration"
+import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
 
 const log = getLog(APP, 4, 2)
+let myApi: DefaultApi
+type LevelAlert = "success" | "info" | "warning" | "error" | undefined
 
-type LevelAlert = "success" | "info" | "warning" | "error"
+const showSearchCriteria = ref(true)
+const searchType = ref(1)
+const arrListTypeThing: TypeThingList[] = reactive([])
+const searchCreatedBy = ref(undefined)
+const searchInactivated = ref(false)
+const searchValidated = ref(undefined)
+const searchLimit = ref(250)
+const searchOffset = ref(0)
 
 const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
 const isNetworkOk = ref(true)
 const drawer = ref(false)
-const feedbackTimeout = ref(3000) // default display time
+const feedbackTimeout = ref(5000) // default display time 5sec
 const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType: Ref<LevelAlert> = ref("info")
 const feedbackVisible = ref(false)
 let autoLogoutTimer: NodeJS.Timer | undefined
+
 const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: number = feedbackTimeout.value) => {
   log.t(`displayFeedBack() text:'${text}' type:'${type}'`)
   feedbackType.value = type
@@ -112,6 +156,7 @@ const loginSuccess = (v: string) => {
   isUserAdmin.value = getUserIsAdmin()
   feedbackVisible.value = false
   displayFeedBack("Vous êtes authentifié sur l'application !", "success")
+  initialize()
   if (isNullOrUndefined(autoLogoutTimer)) {
     // check every 60 seconds(60'000 milliseconds) if jwt is still valid
     autoLogoutTimer = setInterval(checkIsSessionTokenValid, 60000)
@@ -122,6 +167,23 @@ const loginFailure = (v: string) => {
   log.w(`# entering... val:${v} `)
   isUserAuthenticated.value = false
   isUserAdmin.value = false
+}
+
+const initialize = () => {
+  log.t(`# entering...  `)
+  const token = getLocalJwtTokenAuth()
+  const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
+  myApi = new DefaultApi(myConf)
+  myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0).then((resp) => {
+    log.l("myAPi.typeThingList : ", resp)
+    if (resp.status == 200) {
+      resp.data.forEach((r) => {
+        arrListTypeThing.push(r)
+      })
+    } else {
+      //display alert with status code > 200
+    }
+  })
 }
 
 onMounted(() => {

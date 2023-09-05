@@ -9,7 +9,7 @@
               <v-spacer></v-spacer>
             </v-toolbar>
             <v-card-text>
-              <v-form ref="loginform" v-model="validLoginForm" lazy-validation>
+              <v-form ref="login-form" v-model="validLoginForm" lazy-validation>
                 <v-text-field
                   id="username"
                   name="username"
@@ -128,7 +128,7 @@ export default {
     getJwtToken() {
       log.t("# IN getJwtToken()")
       this.resetFeedBack()
-      if (this.$refs.loginform.validate()) {
+      if (this.$refs["login-form"].validate()) {
         try {
           const res = getToken(this.base_server_url, this.username, this.password_hash)
             .then((val) => {

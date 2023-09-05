@@ -1,6 +1,7 @@
 package thing
 
 import (
+	"errors"
 	"fmt"
 	"github.com/cristalhq/jwt/v4"
 	"github.com/google/uuid"
@@ -375,7 +376,7 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 	}
 	list, err := s.Store.ListTypeThing(offset, limit, params)
 	if err != nil {
-		if err != pgx.ErrNoRows {
+		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListTypeThing :%v", err))
 		} else {
 			list = make([]*TypeThingList, 0)
