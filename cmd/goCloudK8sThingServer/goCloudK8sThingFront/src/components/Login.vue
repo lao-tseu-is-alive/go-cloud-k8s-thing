@@ -1,12 +1,11 @@
 <template>
-  <v-container class="fill-height">
+  <v-container class="fluid fill-height">
     <v-responsive class="d-flex align-center text-center fill-height">
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
-          <v-card class="elevation-12">
-            <v-toolbar dark color="primary">
+          <v-card class="mx-auto elevation-12" min-width="345">
+            <v-toolbar density="compact" dark color="primary">
               <v-toolbar-title>{{ title }}</v-toolbar-title>
-              <v-spacer></v-spacer>
             </v-toolbar>
             <v-card-text>
               <v-form ref="login-form" v-model="validLoginForm" lazy-validation>
@@ -17,16 +16,16 @@
                   v-model="username"
                   required
                   autocomplete="username"
-                  prepend-icon="person"
-                  :cleareable="true"
+                  prepend-icon="mdi-account"
+                  cleareable
+                  hide-details="auto"
                   :rules="[() => !!username || 'Veuillez saisir votre login, il est obligatoire']"
                   @keyup.enter="onEnterKey"
-                  label="Entrez votre utilisateur"
+                  label="Utilisateur"
+                  hint="Entrez votre utilisateur"
                   type="text"
                 >
                 </v-text-field>
-                <!-- add this to get chrome autocomplete
-                browser-autocomplete="current-password"-->
                 <v-text-field
                   id="password"
                   name="password"
@@ -34,24 +33,25 @@
                   v-model="password"
                   required
                   autocomplete="current-password"
-                  prepend-icon="lock"
+                  prepend-icon="mdi-key"
                   :rules="[() => !!password || 'Veuillez saisir votre mot de passe, il est obligatoire']"
-                  label="votre mot de passe"
-                  :append-icon="showPassword ? 'visibility_off' : 'visibility'"
-                  @click:append="showPassword = !showPassword"
+                  label="Mot de passe"
+                  hint="Veuillez saisir votre mot de passe"
+                  :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showPassword = !showPassword"
                   @keyup.enter="onEnterKey"
                   :type="showPassword ? 'text' : 'password'"
                 >
                 </v-text-field>
                 <v-text-field id="password_hash" name="password_hash" ref="password_hash" v-show="sha256Visible" v-model="password_hash" prepend-icon="lock" label="sha256" type="text"> </v-text-field>
+                <v-label :value="feedbackVisible" :color="feedbackType" :icon="feedbackType" outlined>
+                  {{ feedbackText }}
+                </v-label>
               </v-form>
             </v-card-text>
             <v-card-actions>
-              <v-alert :value="feedbackVisible" :color="feedbackType" :icon="feedbackType" outlined>
-                {{ feedbackText }}
-              </v-alert>
               <v-spacer></v-spacer>
-              <v-btn color="primary" @click.prevent="getJwtToken">Connexion</v-btn>
+              <v-btn dark color="primary" variant="flat" prepend-icon="mdi-location-enter" @click.prevent="getJwtToken">Connexion</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -62,7 +62,7 @@
 
 <script>
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, BACKEND_URL, getLog } from "../config"
+import { APP_TITLE, BACKEND_URL, getLog } from "@/config"
 import { getPasswordHash, getToken } from "./Login"
 
 const log = getLog("Login-Vue", 2, 2)
@@ -87,7 +87,7 @@ export default {
     },
     title: {
       type: String,
-      default: `Authentification ${APP}`,
+      default: `Authentification ${APP_TITLE}`,
     },
   },
 

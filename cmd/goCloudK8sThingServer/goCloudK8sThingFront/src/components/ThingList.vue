@@ -98,6 +98,7 @@ import { Configuration } from "@/typescript-axios-client-generated/configuration
 import { Thing } from "@/typescript-axios-client-generated/models/thing"
 import { ThingList } from "@/typescript-axios-client-generated/models/thing-list"
 import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
+import axios from "axios"
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
 const log = getLog("ThingListVue", 4, 2)
@@ -172,15 +173,6 @@ const defaultItem: Ref<Thing> = ref({
   posY: 0,
 })
 const editedItem: Ref<Thing> = ref(Object.assign({}, defaultItem))
-//// PROPS SECTION
-/*const myProps = defineProps({
-  typeThing: { type: Number, required: false, default: 0 },
-  createdBy: { type: Number, required: false, default: 0 },
-  inactivated: { type: Boolean, required: false, default: false },
-  validated: { type: Boolean, required: false },
-  limit: { type: Number, required: false, default: 150 },
-  offset: { type: Number, required: false, default: 0 },
-})*/
 
 const myProps = defineProps<{
   typeThing?: number | undefined
@@ -196,10 +188,22 @@ const myProps = defineProps<{
 watch(
   () => myProps.typeThing,
   (val, oldValue) => {
-    log.t(` watch myProps.type old: ${oldValue}, new val: ${val}`, oldValue, val)
+    log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList()
+        retrieveList(val, myProps.createdBy)
+      }
+    }
+  }
+  //  { immediate: true }
+)
+watch(
+  () => myProps.createdBy,
+  (val, oldValue) => {
+    log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
+    if (val !== undefined && areWeReady.value == true) {
+      if (val !== oldValue) {
+        retrieveList(myProps.typeThing, val)
       }
     }
   }
@@ -265,22 +269,50 @@ const save = () => {
   close()
 }
 
-const retrieveList = () => {
-  const typeThing = myProps.typeThing == 0 ? undefined : myProps.typeThing
-  const createdBy = myProps.createdBy == 0 ? undefined : myProps.createdBy
-  myApi.list(typeThing, createdBy, myProps.inactivated, myProps.validated, myProps.limit, myProps.offset).then((resp) => {
-    log.l("myAPi.list : ", resp)
-    if (resp.status == 200) {
-      if (records.length > 0) {
-        records.splice(0)
-      }
-      resp.data.forEach((r) => {
-        records.push(r)
+const retrieveList = (typeThing?: number, createdBy?: number) => {
+  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
+  areWeReady.value = false
+  if (typeThing != undefined) {
+    typeThing = typeThing == 0 ? undefined : typeThing
+  }
+  if (createdBy != undefined) {
+    createdBy = createdBy == 0 ? undefined : createdBy
+  }
+  log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
+  try {
+    myApi
+      .list(typeThing, createdBy, myProps.inactivated, myProps.validated, myProps.limit, myProps.offset)
+      .then((resp) => {
+        log.l("myAPi.list : ", resp)
+        if (resp.status == 200) {
+          if (records.length > 0) {
+            records.splice(0)
+          }
+          resp.data.forEach((r) => {
+            records.push(r)
+          })
+          areWeReady.value = true
+        } else {
+          log.w("retrieveList got problem", resp)
+        }
       })
-    } else {
-      log.w("retrieveList got problem", resp)
+      .catch((err) => {
+        log.w("# retrieveList in catch ERROR err: ", err)
+        if (records.length > 0) {
+          records.splice(0)
+        }
+      })
+  } catch (error) {
+    if (records.length > 0) {
+      records.splice(0)
     }
-  })
+    if (axios.isAxiosError(error)) {
+      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
+      log.l("Axios error.response:", error.response)
+    } else {
+      log.e("unexpected error: ", error)
+    }
+  }
 }
 
 const initialize = () => {
@@ -288,7 +320,7 @@ const initialize = () => {
   const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
   myApi = new DefaultApi(myConf)
   areWeReady.value = true
-  retrieveList()
+  retrieveList(myProps.typeThing, myProps.createdBy)
 }
 
 onMounted(() => {
