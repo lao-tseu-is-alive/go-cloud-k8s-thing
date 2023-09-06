@@ -694,7 +694,7 @@ func TestMainExec(t *testing.T) {
 			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/types?external-id=987654321&limit=1&offset=0",
+			url:                          defaultSecuredApi + "/types?external_id=987654321&limit=1&offset=0",
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",
