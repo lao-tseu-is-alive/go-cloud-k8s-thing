@@ -48,6 +48,12 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 // List returns the list of existing things with the given offset and limit.
 func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) {
 	db.log.Debug("trace : entering List(params : %+v)", params)
+	if params.Type != nil {
+		db.log.Info("param type : %v", *params.Type)
+	}
+	if params.CreatedBy != nil {
+		db.log.Info("params.CreatedBy : %v", *params.CreatedBy)
+	}
 	var (
 		res []*ThingList
 		err error

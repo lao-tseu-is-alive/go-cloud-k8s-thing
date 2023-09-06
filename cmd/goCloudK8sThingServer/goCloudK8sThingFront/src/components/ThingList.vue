@@ -3,7 +3,12 @@
   <v-container class="fill-height">
     <v-responsive class="d-flex align-center text-center fill-height">
       <v-row>
-        <v-col cols="12">filtres:{{ propsValues }}</v-col>
+        <v-col cols="10">filtres:{{ propsValues }} ready:{{ areWeReady }} </v-col>
+        <v-col cols="2">
+          <template v-if="!areWeReady">
+            <v-btn :loading="!areWeReady" class="flex-grow-1" height="48" variant="tonal"> chargement... </v-btn>
+          </template>
+        </v-col>
       </v-row>
       <v-row class="d-flex align-center justify-center">
         <v-col cols="12">
@@ -209,6 +214,20 @@ watch(
   }
   //  { immediate: true }
 )
+
+watch(
+  () => myProps.limit,
+  (val, oldValue) => {
+    log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
+    if (val !== undefined && areWeReady.value == true) {
+      if (val !== oldValue) {
+        retrieveList(myProps.typeThing, myProps.createdBy)
+      }
+    }
+  }
+  //  { immediate: true }
+)
+
 watch(dialog, (val, oldValue) => {
   log.t(` watch dialog old: ${oldValue}, new val: ${val}`)
   val || close()
@@ -301,11 +320,13 @@ const retrieveList = (typeThing?: number, createdBy?: number) => {
         if (records.length > 0) {
           records.splice(0)
         }
+        areWeReady.value = true
       })
   } catch (error) {
     if (records.length > 0) {
       records.splice(0)
     }
+    areWeReady.value = true
     if (axios.isAxiosError(error)) {
       log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
       log.l("Axios error.response:", error.response)

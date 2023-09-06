@@ -26,7 +26,7 @@
                 <v-container>
                   <v-row>
                     <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
+                      <v-text-field type="number"  v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field v-model="searchOffset" density="compact" label="Offset row" />

@@ -79,7 +79,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	}
 	list, err := s.Store.List(offset, limit, params)
 	if err != nil {
-		if err != pgx.ErrNoRows {
+		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
 		} else {
 			list = make([]*ThingList, 0)
