@@ -3,6 +3,7 @@
     <v-app-bar color="primary" density="compact">
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title>{{ `${APP} v${VERSION}` }}</v-toolbar-title>
+      <template v-if="DEV"><span class="left-0">{{ displaySize.name }}</span></template>
       <template v-if="isUserAuthenticated">
         <v-spacer></v-spacer>
         <v-btn variant="text" icon="mdi-magnify"></v-btn>
@@ -18,36 +19,38 @@
       <template v-if="isUserAuthenticated">
         <v-container>
           <template v-if="showSearchCriteria">
-            <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
+            <v-card density="compact" elevation="4" prepend-icon="mdi-filter" >
               <template #title>
-                <span class="text-h5">Critères de filtrages</span>
+                <span class="text-h5">Critères de filtrage</span>
               </template>
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field type="number"  v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
+                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
+                      <v-text-field v-model="searchCreatedBy" density="compact" label="Id of user creator" />
                     </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="searchOffset" density="compact" label="Offset row" />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
                       <v-select v-model="searchType" item-title="name" item-value="id" :items="arrListTypeThing" density="compact" label="TypeObjet*"></v-select>
                     </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchInactivated" density="compact" label="Inactivated" />
                     </v-col>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchValidated" density="compact" label="Validated" />
                     </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field v-model="searchCreatedBy" density="compact" label="Id of user creator" />
+                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
+                      <v-text-field type="number" v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
+                    </v-col>
+                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
+                      <v-text-field type="number" v-model="searchOffset" density="compact" label="Offset row" />
                     </v-col>
                   </v-row>
                 </v-container>
               </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters">Réinitialiser Filtres</v-btn>
+              </v-card-actions>
             </v-card>
           </template>
           <ThingList :limit="searchLimit" :offset="searchOffset" :type-thing="searchType" :created-by="searchCreatedBy" :inactivated="searchInactivated" :validated="searchValidated" />
@@ -62,8 +65,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref, reactive } from "vue"
+import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL } from "@/config"
+import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL } from "@/config"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
 import { TypeThingList } from "@/typescript-axios-client-generated/models/type-thing-list"
@@ -74,7 +78,7 @@ import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
-
+const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const searchType = ref(1)
 const arrListTypeThing: TypeThingList[] = reactive([])
@@ -170,6 +174,15 @@ const loginFailure = (v: string) => {
   isUserAdmin.value = false
 }
 
+const clearFilters = () => {
+  searchCreatedBy.value = undefined
+  searchType.value = 0
+  searchValidated.value = undefined
+  searchInactivated.value = false
+  searchOffset.value = 0
+  searchLimit.value = 25
+}
+
 const initialize = () => {
   log.t(`# entering...  `)
   const token = getLocalJwtTokenAuth()
@@ -190,6 +203,7 @@ const initialize = () => {
 onMounted(() => {
   log.t("mounted()")
   log.w(`${APP} - ${VERSION}, du ${BUILD_DATE}`)
+  log.l("displaySize ", displaySize)
 
   window.addEventListener("online", () => {
     log.w("ONLINE AGAIN :)")

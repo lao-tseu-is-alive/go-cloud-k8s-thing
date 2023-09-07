@@ -27,7 +27,7 @@ DB_NAME=$(echo "$APP_NAME" | sed --expression 's/\([A-Z]\)/_\L\1/g' --expression
 # generate a random password of 32 chars with chars selected in alphanumeric and some special chars
 #DB_PASSWORD=`tr -dc '_+=()A-Z-a-z-0-9' < /dev/urandom | fold -w32 | head -n1`
 #in this case i prefer to generate it with openssl, no user will enter this password manually
-if DB_PASSWORD=$(openssl rand -base64 32); then
+if DB_PASSWORD=$(openssl rand -base64 36 | tr -d '+=/'); then
   echo "## Will try to create postgres user "
   echo "## username       : ${DB_NAME}"
   echo "## password       : ${DB_PASSWORD}"

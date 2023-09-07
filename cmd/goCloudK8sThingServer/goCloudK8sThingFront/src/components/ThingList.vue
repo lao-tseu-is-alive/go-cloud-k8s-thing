@@ -209,7 +209,29 @@ watch(
       }
     }
   }
-  //  { immediate: true }
+)
+watch(
+  () => myProps.validated,
+  (val, oldValue) => {
+    log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
+    if (areWeReady.value == true) {
+      if (val !== oldValue) {
+        retrieveList(myProps.typeThing, myProps.createdBy)
+      }
+    }
+  }
+)
+
+watch(
+  () => myProps.inactivated,
+  (val, oldValue) => {
+    log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
+    if (areWeReady.value == true) {
+      if (val !== oldValue) {
+        retrieveList(myProps.typeThing, myProps.createdBy)
+      }
+    }
+  }
 )
 
 watch(
@@ -222,7 +244,6 @@ watch(
       }
     }
   }
-  //  { immediate: true }
 )
 
 watch(dialog, (val, oldValue) => {
