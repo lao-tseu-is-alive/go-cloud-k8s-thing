@@ -1,81 +1,18 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>goCloudK8sThingFront</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .my-logo {
-            width: 195px;
-        }
-        .center-text {
-            text-align: center;
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goéland Thing</title>
+  <script type="module" crossorigin src="/assets/index.cbe72ca5.js"></script>
+  <link rel="stylesheet" href="/assets/index.8274ec0f.css">
 </head>
+
 <body>
-<div class="container">
-    <h3 class="center-text">goCloudK8sThingFront</h3>
-    <div class="row">
-        <div class="six columns">
-            <img src="logo.png" class="my-logo" alt="goCloudK8sThingFront logo">
-        </div>
-        <div class="six columns">
-            <h5><a href="oapidoc/">OpenApi Documentation</a> </h5>
-        </div>
-    </div>
-
-    <form method="post" action="/login" id="loginForm">
-        <div class="row">
-            <div class="six columns">
-                <label for="login">Login:</label><br/>
-                <input id="login" type="text" name="login" value="bill" class="u-full-width">
-            </div>
-            <div class="six columns">
-                <label for="password">Password:</label><br/>
-                <input id="password" type="password" name="pass"
-                       placeholder="Enter your password here" class="u-full-width">
-            </div>
-        </div>
-        <input type="submit" class="u-pull-right">
-    </form>
-    <div id="msg"></div>
-</div>
+    <div id="app"></div>
+    
 </body>
+
 </html>
-<script>
-    const loginForm = document.getElementById("loginForm");
-    const msg = document.getElementById("msg");
-    let token = null;
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        console.log("in loginForm submit event :", e)
-        const inputs = loginForm.elements;
-        if ((inputs.login.value.length > 0) && (inputs.password.value.length > 0)) {
-            const data = new FormData(loginForm);
-            const url = loginForm.action;
-            const response = await fetch(url, {
-                method: 'post',
-                body: data
-            });
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                msg.innerHTML = `<h4>${errorMessage}</h4>`;
-            }
-            const jsonResponse = await response.json();
-            const niceToReadResponse = JSON.stringify(jsonResponse, null, 2);
-            if (Object.hasOwn(jsonResponse,'token')) {
-                token = jsonResponse['token'];
-            } else {
-                msg.innerHTML = `<h4> token key not found in ${niceToReadResponse}</h4>`;
-            }
-            console.log(jsonResponse);
-            msg.innerHTML = `response from server<pre>${niceToReadResponse}</pre>`;
-        } else {
-            msg.innerHTML = "<h4>Login and password values cannot be empty</h4>";
-        }
-    });
-
-</script>
-

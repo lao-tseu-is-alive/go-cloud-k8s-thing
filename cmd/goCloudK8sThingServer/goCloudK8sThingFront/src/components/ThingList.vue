@@ -12,11 +12,10 @@
       </v-row>
       <v-row class="d-flex align-center justify-center">
         <v-col cols="12">
-          <v-data-table :headers="headers" :items="records" :sort-by="[{ key: 'external_id', order: 'asc' }]" class="elevation-1">
+          <v-data-table :headers="headers as any" :items="records" :sort-by="[{ key: 'external_id', order: 'asc' }]" class="elevation-1">
             <template #top>
-              <v-toolbar flat>
-                <v-toolbar-title>Liste de Thing...</v-toolbar-title>
-                <v-divider class="mx-4" inset vertical></v-divider>
+              <v-toolbar density="compact">
+                <v-toolbar-title style="text-align: left">Liste de Thing...</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <!-- BEGIN FORM EDIT  -->
                 <v-dialog v-model="dialog" max-width="500px">
@@ -71,14 +70,12 @@
                 </v-dialog>
               </v-toolbar>
             </template>
-
             <template #item.inactivated="{ item }">
-              <v-checkbox-btn v-model="item.columns.inactivated" disabled></v-checkbox-btn>
+              <v-checkbox-btn v-model="item.columns.inactivated" :disabled="true"></v-checkbox-btn>
             </template>
             <template #item.validated="{ item }">
-              <v-checkbox-btn v-model="item.columns.validated" disabled></v-checkbox-btn>
+              <v-checkbox-btn v-model="item.columns.validated" :disabled="true"></v-checkbox-btn>
             </template>
-
             <template #item.actions="{ item }">
               <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil</v-icon>
               <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete</v-icon>
@@ -104,6 +101,7 @@ import { Thing } from "@/typescript-axios-client-generated/models/thing"
 import { ThingList } from "@/typescript-axios-client-generated/models/thing-list"
 import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
 import axios from "axios"
+import { VDataTable } from "vuetify/labs/VDataTable"
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
 const log = getLog("ThingListVue", 4, 2)
@@ -111,7 +109,7 @@ const areWeReady = ref(false)
 let myApi: DefaultApi
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const headers = reactive([
+const headers = [
   {
     title: "id (external)",
     sortable: true,
@@ -128,7 +126,7 @@ const headers = reactive([
   { title: "Valide", key: "validated" },
   { title: "Created", key: "created_at" },
   { title: "Actions", key: "actions", sortable: false },
-])
+]
 
 const records: ThingList[] = reactive([])
 /*const defaultListItem: Ref<ThingList> = ref({
@@ -188,7 +186,6 @@ const myProps = defineProps<{
   offset?: number | undefined
 }>()
 
-// const triggerRefresh = toRef(myProps, "trigger-refresh")
 //// WATCH SECTION
 watch(
   () => myProps.typeThing,
