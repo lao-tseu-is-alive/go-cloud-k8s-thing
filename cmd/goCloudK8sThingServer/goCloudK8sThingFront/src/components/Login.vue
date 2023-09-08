@@ -44,9 +44,12 @@
                 >
                 </v-text-field>
                 <v-text-field id="password_hash" name="password_hash" ref="password_hash" v-show="sha256Visible" v-model="password_hash" prepend-icon="lock" label="sha256" type="text"> </v-text-field>
-                <v-label :value="feedbackVisible" :color="feedbackType" :icon="feedbackType" outlined>
-                  {{ feedbackText }}
-                </v-label>
+                <template v-if="feedbackVisible">
+                  <v-icon color="red" icon="mdi-alert-circle"></v-icon>
+                  <v-label class="pl-1" :value="feedbackVisible" :color="feedbackType" :icon="feedbackType" outlined>
+                    {{ feedbackText }}
+                  </v-label>
+                </template>
               </v-form>
             </v-card-text>
             <v-card-actions>
@@ -70,7 +73,7 @@ export default {
   name: "LoginVue",
   data: () => ({
     drawer: null,
-    username: "bill",
+    username: null,
     password: null,
     showPassword: false,
     sha256Visible: false,
@@ -135,10 +138,11 @@ export default {
               if (val.data == null) {
                 if (!isNullOrUndefined(val.err)) {
                   log.e(`# getJwtToken() ${val.msg}, ERROR is: `, val.err)
-                  this.displayFeedBack(`Problème réseau :${val.msg}`, "error")
+                  this.displayFeedBack(`Le serveur est inaccessible : ${val.err}`, "error")
+                } else {
+                  log.w(`# getToken received status ${val.status}`, val)
+                  this.displayFeedBack("Vos informations de connexions sont erronées !", "warning")
                 }
-                log.w(`# getToken received status ${val.status}`, val)
-                this.displayFeedBack("Vos informations de connexions sont erronées !", "warning")
                 this.$emit("loginError", "LOGIN FAILED", val.err)
               } else {
                 log.l("# getJwtToken() SUCCESS val.data: ", val.data)

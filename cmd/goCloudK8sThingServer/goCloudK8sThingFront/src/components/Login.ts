@@ -4,7 +4,7 @@ import { getLog, APP, BACKEND_URL } from "../config"
 
 const log = getLog("Login", 4, 1)
 
-export const getPasswordHash = (password: string) => SHA256(password)
+export const getPasswordHash = (password: string) => SHA256(password).toString()
 
 export const parseJwt = (token: string) => {
   const base64Url = token.split(".")[1]
