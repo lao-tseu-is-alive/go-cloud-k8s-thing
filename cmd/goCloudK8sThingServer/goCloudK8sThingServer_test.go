@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -166,10 +167,19 @@ func TestMainExec(t *testing.T) {
 		}
 		return r
 	}
+	// set local admin user for test
+	adminUsername := config.GetAdminUserFromFromEnv(defaultThingAdminUsername)
+	adminPassword, err := config.GetAdminPasswordFromFromEnv()
+	if err != nil {
+		l.Fatal("💥💥 error GetAdminPasswordFromFromEnv unable to retrieve a valid admin password  error : %v'", err)
+	}
+	h := sha256.New()
+	h.Write([]byte(adminPassword))
+	adminPasswordHash := fmt.Sprintf("%x", h.Sum(nil))
 	// preparing for testing a pseudo-valid authentication
 	formLogin := make(url.Values)
-	formLogin.Set("login", defaultUsername)
-	formLogin.Set("pass", defaultFakeStupidPassHash)
+	formLogin.Set("login", adminUsername)
+	formLogin.Set("pass", adminPasswordHash)
 
 	getValidToken := func() string {
 		// let's get first a valid JWT TOKEN
@@ -201,7 +211,7 @@ func TestMainExec(t *testing.T) {
 
 	// preparing for testing an invalid authentication
 	formLoginWrong := make(url.Values)
-	formLoginWrong.Set("login", defaultUsername)
+	formLoginWrong.Set("login", adminUsername)
 	formLoginWrong.Set("pass", "anObviouslyWrongPass")
 
 	dbDsn, err := config.GetPgDbDsnUrlFromEnv(defaultDBIp, defaultDBPort,

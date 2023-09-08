@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -32,9 +33,7 @@ const (
 	defaultWebRootDir          = "goCloudK8sThingFront/dist/"
 	defaultSqlDbMigrationsPath = "db/migrations"
 	defaultSecuredApi          = "/goapi/v1"
-	defaultUsername            = "bill"
-	defaultFakeStupidPass      = "board"
-	defaultFakeStupidPassHash  = "859169b38185780daa5497983ff20d2994390058d8a71f2847ac7846f970971e"
+	defaultThingAdminUsername  = "bill"
 	charsetUTF8                = "charset=UTF-8"
 	MIMEAppJSON                = "application/json"
 	MIMEHtml                   = "text/html"
@@ -59,6 +58,8 @@ type ServiceThing struct {
 	dbConn      database.DB
 	JwtSecret   []byte
 	JwtDuration int
+	adminUser   string
+	adminHash   string
 }
 
 // UserLogin defines model for UserLogin.
@@ -87,7 +88,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 	}
 	s.Log.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 	// Throws unauthorized error
-	if uLogin.Username != defaultUsername || uLogin.PasswordHash != defaultFakeStupidPassHash {
+	if uLogin.Username != s.adminUser || uLogin.PasswordHash != s.adminHash {
 		s.Log.Warn("unauthorized request: username not found or invalid password")
 		return ctx.JSON(http.StatusUnauthorized, "{\"message\":\"unauthorized request: username not found or invalid password.\"}")
 	}
@@ -106,7 +107,7 @@ func (s ServiceThing) login(ctx echo.Context) error {
 		Id:       999999,
 		Name:     "Bill Whatever",
 		Email:    "bill@whatever.com",
-		Username: defaultUsername,
+		Username: s.adminUser,
 		IsAdmin:  true,
 	}
 
@@ -258,11 +259,23 @@ func main() {
 		}
 	}
 
+	// set local admin user for test
+	adminUsername := config.GetAdminUserFromFromEnv(defaultThingAdminUsername)
+	adminPassword, err := config.GetAdminPasswordFromFromEnv()
+	if err != nil {
+		l.Fatal("💥💥 error GetAdminPasswordFromFromEnv unable to retrieve a valid admin password  error : %v'", err)
+	}
+	h := sha256.New()
+	h.Write([]byte(adminPassword))
+	adminPasswordHash := fmt.Sprintf("%x", h.Sum(nil))
+
 	yourService := ServiceThing{
 		Log:         l,
 		dbConn:      db,
 		JwtSecret:   []byte(secret),
 		JwtDuration: tokenDuration,
+		adminUser:   adminUsername,
+		adminHash:   adminPasswordHash,
 	}
 
 	listenAddr, err := config.GetPortFromEnv(defaultPort)
@@ -295,7 +308,7 @@ func main() {
 	}
 	thing.RegisterHandlers(r, &objService)
 
-	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=%s' -d 'pass=%s' http://localhost%s/login", defaultUsername, defaultFakeStupidPass, listenAddr)
+	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=$ADMIN_PASSWORD' -d 'pass=%s' http://localhost%s/login", adminUsername, listenAddr)
 	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s%s/secret |jq\n", listenAddr, defaultSecuredApi)
 	l.Info(" --> from another terminal just try :\n %s", loginExample)
 	l.Info(" --> then type export TOKEN=your_token_above_goes_here   \n %s", getSecretExample)
