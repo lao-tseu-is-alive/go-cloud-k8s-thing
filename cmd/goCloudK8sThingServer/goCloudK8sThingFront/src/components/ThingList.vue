@@ -3,7 +3,9 @@
   <v-container class="fill-height">
     <v-responsive class="d-flex align-center text-center fill-height">
       <v-row>
-        <v-col cols="10">filtres:{{ propsValues }} ready:{{ areWeReady }} </v-col>
+        <v-col cols="10"
+          >Trouvé {{ numThingsFound }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ areWeReady }}
+        </v-col>
         <v-col cols="2">
           <template v-if="!areWeReady">
             <v-btn :loading="!areWeReady" class="flex-grow-1" height="48" variant="tonal"> chargement... </v-btn>
@@ -12,7 +14,12 @@
       </v-row>
       <v-row class="d-flex align-center justify-center">
         <v-col cols="12">
-          <v-data-table :headers="headers as any" :items="records" :sort-by="[{ key: 'external_id', order: 'asc' }]" class="elevation-1">
+          <v-data-table
+            :headers="getHeaderVTable as any"
+            :items="records"
+            :sort-by="[{ key: 'external_id', order: 'asc' }]"
+            class="elevation-1"
+          >
             <template #top>
               <v-toolbar density="compact">
                 <v-toolbar-title style="text-align: left">Liste de Thing...</v-toolbar-title>
@@ -37,13 +44,29 @@
                       <v-container class="v-container--fluid ma-0">
                         <v-row>
                           <v-col class="d-none d-sm-flex" cols="0" sm="2" md="2" lg="1" xl="1">
-                            <v-text-field v-model="editedItem.type_id" density="compact" :disabled="true" label="id-type"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.type_id"
+                              density="compact"
+                              :disabled="true"
+                              label="id-type"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="10" md="4" lg="3" xl="2">
-                            <v-select v-model="editedItem.type_id" item-title="name" item-value="id" :items="arrListTypeThing" density="compact" label="TypeObjet*"></v-select>
+                            <v-select
+                              v-model="editedItem.type_id"
+                              item-title="name"
+                              item-value="id"
+                              :items="arrListTypeThing"
+                              density="compact"
+                              label="TypeObjet*"
+                            ></v-select>
                           </v-col>
                           <v-col cols="12" sm="12" md="6" lg="8">
-                            <v-text-field v-model="editedItem.name" density="compact" label="Nom de l'objet*"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.name"
+                              density="compact"
+                              label="Nom de l'objet*"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12">
                             <v-text-field v-model="editedItem.description" label="Description"></v-text-field>
@@ -62,10 +85,19 @@
                             ></v-textarea>
                           </v-col>
                           <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field type="number" v-model="editedItem.external_id" density="compact" label="identifiant externe" />
+                            <v-text-field
+                              type="number"
+                              v-model="editedItem.external_id"
+                              density="compact"
+                              label="identifiant externe"
+                            />
                           </v-col>
                           <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field v-model="editedItem.external_ref" density="compact" label="référence externe" />
+                            <v-text-field
+                              v-model="editedItem.external_ref"
+                              density="compact"
+                              label="référence externe"
+                            />
                           </v-col>
                           <v-col cols="12" sm="4" md="3" lg="3">
                             <v-text-field v-model="editedItem.build_at" density="compact" label="Date construction" />
@@ -76,36 +108,73 @@
                         </v-row>
                         <v-row>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.contained_by" density="compact" label="Contenu dans"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.contained_by"
+                              density="compact"
+                              label="Contenu dans"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.contained_by_old" density="compact" label="Contenu dans(ancien)"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.contained_by_old"
+                              density="compact"
+                              label="Contenu dans(ancien)"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.managed_by" density="compact" label="Managé par"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.managed_by"
+                              density="compact"
+                              label="Managé par"
+                            ></v-text-field>
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col cols="6" sm="4" md="2" >
+                          <v-col cols="6" sm="4" md="2">
                             <v-checkbox v-model="editedItem.validated" density="compact" label="Validé?" />
                           </v-col>
                           <v-col cols="12" sm="6" md="5">
-                            <v-text-field v-model="editedItem.validated_time" label="Date de validation" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.validated_time"
+                              label="Date de validation"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="5">
-                            <v-text-field v-model="editedItem.validated_by" label="Validé par" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.validated_by"
+                              label="Validé par"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="6" sm="4" md="2" lg="2" xl="1">
                             <v-checkbox v-model="editedItem.inactivated" density="compact" label="Inactif?" />
                           </v-col>
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.inactivated_time" label="Date d'inactivation" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.inactivated_time"
+                              label="Date d'inactivation"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.inactivated_by" label="Inactivé par" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.inactivated_by"
+                              label="Inactivé par"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.inactivated_reason" label="Raison de l'inactivation" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.inactivated_reason"
+                              label="Raison de l'inactivation"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                         </v-row>
                         <v-row>
@@ -113,23 +182,53 @@
                             <v-checkbox v-model="editedItem.deleted" density="compact" label="Effacé?" />
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.deleted_at" label="Date d'effacement" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.deleted_at"
+                              label="Date d'effacement"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="4">
-                            <v-text-field v-model="editedItem.deleted_by" label="Effacé par" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.deleted_by"
+                              label="Effacé par"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
 
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.created_at" label="Date de Création" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.created_at"
+                              label="Date de Création"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.created_by" label="Création par" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.created_by"
+                              label="Création par"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.last_modified_at" label="Date de modification" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.last_modified_at"
+                              label="Date de modification"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6" md="3">
-                            <v-text-field v-model="editedItem.last_modified_by" label="Modification par" density="compact" :disabled="true"></v-text-field>
+                            <v-text-field
+                              v-model="editedItem.last_modified_by"
+                              label="Modification par"
+                              density="compact"
+                              :disabled="true"
+                            ></v-text-field>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -145,7 +244,8 @@
                 <!-- END FORM EDIT  -->
                 <v-dialog v-model="dialogDelete" max-width="500px">
                   <v-card>
-                    <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+                    <v-card-title class="text-h5">Voulez-vous vraiment effacer ?</v-card-title>
+                    <v-card-text> {{ deletedItem.external_id }} : {{ deletedItem.name }} </v-card-text>
                     <v-card-actions>
                       <v-spacer></v-spacer>
                       <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
@@ -156,11 +256,25 @@
                 </v-dialog>
               </v-toolbar>
             </template>
+            <template #item.type_id="{ item }">
+              <v-label> {{ getTypeThingName(item.columns.type_id) }}</v-label>
+            </template>
             <template #item.inactivated="{ item }">
-              <v-checkbox-btn v-model="item.columns.inactivated" :disabled="true"></v-checkbox-btn>
+              <v-checkbox-btn
+                v-model="item.columns.inactivated"
+                :disabled="true"
+                class="d-none d-lg-block"
+              ></v-checkbox-btn>
             </template>
             <template #item.validated="{ item }">
-              <v-checkbox-btn v-model="item.columns.validated" :disabled="true"></v-checkbox-btn>
+              <v-checkbox-btn
+                v-model="item.columns.validated"
+                :disabled="true"
+                class="d-none d-lg-block"
+              ></v-checkbox-btn>
+            </template>
+            <template #item.created_at="{ item }">
+              <v-label> {{ getDateFromTimeStamp(item.columns.created_at) }}</v-label>
             </template>
             <template #item.actions="{ item }">
               <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil</v-icon>
@@ -180,11 +294,10 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
+import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL } from "@/config"
+import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth } from "@/components/Login"
-//import { Configuration } from "@/typescript-axios-client-generated/configuration"
-//import { Thing } from "@/typescript-axios-client-generated/models/thing2"
-//import { ThingList } from "@/typescript-axios-client-generated/models/thing-list"
 import { Configuration } from "../openapi-generator-cli_thing_typescript-axios/configuration"
 import { DefaultApi, Thing, ThingList } from "../openapi-generator-cli_thing_typescript-axios/api"
 import axios from "axios"
@@ -192,34 +305,21 @@ import { VDataTable } from "vuetify/labs/VDataTable"
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
 const log = getLog("ThingListVue", 4, 2)
+const displaySize = reactive(useDisplay())
 const areWeReady = ref(false)
 let myApi: DefaultApi
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const headers = [
-  {
-    title: "id (external)",
-    sortable: true,
-    key: "external_id",
-  },
-  {
-    title: "Nom",
-    align: "start",
-    sortable: true,
-    key: "name",
-  },
-  { title: "Type", key: "type_id" },
-  { title: "Inactif", key: "inactivated" },
-  { title: "Valide", key: "validated" },
-  { title: "Created", key: "created_at" },
-  { title: "Actions", key: "actions", sortable: false },
-]
 
 interface typeThingSelect {
   id: number
   name: string
 }
+interface IDictionary {
+  [key: number]: string
+}
 
+let dicoTypeThing: IDictionary = {}
 const arrListTypeThing: typeThingSelect[] = reactive([])
 const records: ThingList[] = reactive([])
 const defaultListItem: Ref<ThingList> = ref({
@@ -269,7 +369,8 @@ const defaultItem: Ref<Thing> = ref({
   pos_y: 0,
 })
 const editedItem: Ref<Thing> = ref(Object.assign({}, defaultItem))
-
+const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
+const numThingsFound = ref(0)
 const myProps = defineProps<{
   typeThing?: number | undefined
   createdBy?: number | undefined
@@ -278,6 +379,10 @@ const myProps = defineProps<{
   limit?: number | undefined
   offset?: number | undefined
 }>()
+
+//// EVENT SECTION
+
+const emit = defineEmits(["thing-ok", "thing-error"])
 
 //// WATCH SECTION
 watch(
@@ -356,6 +461,48 @@ const propsValues = computed(() => {
   return JSON.stringify(myProps, undefined, 3)
 })
 
+// responsive header
+const getHeaderVTable = computed(() => {
+  log.t(`#> Entering... ${displaySize.name}`)
+  if (displaySize.name === "lg") {
+    return [
+      {
+        title: "id (external)",
+        sortable: true,
+        key: "external_id",
+      },
+      {
+        title: "Nom",
+        align: "start",
+        sortable: true,
+        key: "name",
+      },
+      { title: "Type", key: "type_id" },
+      { title: "Inactif", key: "inactivated" },
+      { title: "Valide", key: "validated" },
+      { title: "Created", key: "created_at" },
+      { title: "Actions", key: "actions", sortable: false },
+    ]
+  } else {
+    return [
+      {
+        title: "id (external)",
+        sortable: true,
+        key: "external_id",
+      },
+      {
+        title: "Nom",
+        align: "start",
+        sortable: true,
+        key: "name",
+      },
+      { title: "Type", key: "type_id" },
+      { title: "Created", key: "created_at" },
+      { title: "Actions", key: "actions", sortable: false },
+    ]
+  }
+})
+
 //// FUNCTIONS SECTION
 const editItem = async (item: ThingList) => {
   log.t(" #> entering EDIT ...", item)
@@ -374,12 +521,21 @@ const editItem = async (item: ThingList) => {
 const deleteItem = (item: ThingList) => {
   log.t(" #> entering DELETE ...", item)
   editedIndex.value = records.indexOf(item)
-  //editedItem.value = Object.assign({}, item)
+  deletedItem.value = Object.assign({}, item)
   dialogDelete.value = true
 }
 
-const deleteItemConfirm = () => {
-  records.splice(editedIndex.value, 1)
+const deleteItemConfirm = async () => {
+  const id = deletedItem.value.id
+  const res = await deleteThing(id)
+  if (res.err === null) {
+    log.l(`ok, doing deletedItem(${id}) `)
+    records.splice(editedIndex.value, 1)
+  } else {
+    const msg = `problem doing deletedItem(${id}) ${res.err.message}`
+    log.w(msg)
+    emit("thing-error", msg)
+  }
   closeDelete()
 }
 
@@ -396,6 +552,7 @@ const closeDelete = () => {
   dialogDelete.value = false
   nextTick(() => {
     editedItem.value = Object.assign({}, defaultItem.value)
+    deletedItem.value = Object.assign({}, defaultListItem.value)
     editedIndex.value = -1
   })
 }
@@ -423,6 +580,37 @@ const save = () => {
   close()
 }
 
+const deleteThing = async (id: string): Promise<netThing> => {
+  log.t(`> Entering.. deleteThing: ${id}`)
+  areWeReady.value = false
+  try {
+    const resp = await myApi._delete(id)
+    log.l("myAPi._delete : ", resp)
+    if (resp.status == 200) {
+      areWeReady.value = true
+      return { data: null, err: null }
+    } else {
+      areWeReady.value = true
+      log.w("getThing got problem", resp)
+      return { data: null, err: Error(`problem in deleteThing status : ${resp.status}, ${resp.statusText}`) }
+    }
+  } catch (error) {
+    areWeReady.value = true
+    if (axios.isAxiosError(error)) {
+      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
+      if (error.response !== undefined && error.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(error.response.data.message) ? "" : error.response.data.message
+        return { data: null, err: Error(`deleteThing error : ${error.message}. Server says : ${srvMessage}`) }
+      } else {
+        return { data: null, err: Error(`deleteThing error : ${error.message}.`) }
+      }
+    } else {
+      log.e("unexpected error: ", error)
+      return { data: null, err: Error(`unexpected error: in deleteThing Try catch : ${error}`) }
+    }
+  }
+}
+
 type netThing = { data: Thing | null; err: Error | null }
 
 const getThing = async (id: string): Promise<netThing> => {
@@ -444,7 +632,11 @@ const getThing = async (id: string): Promise<netThing> => {
     if (axios.isAxiosError(error)) {
       log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
       log.l("Axios error.response:", error.response)
-      return { data: null, err: Error(`Axios error in getThing Try catch : ${error.message}`) }
+      if (error.response !== undefined) {
+        return { data: null, err: Error(`getThing error : ${error.message}. Server says : ${error.response.data}`) }
+      } else {
+        return { data: null, err: Error(`getThing error : ${error.message}.`) }
+      }
     } else {
       log.e("unexpected error: ", error)
       return { data: null, err: Error(`unexpected error: in getThing Try catch : ${error}`) }
@@ -457,8 +649,12 @@ const clearRecords = (): void => {
     records.splice(0)
   }
 }
-
-const retrieveList = (typeThing?: number, createdBy?: number) => {
+/**
+ * retrieveList a list of things from server based on current criteria
+ * @param typeThing filter the list with only this type of thing
+ * @param createdBy filter the list with only records created by given user id
+ */
+const retrieveList = async (typeThing?: number, createdBy?: number) => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   areWeReady.value = false
   if (typeThing != undefined) {
@@ -469,55 +665,106 @@ const retrieveList = (typeThing?: number, createdBy?: number) => {
   }
   log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
   try {
-    myApi
-      .list(typeThing, createdBy, myProps.inactivated, myProps.validated, myProps.limit, myProps.offset)
-      .then((resp) => {
-        log.l("myAPi.list : ", resp)
-        if (resp.status == 200) {
-          clearRecords()
-          resp.data.forEach((r) => {
-            records.push(r)
-          })
-          areWeReady.value = true
-        } else {
-          areWeReady.value = true
-          log.w("retrieveList got problem", resp)
-        }
+    const resp = await myApi.list(
+      typeThing,
+      createdBy,
+      myProps.inactivated,
+      myProps.validated,
+      myProps.limit,
+      myProps.offset
+    )
+    //log.l("myAPi.list : ", resp)
+    if (resp.status == 200) {
+      clearRecords()
+      resp.data.forEach((r) => {
+        records.push(r)
       })
-      .catch((err) => {
-        log.w("# retrieveList in catch ERROR err: ", err)
-        clearRecords()
-        areWeReady.value = true
-      })
+      numThingsFound.value = await countThing(undefined, typeThing, createdBy)
+      areWeReady.value = true
+    } else {
+      areWeReady.value = true
+      log.w("retrieveList got problem", resp)
+    }
   } catch (error) {
     clearRecords()
+    numThingsFound.value = await countThing(undefined, typeThing, createdBy)
     areWeReady.value = true
     if (axios.isAxiosError(error)) {
-      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
-      log.l("Axios error.response:", error.response)
+      if (error.response !== undefined) {
+        log.w(`getThing error : ${error.message}. Server says : ${error.response.data}`)
+      } else {
+        log.w(`getThing error : ${error.message}.`)
+      }
+      numThingsFound.value = await countThing(undefined, typeThing, createdBy)
     } else {
       log.e("unexpected error: ", error)
     }
   }
 }
 
-const initialize = () => {
+const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
+  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
+  if (typeThing != undefined) {
+    typeThing = typeThing == 0 ? undefined : typeThing
+  }
+  if (createdBy != undefined) {
+    createdBy = createdBy == 0 ? undefined : createdBy
+  }
+  log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
+  try {
+    const resp = await myApi.count(keywords, typeThing, createdBy, myProps.inactivated, myProps.validated)
+    //log.l("myAPi.list : ", resp)
+    if (resp.status == 200) {
+      return resp.data
+    } else {
+      log.w("retrieveList got problem", resp)
+      return 0
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response !== undefined) {
+        log.w(`countThing error : ${error.message}. Server says : ${error.response.data}`)
+      } else {
+        log.w(`countThing error : ${error.message}.`)
+      }
+    } else {
+      log.e("unexpected error: ", error)
+    }
+    return 0
+  }
+}
+
+const getTypeThingName = (id: number): string => {
+  if (id in dicoTypeThing) {
+    return dicoTypeThing[id]
+  }
+  return "# unknown_type #"
+}
+
+const loadTypeThingData = async (): Promise<void> => {
+  const resp = await myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0)
+  log.l("myAPi.typeThingList : ", resp)
+  if (resp.status == 200) {
+    resp.data.forEach((r) => {
+      const temp = { id: r.id, name: r.name }
+      arrListTypeThing.push(temp)
+    })
+    // log.l("arrListTypeThing", arrListTypeThing)
+    dicoTypeThing = Object.fromEntries(arrListTypeThing.map((x) => [x.id, x.name]))
+    // log.l("arrListTypeThing", dicoTypeThing)
+  } else {
+    //display alert with status code > 200
+  }
+}
+
+const initialize = async () => {
   const token = getLocalJwtTokenAuth()
   const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
   myApi = new DefaultApi(myConf)
   areWeReady.value = true
-  retrieveList(myProps.typeThing, myProps.createdBy)
-  myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0).then((resp) => {
-    log.l("myAPi.typeThingList : ", resp)
-    if (resp.status == 200) {
-      resp.data.forEach((r) => {
-        const temp = { id: r.id, name: r.name }
-        arrListTypeThing.push(temp)
-      })
-    } else {
-      //display alert with status code > 200
-    }
-  })
+
+  await loadTypeThingData()
+  await retrieveList(myProps.typeThing, myProps.createdBy)
 }
 
 onMounted(() => {

@@ -179,7 +179,15 @@ func (db *PGX) Count(params CountParams) (int32, error) {
 		AND _created_by = coalesce($3, _created_by)
 		AND inactivated = coalesce($4, inactivated)
 `
-		count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated)
+		if params.Validated != nil {
+			db.log.Debug("params.Validated is not nil ")
+			isValidated := *params.Validated
+			queryCount += " AND validated = coalesce($4, validated) "
+			count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
+
+		} else {
+			count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated)
+		}
 	}
 	if withoutSearchParameters {
 		queryCount += `
@@ -187,9 +195,18 @@ func (db *PGX) Count(params CountParams) (int32, error) {
 		AND _created_by = coalesce($2, _created_by)
 		AND inactivated = coalesce($3, inactivated)
 `
-		count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated)
+		if params.Validated != nil {
+			db.log.Debug("params.Validated is not nil ")
+			isValidated := *params.Validated
+			queryCount += " AND validated = coalesce($4, validated) "
+			count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
+
+		} else {
+			count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated)
+		}
 
 	}
+
 	if err != nil {
 		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
 		return 0, err

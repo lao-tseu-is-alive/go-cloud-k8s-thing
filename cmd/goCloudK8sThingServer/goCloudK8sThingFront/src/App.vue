@@ -3,23 +3,36 @@
     <v-app-bar color="primary" density="compact">
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title>{{ `${APP} v${VERSION}` }}</v-toolbar-title>
-      <template v-if="DEV"><span class="left-0">{{ displaySize.name }}</span></template>
+      <template v-if="DEV"
+        ><span class="left-0">{{ displaySize.name }}</span></template
+      >
       <template v-if="isUserAuthenticated">
         <v-spacer></v-spacer>
         <v-btn variant="text" icon="mdi-magnify"></v-btn>
-        <v-btn variant="text" icon="mdi-filter" title="afficher les critères de filtrage" @click="showSearchCriteria = !showSearchCriteria"></v-btn>
+        <v-btn
+          variant="text"
+          icon="mdi-filter"
+          title="afficher les critères de filtrage"
+          @click="showSearchCriteria = !showSearchCriteria"
+        ></v-btn>
         <v-btn variant="text" icon="mdi-dots-vertical"></v-btn>
         <v-btn variant="text" icon="mdi-logout" title="Logout" @click="logout"></v-btn>
       </template>
     </v-app-bar>
     <v-main>
-      <v-snackbar v-model="feedbackVisible" :timeout="feedbackTimeout" rounded="pill" :color="feedbackType" location="top">
-        <v-alert :type="feedbackType" theme="dark" :text="feedbackMsg"></v-alert>
+      <v-snackbar
+        v-model="feedbackVisible"
+        :timeout="feedbackTimeout"
+        rounded="pill"
+        :color="feedbackType"
+        location="top"
+      >
+        <v-alert class="ma-4" :type="feedbackType" :text="feedbackMsg" :color="feedbackType"></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
         <v-container>
           <template v-if="showSearchCriteria">
-            <v-card density="compact" elevation="4" prepend-icon="mdi-filter" >
+            <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
               <template #title>
                 <span class="text-h5">Critères de filtrage</span>
               </template>
@@ -30,7 +43,14 @@
                       <v-text-field v-model="searchCreatedBy" density="compact" label="Id of user creator" />
                     </v-col>
                     <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-                      <v-select v-model="searchType" item-title="name" item-value="id" :items="arrListTypeThing" density="compact" label="TypeObjet*"></v-select>
+                      <v-select
+                        v-model="searchType"
+                        item-title="name"
+                        item-value="id"
+                        :items="arrListTypeThing"
+                        density="compact"
+                        label="TypeObjet*"
+                      ></v-select>
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchInactivated" density="compact" label="Inactivated" />
@@ -39,7 +59,13 @@
                       <v-checkbox v-model="searchValidated" density="compact" label="Validated" />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-text-field type="number" v-model="searchLimit" density="compact" label="Limit rows" hint="The number of rows to retrieve from db" />
+                      <v-text-field
+                        type="number"
+                        v-model="searchLimit"
+                        density="compact"
+                        label="Limit rows"
+                        hint="The number of rows to retrieve from db"
+                      />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-text-field type="number" v-model="searchOffset" density="compact" label="Offset row" />
@@ -49,15 +75,31 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters">Réinitialiser Filtres</v-btn>
+                <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
+                  >Réinitialiser Filtres</v-btn
+                >
               </v-card-actions>
             </v-card>
           </template>
-          <ThingList :limit="searchLimit" :offset="searchOffset" :type-thing="searchType" :created-by="searchCreatedBy" :inactivated="searchInactivated" :validated="searchValidated" />
+          <ThingList
+            :limit="searchLimit"
+            :offset="searchOffset"
+            :type-thing="searchType"
+            :created-by="searchCreatedBy"
+            :inactivated="searchInactivated"
+            :validated="searchValidated"
+            @thing-error="thingGotErr"
+          />
         </v-container>
       </template>
       <template v-else>
-        <Login :msg="`Authentification ${APP_TITLE}:`" :backend="APP_TITLE" :disabled="!isNetworkOk" @login-ok="loginSuccess" @login-error="loginFailure" />
+        <Login
+          :msg="`Authentification ${APP_TITLE}:`"
+          :backend="APP_TITLE"
+          :disabled="!isNetworkOk"
+          @login-ok="loginSuccess"
+          @login-error="loginFailure"
+        />
       </template>
     </v-main>
   </v-app>
@@ -71,7 +113,13 @@ import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL } f
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
 import { TypeThingList } from "@/typescript-axios-client-generated/models/type-thing-list"
-import { getUserIsAdmin, getTokenStatus, clearSessionStorage, doesCurrentSessionExist, getLocalJwtTokenAuth } from "@/components/Login"
+import {
+  getUserIsAdmin,
+  getTokenStatus,
+  clearSessionStorage,
+  doesCurrentSessionExist,
+  getLocalJwtTokenAuth,
+} from "@/components/Login"
 import { Configuration } from "@/typescript-axios-client-generated/configuration"
 import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
 
@@ -92,7 +140,7 @@ const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
 const isNetworkOk = ref(true)
 const drawer = ref(false)
-const feedbackTimeout = ref(5000) // default display time 5sec
+const feedbackTimeout = ref(6000) // default display time 5sec
 const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType = ref()
 const feedbackVisible = ref(false)
@@ -173,6 +221,12 @@ const loginFailure = (v: string) => {
   isUserAuthenticated.value = false
   isUserAdmin.value = false
 }
+
+const thingGotErr = (v: string) => {
+  log.w(`# entering... val:${v} `)
+  displayFeedBack(v, "error")
+}
+
 
 const clearFilters = () => {
   searchCreatedBy.value = undefined
