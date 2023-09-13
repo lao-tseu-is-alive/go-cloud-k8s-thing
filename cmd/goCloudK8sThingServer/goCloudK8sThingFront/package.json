@@ -10,7 +10,6 @@
   "dependencies": {
     "@mdi/font": "7.0.96",
     "axios": "^1.5.0",
-    "cgil-html-utils": "^2.0.4",
     "crypto-es": "^2.0.4",
     "roboto-fontface": "*",
     "vue": "^3.3.4",

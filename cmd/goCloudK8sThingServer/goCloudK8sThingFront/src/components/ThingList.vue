@@ -295,7 +295,7 @@
 import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
-import { APP, getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
+import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 import { Configuration } from "../openapi-generator-cli_thing_typescript-axios/configuration"
