@@ -10,6 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
@@ -110,6 +111,8 @@ func (s ServiceThing) login(ctx echo.Context) error {
 		Username: s.adminUser,
 		IsAdmin:  true,
 	}
+	// create a uuid session id (a good place to store it in db if needed)
+	sessionId, _ := uuid.NewUUID()
 
 	// Create token with claims
 	signer, _ := jwt.NewSignerHS(jwt.HS512, s.JwtSecret)
@@ -121,7 +124,8 @@ func (s ServiceThing) login(ctx echo.Context) error {
 	msg := fmt.Sprintf("LoginUser(%s) succesfull login for user id (%d)", claims.Username, claims.Id)
 	s.Log.Info(msg)
 	return ctx.JSON(http.StatusOK, echo.Map{
-		"token": token.String(),
+		"token":   token.String(),
+		"session": sessionId,
 	})
 }
 

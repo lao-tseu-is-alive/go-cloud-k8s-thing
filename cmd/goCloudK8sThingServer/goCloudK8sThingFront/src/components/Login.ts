@@ -1,6 +1,6 @@
 import { SHA256 } from "crypto-es/lib/sha256"
 import axios from "axios"
-import { getLog, APP, BACKEND_URL } from "../config"
+import { getLog, APP, BACKEND_URL, defaultAxiosTimeout } from "../config";
 
 const log = getLog("Login", 4, 1)
 
@@ -29,6 +29,10 @@ export const getToken = async (baseServerUrl: string, username: string, password
   try {
     response = await axios.post(`${baseServerUrl}/login`, data) // .then((response) => {
     log.l("getToken() axios.post Success ! response :", response.data)
+    if (response.data.session !== undefined) {
+      const sessionId = response.data.session
+      sessionStorage.setItem(`${APP}_goapi_session_uuid`, sessionId)
+    }
     const jwtValues = parseJwt(response.data.token)
     log.l("getToken() token values : ", jwtValues)
     const dExpires = new Date(0)
@@ -85,8 +89,9 @@ export const getToken = async (baseServerUrl: string, username: string, password
 export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
   log.t("# entering...  ")
   axios.defaults.headers.common.Authorization = `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
+  const AxiosRequestConfig= { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() }}
   try {
-    const res = await axios.get(`${baseServerUrl}/goapi/v1/status`)
+    const res = await axios.get(`${baseServerUrl}/goapi/v1/status`, AxiosRequestConfig)
     log.l("getTokenStatus() axios.get Success ! response :", res)
     const dExpires = new Date(0)
     dExpires.setUTCSeconds(res.data.exp)
@@ -143,13 +148,13 @@ export const logoutAndResetToken = (baseServerUrl: string) => {
   log.t("# IN logoutAndResetToken()")
   axios.defaults.headers.common.Authorization = `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
   axios
-    .get(`${baseServerUrl}/api/logout`)
+    .get(`${baseServerUrl}/goapi/v1/logout`)
     .then((response) => {
-      log.l("logoutAndResetToken() axios.get Success ! response :", response)
+      log.l("logoutAndResetToken() Success ! response :", response)
       clearSessionStorage()
     })
     .catch((error) => {
-      log.e("logoutAndResetToken() ## axios.get ERROR ## error :", error)
+      log.e("logoutAndResetToken() ##  ERROR ## :", error)
     })
 }
 
@@ -287,4 +292,11 @@ export const isUserHavingGroups = () => {
     return false
   }
   return false
+}
+
+export const getSessionId = (): string => {
+  if (doesCurrentSessionExist()) {
+    return `${sessionStorage.getItem(`${APP}_goapi_session_uuid`)}`
+  }
+  return ""
 }

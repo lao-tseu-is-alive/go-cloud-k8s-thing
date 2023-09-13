@@ -295,9 +295,9 @@
 import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
-import { getLog, BACKEND_URL } from "@/config"
+import { APP, getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
-import { getLocalJwtTokenAuth } from "@/components/Login"
+import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 import { Configuration } from "../openapi-generator-cli_thing_typescript-axios/configuration"
 import { DefaultApi, Thing, ThingList } from "../openapi-generator-cli_thing_typescript-axios/api"
 import axios from "axios"
@@ -391,7 +391,7 @@ watch(
     log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList(val, myProps.createdBy)
+        listThing(val, myProps.createdBy)
       }
     }
   }
@@ -403,7 +403,7 @@ watch(
     log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList(myProps.typeThing, val)
+        listThing(myProps.typeThing, val)
       }
     }
   }
@@ -414,7 +414,7 @@ watch(
     log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList(myProps.typeThing, myProps.createdBy)
+        listThing(myProps.typeThing, myProps.createdBy)
       }
     }
   }
@@ -426,7 +426,7 @@ watch(
     log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList(myProps.typeThing, myProps.createdBy)
+        listThing(myProps.typeThing, myProps.createdBy)
       }
     }
   }
@@ -438,7 +438,7 @@ watch(
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        retrieveList(myProps.typeThing, myProps.createdBy)
+        listThing(myProps.typeThing, myProps.createdBy)
       }
     }
   }
@@ -579,35 +579,9 @@ const save = () => {
   }
   close()
 }
-
-const deleteThing = async (id: string): Promise<netThing> => {
-  log.t(`> Entering.. deleteThing: ${id}`)
-  areWeReady.value = false
-  try {
-    const resp = await myApi._delete(id)
-    log.l("myAPi._delete : ", resp)
-    if (resp.status == 200) {
-      areWeReady.value = true
-      return { data: null, err: null }
-    } else {
-      areWeReady.value = true
-      log.w("getThing got problem", resp)
-      return { data: null, err: Error(`problem in deleteThing status : ${resp.status}, ${resp.statusText}`) }
-    }
-  } catch (error) {
-    areWeReady.value = true
-    if (axios.isAxiosError(error)) {
-      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
-      if (error.response !== undefined && error.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(error.response.data.message) ? "" : error.response.data.message
-        return { data: null, err: Error(`deleteThing error : ${error.message}. Server says : ${srvMessage}`) }
-      } else {
-        return { data: null, err: Error(`deleteThing error : ${error.message}.`) }
-      }
-    } else {
-      log.e("unexpected error: ", error)
-      return { data: null, err: Error(`unexpected error: in deleteThing Try catch : ${error}`) }
-    }
+const clearRecords = (): void => {
+  if (records.length > 0) {
+    records.splice(0)
   }
 }
 
@@ -631,9 +605,12 @@ const getThing = async (id: string): Promise<netThing> => {
     areWeReady.value = true
     if (axios.isAxiosError(error)) {
       log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
-      log.l("Axios error.response:", error.response)
-      if (error.response !== undefined) {
-        return { data: null, err: Error(`getThing error : ${error.message}. Server says : ${error.response.data}`) }
+      if (error.response !== undefined && error.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(error.response.data.message) ? "" : error.response.data.message
+        const msg = `getThing error : ${error.message}. Server says : ${srvMessage}`
+        log.w(msg)
+        emit("thing-error", msg)
+        return { data: null, err: Error(msg) }
       } else {
         return { data: null, err: Error(`getThing error : ${error.message}.`) }
       }
@@ -644,17 +621,12 @@ const getThing = async (id: string): Promise<netThing> => {
   }
 }
 
-const clearRecords = (): void => {
-  if (records.length > 0) {
-    records.splice(0)
-  }
-}
 /**
- * retrieveList a list of things from server based on current criteria
+ * listThing a list of things from server based on current criteria
  * @param typeThing filter the list with only this type of thing
  * @param createdBy filter the list with only records created by given user id
  */
-const retrieveList = async (typeThing?: number, createdBy?: number) => {
+const listThing = async (typeThing?: number, createdBy?: number) => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   areWeReady.value = false
   if (typeThing != undefined) {
@@ -674,17 +646,12 @@ const retrieveList = async (typeThing?: number, createdBy?: number) => {
       myProps.offset
     )
     //log.l("myAPi.list : ", resp)
-    if (resp.status == 200) {
-      clearRecords()
-      resp.data.forEach((r) => {
-        records.push(r)
-      })
-      numThingsFound.value = await countThing(undefined, typeThing, createdBy)
-      areWeReady.value = true
-    } else {
-      areWeReady.value = true
-      log.w("retrieveList got problem", resp)
-    }
+    clearRecords()
+    resp.data.forEach((r) => {
+      records.push(r)
+    })
+    numThingsFound.value = await countThing(undefined, typeThing, createdBy)
+    areWeReady.value = true
   } catch (error) {
     clearRecords()
     numThingsFound.value = await countThing(undefined, typeThing, createdBy)
@@ -702,6 +669,7 @@ const retrieveList = async (typeThing?: number, createdBy?: number) => {
   }
 }
 
+const updateThing = async (id: string): Promise<netThing> => {}
 const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   if (typeThing != undefined) {
@@ -713,13 +681,7 @@ const countThing = async (keywords?: string, typeThing?: number, createdBy?: num
   log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
   try {
     const resp = await myApi.count(keywords, typeThing, createdBy, myProps.inactivated, myProps.validated)
-    //log.l("myAPi.list : ", resp)
-    if (resp.status == 200) {
-      return resp.data
-    } else {
-      log.w("retrieveList got problem", resp)
-      return 0
-    }
+    return resp.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response !== undefined) {
@@ -734,37 +696,60 @@ const countThing = async (keywords?: string, typeThing?: number, createdBy?: num
   }
 }
 
+const deleteThing = async (id: string): Promise<netThing> => {
+  log.t(`> Entering.. deleteThing: ${id}`)
+  areWeReady.value = false
+  try {
+    const resp = await myApi._delete(id)
+    log.l("myAPi._delete : ", resp)
+    areWeReady.value = true
+    return { data: null, err: null }
+  } catch (err) {
+    areWeReady.value = true
+    if (axios.isAxiosError(err)) {
+      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
+      if (err.response !== undefined && err.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
+        return { data: null, err: Error(`deleteThing error : ${err.message}. Server says : ${srvMessage}`) }
+      } else {
+        return { data: null, err: Error(`deleteThing error : ${err.message}.`) }
+      }
+    } else {
+      log.e("💥💥 unexpected error: ", err)
+      return { data: null, err: Error(`💥💥 unexpected error: in deleteThing Try catch : ${err}`) }
+    }
+  }
+}
+
 const getTypeThingName = (id: number): string => {
   if (id in dicoTypeThing) {
     return dicoTypeThing[id]
   }
-  return "# unknown_type #"
+  return "# type inconnu #"
 }
 
 const loadTypeThingData = async (): Promise<void> => {
   const resp = await myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0)
   log.l("myAPi.typeThingList : ", resp)
-  if (resp.status == 200) {
-    resp.data.forEach((r) => {
-      const temp = { id: r.id, name: r.name }
-      arrListTypeThing.push(temp)
-    })
-    // log.l("arrListTypeThing", arrListTypeThing)
-    dicoTypeThing = Object.fromEntries(arrListTypeThing.map((x) => [x.id, x.name]))
-    // log.l("arrListTypeThing", dicoTypeThing)
-  } else {
-    //display alert with status code > 200
-  }
+  resp.data.forEach((r) => {
+    const temp = { id: r.id, name: r.name }
+    arrListTypeThing.push(temp)
+  })
+  dicoTypeThing = Object.fromEntries(arrListTypeThing.map((x) => [x.id, x.name]))
 }
 
 const initialize = async () => {
   const token = getLocalJwtTokenAuth()
-  const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
+  const myConf = new Configuration({
+    accessToken: token,
+    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() }},
+    basePath: BACKEND_URL + "/goapi/v1",
+  })
   myApi = new DefaultApi(myConf)
   areWeReady.value = true
 
   await loadTypeThingData()
-  await retrieveList(myProps.typeThing, myProps.createdBy)
+  await listThing(myProps.typeThing, myProps.createdBy)
 }
 
 onMounted(() => {
