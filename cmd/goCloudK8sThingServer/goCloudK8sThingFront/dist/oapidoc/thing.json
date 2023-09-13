@@ -1348,7 +1348,7 @@
             "type": "integer"
           },
           "more_data_schema": {
-            "format": "object"
+            "type": "object"
           }
         }
       },

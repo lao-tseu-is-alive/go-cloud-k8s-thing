@@ -932,7 +932,7 @@ components:
           format: int32
           type: integer
         more_data_schema:
-          format: object
+          type: object
     TypeThingList:
       required:
         - id
@@ -991,7 +991,7 @@ components:
           type: string
   responses:
     UnauthorizedError:
-      description: Access token is missing or invalid
+      description: "Access token is missing or invalid"
   securitySchemes:
     JWTAuth:
       type: http
