@@ -89,6 +89,7 @@
             :inactivated="searchInactivated"
             :validated="searchValidated"
             @thing-error="thingGotErr"
+            @thing-ok="thingGotSuccess"
           />
         </v-container>
       </template>
@@ -227,7 +228,10 @@ const thingGotErr = (v: string) => {
   displayFeedBack(v, "error")
 }
 
-
+const thingGotSuccess = (v: string) => {
+  log.w(`# entering... val:${v} `)
+  displayFeedBack(v, "success")
+}
 const clearFilters = () => {
   searchCreatedBy.value = undefined
   searchType.value = 0

@@ -298,9 +298,9 @@ import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
-import { Configuration } from "../openapi-generator-cli_thing_typescript-axios/configuration"
-import { DefaultApi, Thing, ThingList } from "../openapi-generator-cli_thing_typescript-axios/api"
-import axios from "axios"
+import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
+import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
+import axios, { AxiosInstance } from "axios";
 import { VDataTable } from "vuetify/labs/VDataTable"
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
@@ -308,6 +308,7 @@ const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
 const areWeReady = ref(false)
 let myApi: DefaultApi
+let myAxios: AxiosInstance
 const dialog = ref(false)
 const dialogDelete = ref(false)
 
@@ -557,10 +558,21 @@ const closeDelete = () => {
   })
 }
 
-const save = () => {
+const save = async () => {
   log.t(" #> entering SAVE ...")
   if (editedIndex.value > -1) {
     Object.assign(records[editedIndex.value], editedItem.value)
+    const res = await updateThing(editedItem.value.id, editedItem.value)
+    if (res.data === null) {
+      const msg = `Save update failed. Problem:  ${res.err?.message}`
+      log.w(msg)
+      emit("thing-error", msg)
+    } else {
+      Object.assign(records[editedIndex.value], res.data)
+      const msg = `Save modifications sauvées:  ${res.data?.external_id}`
+      log.w(msg)
+      emit("thing-ok", msg)
+    }
   } else {
     const newItem = Object.assign({}, defaultListItem.value)
     newItem.id = editedItem.value.id
@@ -645,7 +657,6 @@ const listThing = async (typeThing?: number, createdBy?: number) => {
       myProps.limit,
       myProps.offset
     )
-    //log.l("myAPi.list : ", resp)
     clearRecords()
     resp.data.forEach((r) => {
       records.push(r)
@@ -669,7 +680,30 @@ const listThing = async (typeThing?: number, createdBy?: number) => {
   }
 }
 
-const updateThing = async (id: string): Promise<netThing> => {}
+const updateThing = async (id: string, t: Thing): Promise<netThing> => {
+  log.t(`> Entering.. updateThing: ${id}`)
+  areWeReady.value = false
+  try {
+    const resp = await myAxios.put("thing/" + id, t)
+    log.l("myAxios.put(update/id) : ", resp)
+    areWeReady.value = true
+    return { data: resp.data, err: null }
+  } catch (err) {
+    areWeReady.value = true
+    if (axios.isAxiosError(err)) {
+      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
+      if (err.response !== undefined && err.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
+        return { data: null, err: Error(`updateThing error : ${err.message}. Server says : ${srvMessage}`) }
+      } else {
+        return { data: null, err: Error(`updateThing error : ${err.message}.`) }
+      }
+    } else {
+      log.e("💥💥 unexpected error: ", err)
+      return { data: null, err: Error(`💥💥 updateThing error: in deleteThing Try catch : ${err}`) }
+    }
+  }
+}
 const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   if (typeThing != undefined) {
@@ -742,10 +776,15 @@ const initialize = async () => {
   const token = getLocalJwtTokenAuth()
   const myConf = new Configuration({
     accessToken: token,
-    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() }},
+    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
     basePath: BACKEND_URL + "/goapi/v1",
   })
   myApi = new DefaultApi(myConf)
+  myAxios = axios.create({
+    baseURL: BACKEND_URL + "/goapi/v1",
+    timeout: defaultAxiosTimeout,
+    headers: { "X-Goeland-Token": getSessionId() }
+  })
   areWeReady.value = true
 
   await loadTypeThingData()
