@@ -312,11 +312,6 @@ func main() {
 	}
 	thing.RegisterHandlers(r, &objService)
 
-	loginExample := fmt.Sprintf("curl -v -X POST -d 'login=$ADMIN_PASSWORD' -d 'pass=%s' http://localhost%s/login", adminUsername, listenAddr)
-	getSecretExample := fmt.Sprintf(" curl -v  -H \"Authorization: Bearer ${TOKEN}\" http://localhost%s%s/secret |jq\n", listenAddr, defaultSecuredApi)
-	l.Info(" --> from another terminal just try :\n %s", loginExample)
-	l.Info(" --> then type export TOKEN=your_token_above_goes_here   \n %s", getSecretExample)
-
 	err = server.StartServer()
 	if err != nil {
 		l.Fatal("💥💥 ERROR: 'calling echo.Start(%s) got error: %v'\n", listenAddr, err)

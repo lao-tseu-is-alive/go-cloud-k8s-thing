@@ -137,7 +137,7 @@ export default {
             .then((val) => {
               if (val.data == null) {
                 if (!isNullOrUndefined(val.err)) {
-                  log.e(`# getJwtToken() ${val.msg}, ERROR is: `, val.err)
+                  log.w(`# getJwtToken() ${val.msg}, ERROR is: `, val.err)
                   this.displayFeedBack(`Le serveur est inaccessible : ${val.err}`, "error")
                 } else {
                   log.w(`# getToken received status ${val.status}`, val)

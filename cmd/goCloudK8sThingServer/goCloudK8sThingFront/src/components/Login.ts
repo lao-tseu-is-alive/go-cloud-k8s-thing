@@ -1,6 +1,6 @@
 import { SHA256 } from "crypto-es/lib/sha256"
 import axios from "axios"
-import { getLog, APP, BACKEND_URL, defaultAxiosTimeout } from "../config";
+import { getLog, APP, BACKEND_URL, defaultAxiosTimeout } from "../config"
 
 const log = getLog("Login", 4, 1)
 
@@ -38,31 +38,22 @@ export const getToken = async (baseServerUrl: string, username: string, password
     const dExpires = new Date(0)
     dExpires.setUTCSeconds(jwtValues.exp)
     log.l(`getToken() JWT token expiration : ${dExpires}`)
-    if (response.status === 200) {
-      if (typeof Storage !== "undefined") {
-        // Code for localStorage/sessionStorage.
-        sessionStorage.setItem(`${APP}_goapi_jwt_session_token`, response.data.token)
-        sessionStorage.setItem(`${APP}_goapi_idgouser`, jwtValues.id)
-        sessionStorage.setItem(`${APP}_goapi_name`, jwtValues.name)
-        sessionStorage.setItem(`${APP}_goapi_username`, username)
-        sessionStorage.setItem(`${APP}_goapi_email`, jwtValues.email)
-        sessionStorage.setItem(`${APP}_goapi_isadmin`, jwtValues.is_admin)
-        sessionStorage.setItem(`${APP}_goapi_groups`, jwtValues.groups)
-        sessionStorage.setItem(`${APP}_goapi_date_expiration`, jwtValues.exp)
-      }
-      return {
-        msg: "getToken() axios.post Success.",
-        err: null,
-        status: response.status,
-        data: response.data,
-      }
+    if (typeof Storage !== "undefined") {
+      // Code for localStorage/sessionStorage.
+      sessionStorage.setItem(`${APP}_goapi_jwt_session_token`, response.data.token)
+      sessionStorage.setItem(`${APP}_goapi_idgouser`, jwtValues.id)
+      sessionStorage.setItem(`${APP}_goapi_name`, jwtValues.name)
+      sessionStorage.setItem(`${APP}_goapi_username`, username)
+      sessionStorage.setItem(`${APP}_goapi_email`, jwtValues.email)
+      sessionStorage.setItem(`${APP}_goapi_isadmin`, jwtValues.is_admin)
+      sessionStorage.setItem(`${APP}_goapi_groups`, jwtValues.groups)
+      sessionStorage.setItem(`${APP}_goapi_date_expiration`, jwtValues.exp)
     }
-    log.w("axios get a bad status ! response was:", response)
     return {
-      msg: `getToken() axios.post Failure got a bad status: ${response.status} !`,
+      msg: "getToken() axios.post Success.",
       err: null,
       status: response.status,
-      data: null,
+      data: response.data,
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -89,7 +80,7 @@ export const getToken = async (baseServerUrl: string, username: string, password
 export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
   log.t("# entering...  ")
   axios.defaults.headers.common.Authorization = `Bearer ${sessionStorage.getItem(`${APP}_goapi_jwt_session_token`)}`
-  const AxiosRequestConfig= { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() }}
+  const AxiosRequestConfig = { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } }
   try {
     const res = await axios.get(`${baseServerUrl}/goapi/v1/status`, AxiosRequestConfig)
     log.l("getTokenStatus() axios.get Success ! response :", res)
@@ -106,9 +97,9 @@ export const getTokenStatus = async (baseServerUrl = BACKEND_URL) => {
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      log.e("getToken() ## Try Catch ERROR ## error :", error)
-      log.e("axios response was:", error.response)
-      log.e("axios message is:", error.message)
+      log.w("getToken() ## Try Catch ERROR ## error :", error)
+      log.w("axios response was:", error.response)
+      log.w("axios message is:", error.message)
       const msg = `Error: in getTokenStatus() ## axios.get(${baseServerUrl}/goapi/v1/status) ERROR ## error :${error.message}`
       log.w(msg)
       const status = error.response != undefined ? error.response.status : undefined

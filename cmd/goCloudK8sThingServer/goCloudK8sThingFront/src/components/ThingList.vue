@@ -1,7 +1,249 @@
 <style></style>
 <template>
   <v-container class="fill-height">
-    <v-responsive class="d-flex align-center text-center fill-height">
+    <v-responsive class="d-flex fill-height">
+      <v-row>
+        <!-- BEGIN FORM EDIT  -->
+        <v-dialog v-model="dialog" :persistent="true" transition="dialog-top-transition" width="960">
+          <v-card>
+            <v-toolbar color="primary">
+              <v-toolbar-title>
+                {{ formTitle }} <span class="ml-3 text-body-1">id: {{ editedItem.id }}</span>
+              </v-toolbar-title>
+              <template #extension>
+                <v-tabs v-model="dialogTab" color="primary-accent" bg-color="secondary" centered density="compact">
+                  <v-tab value="tab-info-base">
+                    <v-icon>mdi-information-outline</v-icon>
+                    Infos principales
+                  </v-tab>
+                  <v-tab value="tab-info-more">
+                    <v-icon>mdi-more</v-icon>
+                    Infos détaillées
+                  </v-tab>
+                  <v-tab value="tab-info-record">
+                    <v-icon>mdi-account-details</v-icon>
+                    historique enregistrement
+                  </v-tab>
+                </v-tabs>
+              </template>
+            </v-toolbar>
+            <v-card-text>
+              <v-container class="v-container--fluid ma-0">
+                <v-window v-model="dialogTab">
+                  <v-window-item value="tab-info-base">
+                    <v-row>
+                      <v-col class="d-none d-sm-flex" cols="0" sm="2" md="2" lg="1" xl="1">
+                        <v-text-field v-model="editedItem.type_id" density="compact" label="id-type"></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="10" md="4" lg="3" xl="2">
+                        <v-select
+                          v-model="editedItem.type_id"
+                          item-title="name"
+                          item-value="id"
+                          :items="arrListTypeThing"
+                          density="compact"
+                          label="TypeObjet*"
+                        ></v-select>
+                      </v-col>
+                      <v-col cols="12" sm="12" md="6" lg="8">
+                        <v-text-field
+                          v-model="editedItem.name"
+                          density="compact"
+                          required
+                          label="Nom de l'objet*"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-text-field v-model="editedItem.description" label="Description"></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-textarea
+                          v-model="editedItem.comment"
+                          rows="2"
+                          row-height="15"
+                          row
+                          density="compact"
+                          auto-grow
+                          bg-color="amber-lighten-4"
+                          color="orange orange-darken-4"
+                          label="Commentaire"
+                        ></v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field
+                          type="number"
+                          v-model="editedItem.external_id"
+                          density="compact"
+                          label="identifiant externe"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field v-model="editedItem.external_ref" density="compact" label="référence externe" />
+                      </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field v-model="editedItem.build_at" density="compact" label="Date construction" />
+                      </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />
+                      </v-col>
+                    </v-row>
+                  </v-window-item>
+                  <v-window-item value="tab-info-more">
+                    <v-row>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.contained_by"
+                          density="compact"
+                          label="Contenu dans"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.contained_by_old"
+                          density="compact"
+                          label="Contenu dans(ancien)"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.managed_by"
+                          density="compact"
+                          label="Managé par"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="6" sm="4" md="2">
+                        <v-checkbox v-model="editedItem.validated" density="compact" label="Validé?" />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="5">
+                        <v-text-field
+                          v-model="editedItem.validated_time"
+                          label="Date de validation"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="5">
+                        <v-text-field
+                          v-model="editedItem.validated_by"
+                          label="Validé par"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="6" sm="4" md="2" lg="2" xl="1">
+                        <v-checkbox v-model="editedItem.inactivated" density="compact" label="Inactif?" />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.inactivated_time"
+                          label="Date d'inactivation"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.inactivated_by"
+                          label="Inactivé par"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.inactivated_reason"
+                          label="Raison de l'inactivation"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-window-item>
+                  <v-window-item value="tab-info-record">
+                    <v-row>
+                      <v-col cols="6" sm="4" md="4" lg="2" xl="1">
+                        <v-checkbox v-model="editedItem.deleted" density="compact" label="Effacé?" />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.deleted_at"
+                          label="Date d'effacement"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.deleted_by"
+                          label="Effacé par"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.created_at"
+                          label="Date de Création"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.created_by"
+                          label="Création par"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.last_modified_at"
+                          label="Date de modification"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="3">
+                        <v-text-field
+                          v-model="editedItem.last_modified_by"
+                          label="Modification par"
+                          density="compact"
+                          :disabled="true"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-window-item>
+                </v-window>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn dark color="primary" variant="flat" @click="close">Annuler</v-btn>
+              <v-btn dark color="primary" variant="flat" @click="save">Sauver</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- END FORM EDIT  -->
+        <!-- BEGIN FORM DELETE  -->
+        <v-dialog v-model="dialogDelete" :persistent="true" transition="dialog-top-transition" width="560">
+          <v-card>
+            <v-card-title class="text-h5">Voulez-vous vraiment effacer ?</v-card-title>
+            <v-card-text> {{ deletedItem.external_id }} : {{ deletedItem.name }} </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn dark color="primary" variant="flat" @click="closeDelete">Annuler</v-btn>
+              <v-btn dark color="primary" variant="flat" @click="deleteItemConfirm">Sauver</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- END FORM DELETE  -->
+      </v-row>
       <v-row>
         <v-col cols="10"
           >Trouvé {{ numThingsFound }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ areWeReady }}
@@ -22,231 +264,19 @@
           >
             <template #top>
               <v-toolbar density="compact">
-                <v-toolbar-title style="text-align: left">Liste de Thing...</v-toolbar-title>
+                <v-toolbar-title style="text-align: left">{{ numThingsFound }} Thing trouvés...</v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" dark class="mb-2" @click="newThing"> Nouveau Thing</v-btn>
-                <!-- BEGIN FORM EDIT  -->
-                <v-dialog v-model="dialog">
-                  <v-card>
-                    <v-card-title>
-                      <span class="text-h5">{{ formTitle }}</span>
-                      <span class="ml-3 text-sm-caption">id: {{ editedItem.id }}</span>
-                    </v-card-title>
-                    <!--
-
-    more_data: undefined,
-  pos_x: 0,
-  pos_y: 0,
--->
-                    <v-card-text>
-                      <v-container class="v-container--fluid ma-0">
-                        <v-row>
-                          <v-col class="d-none d-sm-flex" cols="0" sm="2" md="2" lg="1" xl="1">
-                            <v-text-field v-model="editedItem.type_id" density="compact" label="id-type"></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="10" md="4" lg="3" xl="2">
-                            <v-select
-                              v-model="editedItem.type_id"
-                              item-title="name"
-                              item-value="id"
-                              :items="arrListTypeThing"
-                              density="compact"
-                              label="TypeObjet*"
-                            ></v-select>
-                          </v-col>
-                          <v-col cols="12" sm="12" md="6" lg="8">
-                            <v-text-field
-                              v-model="editedItem.name"
-                              density="compact"
-                              label="Nom de l'objet*"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-text-field v-model="editedItem.description" label="Description"></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-textarea
-                              v-model="editedItem.comment"
-                              rows="2"
-                              row-height="15"
-                              row
-                              density="compact"
-                              auto-grow
-                              bg-color="amber-lighten-4"
-                              color="orange orange-darken-4"
-                              label="Commentaire"
-                            ></v-textarea>
-                          </v-col>
-                          <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field
-                              type="number"
-                              v-model="editedItem.external_id"
-                              density="compact"
-                              label="identifiant externe"
-                            />
-                          </v-col>
-                          <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field
-                              v-model="editedItem.external_ref"
-                              density="compact"
-                              label="référence externe"
-                            />
-                          </v-col>
-                          <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field v-model="editedItem.build_at" density="compact" label="Date construction" />
-                          </v-col>
-                          <v-col cols="12" sm="4" md="3" lg="3">
-                            <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.contained_by"
-                              density="compact"
-                              label="Contenu dans"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.contained_by_old"
-                              density="compact"
-                              label="Contenu dans(ancien)"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.managed_by"
-                              density="compact"
-                              label="Managé par"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="6" sm="4" md="2">
-                            <v-checkbox v-model="editedItem.validated" density="compact" label="Validé?" />
-                          </v-col>
-                          <v-col cols="12" sm="6" md="5">
-                            <v-text-field
-                              v-model="editedItem.validated_time"
-                              label="Date de validation"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="5">
-                            <v-text-field
-                              v-model="editedItem.validated_by"
-                              label="Validé par"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="6" sm="4" md="2" lg="2" xl="1">
-                            <v-checkbox v-model="editedItem.inactivated" density="compact" label="Inactif?" />
-                          </v-col>
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.inactivated_time"
-                              label="Date d'inactivation"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.inactivated_by"
-                              label="Inactivé par"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.inactivated_reason"
-                              label="Raison de l'inactivation"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="6" sm="4" md="4" lg="2" xl="1">
-                            <v-checkbox v-model="editedItem.deleted" density="compact" label="Effacé?" />
-                          </v-col>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.deleted_at"
-                              label="Date d'effacement"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="4">
-                            <v-text-field
-                              v-model="editedItem.deleted_by"
-                              label="Effacé par"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.created_at"
-                              label="Date de Création"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.created_by"
-                              label="Création par"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.last_modified_at"
-                              label="Date de modification"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6" md="3">
-                            <v-text-field
-                              v-model="editedItem.last_modified_by"
-                              label="Modification par"
-                              density="compact"
-                              :disabled="true"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-card-text>
-
-                    <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn color="blue-darken-1" variant="text" @click="close"> Cancel</v-btn>
-                      <v-btn color="blue-darken-1" variant="text" @click="save"> Save</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-                <!-- END FORM EDIT  -->
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                  <v-card>
-                    <v-card-title class="text-h5">Voulez-vous vraiment effacer ?</v-card-title>
-                    <v-card-text> {{ deletedItem.external_id }} : {{ deletedItem.name }} </v-card-text>
-                    <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
-                      <v-btn color="blue-darken-1" variant="text" @click="deleteItemConfirm">OK</v-btn>
-                      <v-spacer></v-spacer>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
+                <v-btn
+                  dark
+                  color="primary"
+                  variant="flat"
+                  prepend-icon="mdi-creation"
+                  density="default"
+                  class="m-2"
+                  @click="newThing"
+                >
+                  Nouveau Thing</v-btn
+                >
               </v-toolbar>
             </template>
             <template #item.type_id="{ item }">
@@ -312,9 +342,9 @@ interface typeThingSelect {
 interface IDictionary {
   [key: number]: string
 }
-
+const dialogTab = ref(null)
 let dicoTypeThing: IDictionary = {}
-const arrListTypeThing: typeThingSelect[] = reactive([])
+const arrListTypeThing: typeThingSelect[] = []
 const records: ThingList[] = reactive([])
 const defaultListItem: Ref<ThingList> = ref({
   id: crypto.randomUUID(),
@@ -448,7 +478,7 @@ watch(dialogDelete, (val, oldValue) => {
 })
 //// COMPUTED SECTION
 const formTitle = computed(() => {
-  return editedIndex.value === -1 ? "New Item" : "Edit Item"
+  return editedIndex.value === -1 ? "Nouvel objet" : "Edition de l'objet"
 })
 
 const propsValues = computed(() => {
@@ -504,9 +534,10 @@ const editItem = async (item: ThingList) => {
   const id = item.id
   const res = await getThing(id)
   if (res.data !== null) {
-    log.l("ok, preparing editedItem with Thing data ", res.data)
+    log.l(`ok, filling editedItem with Thing id : ${res.data.id}`)
     editedItem.value = Object.assign({}, res.data)
     dialog.value = true
+    log.l(`Now inside editing id : ${res.data.id}`)
   } else {
     log.w(`problem retrieving getThing(${id})`, res.err)
   }
@@ -573,7 +604,7 @@ const save = async () => {
       emit("thing-error", msg)
     } else {
       Object.assign(records[editedIndex.value], res.data)
-      const msg = `Save modifications sauvées:  ${res.data?.external_id}`
+      const msg = `Vos modifications ont été enregistrées dans la Base avec succès.`
       log.w(msg)
       emit("thing-ok", msg)
     }
@@ -601,7 +632,7 @@ const save = async () => {
       newItem.pos_y = editedItem.value.pos_y
       records.push(newItem)
       //reset of editedItem is done in close()
-      const msg = `Save modifications sauvées:  ${res.data?.external_id}`
+      const msg = `Nouvel enregistrement sauvé dans la Base  id: ${res.data?.external_id}`
       log.w(msg)
       emit("thing-ok", msg)
     }
@@ -621,7 +652,7 @@ const getThing = async (id: string): Promise<netThing> => {
   areWeReady.value = false
   try {
     const resp = await myApi.get(id)
-    log.l("myAPi.get : ", resp)
+    log.l(`SUCCESS myAPi.get(id:${resp.data.id}`)
     if (resp.status == 200) {
       areWeReady.value = true
       return { data: resp.data, err: null }
