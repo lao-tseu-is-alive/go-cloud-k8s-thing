@@ -24,11 +24,9 @@
               <v-toolbar density="compact">
                 <v-toolbar-title style="text-align: left">Liste de Thing...</v-toolbar-title>
                 <v-spacer></v-spacer>
+                <v-btn color="primary" dark class="mb-2" @click="newThing"> Nouveau Thing</v-btn>
                 <!-- BEGIN FORM EDIT  -->
                 <v-dialog v-model="dialog">
-                  <template #activator="{ props }">
-                    <v-btn color="primary" dark class="mb-2" v-bind="props"> Nouveau Thing</v-btn>
-                  </template>
                   <v-card>
                     <v-card-title>
                       <span class="text-h5">{{ formTitle }}</span>
@@ -44,12 +42,7 @@
                       <v-container class="v-container--fluid ma-0">
                         <v-row>
                           <v-col class="d-none d-sm-flex" cols="0" sm="2" md="2" lg="1" xl="1">
-                            <v-text-field
-                              v-model="editedItem.type_id"
-                              density="compact"
-                              :disabled="true"
-                              label="id-type"
-                            ></v-text-field>
+                            <v-text-field v-model="editedItem.type_id" density="compact" label="id-type"></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="10" md="4" lg="3" xl="2">
                             <v-select
@@ -297,10 +290,10 @@ import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
-import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
+import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
 import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { VDataTable } from "vuetify/labs/VDataTable"
 // import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
@@ -369,7 +362,7 @@ const defaultItem: Ref<Thing> = ref({
   pos_x: 0,
   pos_y: 0,
 })
-const editedItem: Ref<Thing> = ref(Object.assign({}, defaultItem))
+const editedItem: Ref<Thing> = ref(defaultItem)
 const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
 const numThingsFound = ref(0)
 const myProps = defineProps<{
@@ -519,6 +512,16 @@ const editItem = async (item: ThingList) => {
   }
 }
 
+const newThing = () => {
+  log.t("#> entering ...")
+  editedItem.value = Object.assign({}, defaultItem.value)
+  editedItem.value.id = crypto.randomUUID()
+  editedItem.value.created_by = getUserId()
+  const justNow = new Date()
+  editedItem.value.created_at = justNow.toISOString()
+  dialog.value = true
+}
+
 const deleteItem = (item: ThingList) => {
   log.t(" #> entering DELETE ...", item)
   editedIndex.value = records.indexOf(item)
@@ -561,6 +564,7 @@ const closeDelete = () => {
 const save = async () => {
   log.t(" #> entering SAVE ...")
   if (editedIndex.value > -1) {
+    //// HANDLING UPDATE OF EXISTING ITEM
     Object.assign(records[editedIndex.value], editedItem.value)
     const res = await updateThing(editedItem.value.id, editedItem.value)
     if (res.data === null) {
@@ -574,20 +578,33 @@ const save = async () => {
       emit("thing-ok", msg)
     }
   } else {
-    const newItem = Object.assign({}, defaultListItem.value)
-    newItem.id = editedItem.value.id
-    newItem.type_id = editedItem.value.type_id
-    newItem.name = editedItem.value.name
-    newItem.description = editedItem.value.description
-    newItem.external_id = editedItem.value.external_id
-    newItem.inactivated = editedItem.value.inactivated
-    newItem.validated = editedItem.value.validated
-    newItem.status = editedItem.value.status
-    newItem.created_by = editedItem.value.created_by
-    newItem.created_at = editedItem.value.created_at
-    newItem.pos_x = editedItem.value.pos_x
-    newItem.pos_y = editedItem.value.pos_y
-    records.push(newItem)
+    //// HANDLING CREATE OF NEW ITEM
+    const res = await createThing(editedItem.value.id, editedItem.value)
+    if (res.data === null) {
+      const msg = `Save createThing failed. Problem:  ${res.err?.message}`
+      log.w(msg)
+      emit("thing-error", msg)
+    } else {
+      Object.assign(editedItem.value, res.data)
+      const newItem = Object.assign({}, defaultListItem.value)
+      newItem.id = editedItem.value.id
+      newItem.type_id = editedItem.value.type_id
+      newItem.name = editedItem.value.name
+      newItem.description = editedItem.value.description
+      newItem.external_id = editedItem.value.external_id
+      newItem.inactivated = editedItem.value.inactivated
+      newItem.validated = editedItem.value.validated
+      newItem.status = editedItem.value.status
+      newItem.created_by = editedItem.value.created_by
+      newItem.created_at = editedItem.value.created_at
+      newItem.pos_x = editedItem.value.pos_x
+      newItem.pos_y = editedItem.value.pos_y
+      records.push(newItem)
+      //reset of editedItem is done in close()
+      const msg = `Save modifications sauvées:  ${res.data?.external_id}`
+      log.w(msg)
+      emit("thing-ok", msg)
+    }
   }
   close()
 }
@@ -680,12 +697,36 @@ const listThing = async (typeThing?: number, createdBy?: number) => {
   }
 }
 
+const createThing = async (id: string, t: Thing): Promise<netThing> => {
+  log.t(`> Entering.. createThing: ${id}`)
+  areWeReady.value = false
+  try {
+    const resp = await myAxios.post("thing", t)
+    log.l("myAxios.post(thing) : ", resp)
+    areWeReady.value = true
+    return { data: resp.data, err: null }
+  } catch (err) {
+    areWeReady.value = true
+    if (axios.isAxiosError(err)) {
+      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
+      if (err.response !== undefined && err.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
+        return { data: null, err: Error(`createThing error : ${err.message}. Server says : ${srvMessage}`) }
+      } else {
+        return { data: null, err: Error(`createThing error : ${err.message}.`) }
+      }
+    } else {
+      log.e("💥💥 unexpected error: ", err)
+      return { data: null, err: Error(`💥💥 createThing error: in deleteThing Try catch : ${err}`) }
+    }
+  }
+}
 const updateThing = async (id: string, t: Thing): Promise<netThing> => {
   log.t(`> Entering.. updateThing: ${id}`)
   areWeReady.value = false
   try {
     const resp = await myAxios.put("thing/" + id, t)
-    log.l("myAxios.put(update/id) : ", resp)
+    log.l("myAxios.put(thing/id) : ", resp)
     areWeReady.value = true
     return { data: resp.data, err: null }
   } catch (err) {
@@ -704,6 +745,7 @@ const updateThing = async (id: string, t: Thing): Promise<netThing> => {
     }
   }
 }
+
 const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   if (typeThing != undefined) {
@@ -783,8 +825,8 @@ const initialize = async () => {
   myAxios = axios.create({
     baseURL: BACKEND_URL + "/goapi/v1",
     timeout: defaultAxiosTimeout,
-    headers: { "X-Goeland-Token": getSessionId() }
-  })
+    headers: { "X-Goeland-Token": getSessionId(), Bearer: getLocalJwtTokenAuth() },
+  } as CreateAxiosDefaults)
   areWeReady.value = true
 
   await loadTypeThingData()
