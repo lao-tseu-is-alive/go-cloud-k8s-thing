@@ -594,6 +594,9 @@ const closeDelete = () => {
 
 const save = async () => {
   log.t(" #> entering SAVE ...")
+  if (editedItem.value.external_id !== undefined) {
+    editedItem.value.external_id = +editedItem.value.external_id
+  }
   if (editedIndex.value > -1) {
     //// HANDLING UPDATE OF EXISTING ITEM
     Object.assign(records[editedIndex.value], editedItem.value)
@@ -856,7 +859,7 @@ const initialize = async () => {
   myAxios = axios.create({
     baseURL: BACKEND_URL + "/goapi/v1",
     timeout: defaultAxiosTimeout,
-    headers: { "X-Goeland-Token": getSessionId(), Bearer: getLocalJwtTokenAuth() },
+    headers: { "X-Goeland-Token": getSessionId(), "Authorization": `Bearer ${getLocalJwtTokenAuth()}` },
   } as CreateAxiosDefaults)
   areWeReady.value = true
 
