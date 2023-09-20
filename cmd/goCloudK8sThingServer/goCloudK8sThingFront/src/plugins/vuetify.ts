@@ -11,7 +11,10 @@ import { md3 } from "vuetify/blueprints"
 // Composables
 import { createVuetify } from "vuetify"
 import { VDataTable } from "vuetify/labs/VDataTable"
-import { VDatePicker } from 'vuetify/labs/VDatePicker'
+import { VDatePicker } from "vuetify/labs/VDatePicker"
+import { VuetifyDateAdapter } from "vuetify/labs/date/adapters/vuetify"
+// Translations provided by Vuetify
+import { fr, en } from "vuetify/locale"
 
 const myCustomLightTheme = {
   dark: false,
@@ -35,7 +38,7 @@ const myCustomLightTheme = {
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
- /* theme: {
+  /* theme: {
     defaultTheme: "myCustomLightTheme",
     themes: {
       myCustomLightTheme,
@@ -45,5 +48,13 @@ export default createVuetify({
   components: {
     VDataTable,
     VDatePicker,
+  },
+  date: {
+    adapter: VuetifyDateAdapter,
+  },
+  locale: {
+    locale: "fr",
+    fallback: "en",
+    messages: { fr, en },
   },
 })

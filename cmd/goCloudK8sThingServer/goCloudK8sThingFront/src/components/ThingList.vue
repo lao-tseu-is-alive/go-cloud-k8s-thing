@@ -81,8 +81,42 @@
                         <v-text-field v-model="editedItem.external_ref" density="compact" label="référence externe" />
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
-                        <v-text-field v-model="editedItem.build_at" density="compact" label="Date construction" />
-                        <v-date-picker v-model="editedItem.build_at" elevation="24"></v-date-picker>
+                        <v-menu
+                          v-model="menuDateConstruction"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template #activator="{ on, attrs }">
+                            <v-text-field
+                              v-model="editedItem.build_at"
+                              prepend-icon="mdi-calendar"
+                              density="compact"
+                              label="Date construction"
+                              v-bind="attrs"
+                              v-on="on"
+                              @click="menuDateConstruction = true"
+                            />
+                          </template>
+                          <v-locale-provider locale="fr">
+                            <v-date-picker
+                              v-model="editedItem.build_at"
+                              cancel-text="ANNULER"
+                              header="Choisissez une date SVP"
+                              title="Date de construction"
+                              show-adjacent-months
+                              show-week
+                              color="primary"
+                              elevation="24"
+                              input-mode="calendar"
+                              @click:save="menuDateConstruction = false"
+                              @click:cancel="menuDateConstruction = false"
+                            >
+                            </v-date-picker>
+                          </v-locale-provider>
+                        </v-menu>
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />
@@ -335,6 +369,7 @@ let myApi: DefaultApi
 let myAxios: AxiosInstance
 const dialog = ref(false)
 const dialogDelete = ref(false)
+const menuDateConstruction = ref(false)
 
 interface typeThingSelect {
   id: number
@@ -860,7 +895,7 @@ const initialize = async () => {
   myAxios = axios.create({
     baseURL: BACKEND_URL + "/goapi/v1",
     timeout: defaultAxiosTimeout,
-    headers: { "X-Goeland-Token": getSessionId(), "Authorization": `Bearer ${getLocalJwtTokenAuth()}` },
+    headers: { "X-Goeland-Token": getSessionId(), Authorization: `Bearer ${getLocalJwtTokenAuth()}` },
   } as CreateAxiosDefaults)
   areWeReady.value = true
 
