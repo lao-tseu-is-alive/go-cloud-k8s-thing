@@ -82,6 +82,7 @@
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-text-field v-model="editedItem.build_at" density="compact" label="Date construction" />
+                        <v-date-picker v-model="editedItem.build_at" elevation="24"></v-date-picker>
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />

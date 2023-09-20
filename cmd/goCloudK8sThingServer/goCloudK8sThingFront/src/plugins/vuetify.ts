@@ -11,6 +11,7 @@ import { md3 } from "vuetify/blueprints"
 // Composables
 import { createVuetify } from "vuetify"
 import { VDataTable } from "vuetify/labs/VDataTable"
+import { VDatePicker } from 'vuetify/labs/VDatePicker'
 
 const myCustomLightTheme = {
   dark: false,
@@ -43,5 +44,6 @@ export default createVuetify({
   blueprint: md3,
   components: {
     VDataTable,
+    VDatePicker,
   },
 })

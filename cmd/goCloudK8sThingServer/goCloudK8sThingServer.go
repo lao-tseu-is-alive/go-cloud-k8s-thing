@@ -290,8 +290,15 @@ func main() {
 	l.Info("Will start HTTP server listening on port %s", listenAddr)
 	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
-	e.Use(echoprometheus.NewMiddleware("myapp"))   // adds middleware to gather metrics
-	e.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
+	// https://echo.labstack.com/docs/middleware/prometheus
+	mwConfig := echoprometheus.MiddlewareConfig{
+		Skipper: func(c echo.Context) bool {
+			return strings.HasPrefix(c.Path(), "/health")
+		}, // does not gather metrics on routes starting with `/health`
+		Subsystem: version.APP,
+	}
+	e.Use(echoprometheus.NewMiddlewareWithConfig(mwConfig)) // adds middleware to gather metrics
+	e.GET("/metrics", echoprometheus.NewHandler())          // adds route to serve gathered metrics
 	e.GET("/readiness", server.GetReadinessHandler(yourService.checkReady, "Connection to DB"))
 	e.GET("/health", server.GetHealthHandler(yourService.checkHealthy, "Connection to DB"))
 	//TODO  Find a way to allow Login route to be available only in dev environment
