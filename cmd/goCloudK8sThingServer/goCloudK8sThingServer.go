@@ -11,6 +11,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
@@ -289,6 +290,8 @@ func main() {
 	l.Info("Will start HTTP server listening on port %s", listenAddr)
 	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
+	e.Use(echoprometheus.NewMiddleware("myapp"))   // adds middleware to gather metrics
+	e.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
 	e.GET("/readiness", server.GetReadinessHandler(yourService.checkReady, "Connection to DB"))
 	e.GET("/health", server.GetHealthHandler(yourService.checkHealthy, "Connection to DB"))
 	//TODO  Find a way to allow Login route to be available only in dev environment
