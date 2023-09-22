@@ -102,26 +102,26 @@ type ThingStatus string
 
 // TypeThing defines model for TypeThing.
 type TypeThing struct {
-	Comment           *string      `json:"comment,omitempty"`
-	CreatedAt         *time.Time   `json:"created_at,omitempty"`
-	CreatedBy         int32        `json:"created_by"`
-	Deleted           bool         `json:"deleted"`
-	DeletedAt         *time.Time   `json:"deleted_at,omitempty"`
-	DeletedBy         *int32       `json:"deleted_by,omitempty"`
-	Description       *string      `json:"description,omitempty"`
-	ExternalId        *int32       `json:"external_id,omitempty"`
-	GeometryType      *string      `json:"geometry_type,omitempty"`
-	Id                int32        `json:"id"`
-	Inactivated       bool         `json:"inactivated"`
-	InactivatedBy     *int32       `json:"inactivated_by,omitempty"`
-	InactivatedReason *string      `json:"inactivated_reason,omitempty"`
-	InactivatedTime   *time.Time   `json:"inactivated_time,omitempty"`
-	LastModifiedAt    *time.Time   `json:"last_modified_at,omitempty"`
-	LastModifiedBy    *int32       `json:"last_modified_by,omitempty"`
-	ManagedBy         *int32       `json:"managed_by,omitempty"`
-	MoreDataSchema    *interface{} `json:"more_data_schema,omitempty"`
-	Name              string       `json:"name"`
-	TableName         *string      `json:"table_name,omitempty"`
+	Comment           *string                 `json:"comment,omitempty"`
+	CreatedAt         *time.Time              `json:"created_at,omitempty"`
+	CreatedBy         int32                   `json:"created_by"`
+	Deleted           bool                    `json:"deleted"`
+	DeletedAt         *time.Time              `json:"deleted_at,omitempty"`
+	DeletedBy         *int32                  `json:"deleted_by,omitempty"`
+	Description       *string                 `json:"description,omitempty"`
+	ExternalId        *int32                  `json:"external_id,omitempty"`
+	GeometryType      *string                 `json:"geometry_type,omitempty"`
+	Id                int32                   `json:"id"`
+	Inactivated       bool                    `json:"inactivated"`
+	InactivatedBy     *int32                  `json:"inactivated_by,omitempty"`
+	InactivatedReason *string                 `json:"inactivated_reason,omitempty"`
+	InactivatedTime   *time.Time              `json:"inactivated_time,omitempty"`
+	LastModifiedAt    *time.Time              `json:"last_modified_at,omitempty"`
+	LastModifiedBy    *int32                  `json:"last_modified_by,omitempty"`
+	ManagedBy         *int32                  `json:"managed_by,omitempty"`
+	MoreDataSchema    *map[string]interface{} `json:"more_data_schema,omitempty"`
+	Name              string                  `json:"name"`
+	TableName         *string                 `json:"table_name,omitempty"`
 }
 
 // TypeThingList defines model for TypeThingList.

@@ -88,21 +88,21 @@
                           transition="scale-transition"
                           offset-y
                           min-width="auto"
+                          location="end"
                         >
-                          <template #activator="{ on, attrs }">
+                          <template v-slot:activator="{ props }">
                             <v-text-field
                               v-model="editedItem.build_at"
                               prepend-icon="mdi-calendar"
                               density="compact"
                               label="Date construction"
-                              v-bind="attrs"
-                              v-on="on"
+                              v-bind="props"                              
                               @click="menuDateConstruction = true"
                             />
                           </template>
                           <v-locale-provider locale="fr">
                             <v-date-picker
-                              v-model="editedItem.build_at"
+                              v-model="(editedItem.build_at as any)"
                               cancel-text="ANNULER"
                               header="Choisissez une date SVP"
                               title="Date de construction"
@@ -110,6 +110,7 @@
                               show-week
                               color="primary"
                               elevation="24"
+                              position="relative"
                               input-mode="calendar"
                               @click:save="menuDateConstruction = false"
                               @click:cancel="menuDateConstruction = false"
