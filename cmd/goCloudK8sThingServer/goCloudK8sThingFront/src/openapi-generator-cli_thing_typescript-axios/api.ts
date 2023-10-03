@@ -24,45 +24,45 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 
 /**
- * 
+ *
  * @export
  * @interface JsonWebToken
  */
 export interface JsonWebToken {
     /**
-     * 
+     *
      * @type {string}
      * @memberof JsonWebToken
      */
     'token': string;
 }
 /**
- * 
+ *
  * @export
  * @interface ModelError
  */
 export interface ModelError {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ModelError
      */
     'code': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ModelError
      */
     'message': string;
 }
 /**
- * 
+ *
  * @export
  * @interface Thing
  */
 export interface Thing {
     /**
-     * cet Universally unique identifier (UUID) sera généré automatiquement pour vous 
+     * cet Universally unique identifier (UUID) sera généré automatiquement pour vous
      * @type {string}
      * @memberof Thing
      */
@@ -74,103 +74,103 @@ export interface Thing {
      */
     'type_id': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'name': string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'description'?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'comment'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
     'external_id'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'external_ref'?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'build_at'?: string;
     /**
-     * 
+     *
      * @type {ThingStatus}
      * @memberof Thing
      */
     'status'?: ThingStatus;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'contained_by'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
     'contained_by_old'?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Thing
      */
     'inactivated': boolean;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'inactivated_time'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
     'inactivated_by'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'inactivated_reason'?: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Thing
      */
     'validated'?: boolean;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Thing
      */
     'validated_time'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
     'validated_by'?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
@@ -188,7 +188,7 @@ export interface Thing {
      */
     'created_by': number;
     /**
-     * date de la dernière modication de cet enregistrement
+     * date de la dernière modification de cet enregistrement
      * @type {string}
      * @memberof Thing
      */
@@ -224,13 +224,13 @@ export interface Thing {
      */
     'more_data'?: object;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
     'pos_x': number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Thing
      */
@@ -239,79 +239,79 @@ export interface Thing {
 
 
 /**
- * 
+ *
  * @export
  * @interface ThingList
  */
 export interface ThingList {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ThingList
      */
     'id': string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ThingList
      */
     'type_id': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ThingList
      */
     'name': string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ThingList
      */
     'description'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ThingList
      */
     'external_id'?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof ThingList
      */
     'inactivated': boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof ThingList
      */
     'validated'?: boolean;
     /**
-     * 
+     *
      * @type {ThingStatus}
      * @memberof ThingList
      */
     'status'?: ThingStatus;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ThingList
      */
     'created_by': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ThingList
      */
     'created_at'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ThingList
      */
     'pos_x': number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ThingList
      */
@@ -320,7 +320,7 @@ export interface ThingList {
 
 
 /**
- * 
+ *
  * @export
  * @enum {string}
  */
@@ -337,176 +337,176 @@ export type ThingStatus = typeof ThingStatus[keyof typeof ThingStatus];
 
 
 /**
- * 
+ *
  * @export
  * @interface TypeThing
  */
 export interface TypeThing {
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'id': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'name': string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'description'?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'comment'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'external_id'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'table_name'?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'geometry_type'?: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof TypeThing
      */
     'inactivated': boolean;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'inactivated_time'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'inactivated_by'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'inactivated_reason'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'managed_by'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'created_at'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'created_by': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'last_modified_at'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'last_modified_by'?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof TypeThing
      */
     'deleted': boolean;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThing
      */
     'deleted_at'?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThing
      */
     'deleted_by'?: number;
     /**
-     * 
+     *
      * @type {any}
      * @memberof TypeThing
      */
     'more_data_schema'?: any;
 }
 /**
- * 
+ *
  * @export
  * @interface TypeThingList
  */
 export interface TypeThingList {
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThingList
      */
     'id': number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThingList
      */
     'name': string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TypeThingList
      */
     'external_id'?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThingList
      */
     'created_at': string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThingList
      */
     'table_name'?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TypeThingList
      */
     'geometry_type'?: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof TypeThingList
      */
@@ -547,7 +547,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -606,7 +606,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -643,7 +643,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -684,7 +684,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -748,7 +748,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -796,7 +796,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -865,7 +865,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -914,7 +914,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -951,7 +951,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -992,7 +992,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1030,7 +1030,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1094,7 +1094,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
 
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1108,26 +1108,26 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} id 
-         * @param {string} name 
-         * @param {boolean} inactivated 
-         * @param {number} createdBy 
-         * @param {boolean} deleted 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [tableName] 
-         * @param {string} [geometryType] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {number} [managedBy] 
-         * @param {string} [createdAt] 
-         * @param {string} [lastModifiedAt] 
-         * @param {number} [lastModifiedBy] 
-         * @param {string} [deletedAt] 
-         * @param {number} [deletedBy] 
-         * @param {any} [moreDataSchema] 
+         * @param {number} id
+         * @param {string} name
+         * @param {boolean} inactivated
+         * @param {number} createdBy
+         * @param {boolean} deleted
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [tableName]
+         * @param {string} [geometryType]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {number} [managedBy]
+         * @param {string} [createdAt]
+         * @param {string} [lastModifiedAt]
+         * @param {number} [lastModifiedBy]
+         * @param {string} [deletedAt]
+         * @param {number} [deletedBy]
+         * @param {any} [moreDataSchema]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1163,89 +1163,89 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-            if (id !== undefined) { 
+            if (id !== undefined) {
                 localVarFormParams.set('id', id as any);
             }
-    
-            if (name !== undefined) { 
+
+            if (name !== undefined) {
                 localVarFormParams.set('name', name as any);
             }
-    
-            if (description !== undefined) { 
+
+            if (description !== undefined) {
                 localVarFormParams.set('description', description as any);
             }
-    
-            if (comment !== undefined) { 
+
+            if (comment !== undefined) {
                 localVarFormParams.set('comment', comment as any);
             }
-    
-            if (externalId !== undefined) { 
+
+            if (externalId !== undefined) {
                 localVarFormParams.set('external_id', externalId as any);
             }
-    
-            if (tableName !== undefined) { 
+
+            if (tableName !== undefined) {
                 localVarFormParams.set('table_name', tableName as any);
             }
-    
-            if (geometryType !== undefined) { 
+
+            if (geometryType !== undefined) {
                 localVarFormParams.set('geometry_type', geometryType as any);
             }
-    
-            if (inactivated !== undefined) { 
+
+            if (inactivated !== undefined) {
                 localVarFormParams.set('inactivated', inactivated as any);
             }
-    
-            if (inactivatedTime !== undefined) { 
+
+            if (inactivatedTime !== undefined) {
                 localVarFormParams.set('inactivated_time', inactivatedTime as any);
             }
-    
-            if (inactivatedBy !== undefined) { 
+
+            if (inactivatedBy !== undefined) {
                 localVarFormParams.set('inactivated_by', inactivatedBy as any);
             }
-    
-            if (inactivatedReason !== undefined) { 
+
+            if (inactivatedReason !== undefined) {
                 localVarFormParams.set('inactivated_reason', inactivatedReason as any);
             }
-    
-            if (managedBy !== undefined) { 
+
+            if (managedBy !== undefined) {
                 localVarFormParams.set('managed_by', managedBy as any);
             }
-    
-            if (createdAt !== undefined) { 
+
+            if (createdAt !== undefined) {
                 localVarFormParams.set('created_at', createdAt as any);
             }
-    
-            if (createdBy !== undefined) { 
+
+            if (createdBy !== undefined) {
                 localVarFormParams.set('created_by', createdBy as any);
             }
-    
-            if (lastModifiedAt !== undefined) { 
+
+            if (lastModifiedAt !== undefined) {
                 localVarFormParams.set('last_modified_at', lastModifiedAt as any);
             }
-    
-            if (lastModifiedBy !== undefined) { 
+
+            if (lastModifiedBy !== undefined) {
                 localVarFormParams.set('last_modified_by', lastModifiedBy as any);
             }
-    
-            if (deleted !== undefined) { 
+
+            if (deleted !== undefined) {
                 localVarFormParams.set('deleted', deleted as any);
             }
-    
-            if (deletedAt !== undefined) { 
+
+            if (deletedAt !== undefined) {
                 localVarFormParams.set('deleted_at', deletedAt as any);
             }
-    
-            if (deletedBy !== undefined) { 
+
+            if (deletedBy !== undefined) {
                 localVarFormParams.set('deleted_by', deletedBy as any);
             }
-    
-            if (moreDataSchema !== undefined) { 
+
+            if (moreDataSchema !== undefined) {
                 localVarFormParams.set('more_data_schema', moreDataSchema as any);
             }
-    
-    
+
+
             localVarHeaderParameter['Content-Type'] = 'application/x-www-form-urlencoded';
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1260,29 +1260,29 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous 
+         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous
          * @param {number} typeId FK sur la clé primaire du TypeThing de cet objet
-         * @param {string} name 
-         * @param {boolean} inactivated 
+         * @param {string} name
+         * @param {boolean} inactivated
          * @param {number} createdBy identifiant de l\\\&#39;utilisateur ayant créé cet enregistrement
          * @param {boolean} deleted cet enregisrement a été marqué comme effacé
-         * @param {number} posX 
-         * @param {number} posY 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [externalRef] 
-         * @param {string} [buildAt] 
-         * @param {ThingStatus} [status] 
-         * @param {string} [containedBy] 
-         * @param {number} [containedByOld] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {boolean} [validated] 
-         * @param {string} [validatedTime] 
-         * @param {number} [validatedBy] 
-         * @param {number} [managedBy] 
+         * @param {number} posX
+         * @param {number} posY
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [externalRef]
+         * @param {string} [buildAt]
+         * @param {ThingStatus} [status]
+         * @param {string} [containedBy]
+         * @param {number} [containedByOld]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {boolean} [validated]
+         * @param {string} [validatedTime]
+         * @param {number} [validatedBy]
+         * @param {number} [managedBy]
          * @param {string} [createdAt] date de création de cet enregistrement dans la base
          * @param {string} [lastModifiedAt] date de la dernière modication de cet enregistrement
          * @param {number} [lastModifiedBy] utilisateur ayant effectué la dernière modication de cet enregistrement
@@ -1330,125 +1330,125 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-            if (id !== undefined) { 
+            if (id !== undefined) {
                 localVarFormParams.set('id', id as any);
             }
-    
-            if (typeId !== undefined) { 
+
+            if (typeId !== undefined) {
                 localVarFormParams.set('type_id', typeId as any);
             }
-    
-            if (name !== undefined) { 
+
+            if (name !== undefined) {
                 localVarFormParams.set('name', name as any);
             }
-    
-            if (description !== undefined) { 
+
+            if (description !== undefined) {
                 localVarFormParams.set('description', description as any);
             }
-    
-            if (comment !== undefined) { 
+
+            if (comment !== undefined) {
                 localVarFormParams.set('comment', comment as any);
             }
-    
-            if (externalId !== undefined) { 
+
+            if (externalId !== undefined) {
                 localVarFormParams.set('external_id', externalId as any);
             }
-    
-            if (externalRef !== undefined) { 
+
+            if (externalRef !== undefined) {
                 localVarFormParams.set('external_ref', externalRef as any);
             }
-    
-            if (buildAt !== undefined) { 
+
+            if (buildAt !== undefined) {
                 localVarFormParams.set('build_at', buildAt as any);
             }
-    
-            if (status !== undefined) { 
+
+            if (status !== undefined) {
                 localVarFormParams.set('status', status as any);
             }
-    
-            if (containedBy !== undefined) { 
+
+            if (containedBy !== undefined) {
                 localVarFormParams.set('contained_by', containedBy as any);
             }
-    
-            if (containedByOld !== undefined) { 
+
+            if (containedByOld !== undefined) {
                 localVarFormParams.set('contained_by_old', containedByOld as any);
             }
-    
-            if (inactivated !== undefined) { 
+
+            if (inactivated !== undefined) {
                 localVarFormParams.set('inactivated', inactivated as any);
             }
-    
-            if (inactivatedTime !== undefined) { 
+
+            if (inactivatedTime !== undefined) {
                 localVarFormParams.set('inactivated_time', inactivatedTime as any);
             }
-    
-            if (inactivatedBy !== undefined) { 
+
+            if (inactivatedBy !== undefined) {
                 localVarFormParams.set('inactivated_by', inactivatedBy as any);
             }
-    
-            if (inactivatedReason !== undefined) { 
+
+            if (inactivatedReason !== undefined) {
                 localVarFormParams.set('inactivated_reason', inactivatedReason as any);
             }
-    
-            if (validated !== undefined) { 
+
+            if (validated !== undefined) {
                 localVarFormParams.set('validated', validated as any);
             }
-    
-            if (validatedTime !== undefined) { 
+
+            if (validatedTime !== undefined) {
                 localVarFormParams.set('validated_time', validatedTime as any);
             }
-    
-            if (validatedBy !== undefined) { 
+
+            if (validatedBy !== undefined) {
                 localVarFormParams.set('validated_by', validatedBy as any);
             }
-    
-            if (managedBy !== undefined) { 
+
+            if (managedBy !== undefined) {
                 localVarFormParams.set('managed_by', managedBy as any);
             }
-    
-            if (createdAt !== undefined) { 
+
+            if (createdAt !== undefined) {
                 localVarFormParams.set('created_at', createdAt as any);
             }
-    
-            if (createdBy !== undefined) { 
+
+            if (createdBy !== undefined) {
                 localVarFormParams.set('created_by', createdBy as any);
             }
-    
-            if (lastModifiedAt !== undefined) { 
+
+            if (lastModifiedAt !== undefined) {
                 localVarFormParams.set('last_modified_at', lastModifiedAt as any);
             }
-    
-            if (lastModifiedBy !== undefined) { 
+
+            if (lastModifiedBy !== undefined) {
                 localVarFormParams.set('last_modified_by', lastModifiedBy as any);
             }
-    
-            if (deleted !== undefined) { 
+
+            if (deleted !== undefined) {
                 localVarFormParams.set('deleted', deleted as any);
             }
-    
-            if (deletedAt !== undefined) { 
+
+            if (deletedAt !== undefined) {
                 localVarFormParams.set('deleted_at', deletedAt as any);
             }
-    
-            if (deletedBy !== undefined) { 
+
+            if (deletedBy !== undefined) {
                 localVarFormParams.set('deleted_by', deletedBy as any);
             }
-    
-            if (moreData !== undefined) { 
+
+            if (moreData !== undefined) {
                 localVarFormParams.set('more_data', moreData as any);
             }
-    
-            if (posX !== undefined) { 
+
+            if (posX !== undefined) {
                 localVarFormParams.set('pos_x', posX as any);
             }
-    
-            if (posY !== undefined) { 
+
+            if (posY !== undefined) {
                 localVarFormParams.set('pos_y', posY as any);
             }
-    
-    
+
+
             localVarHeaderParameter['Content-Type'] = 'application/x-www-form-urlencoded';
-    
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1629,26 +1629,26 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} id 
-         * @param {string} name 
-         * @param {boolean} inactivated 
-         * @param {number} createdBy 
-         * @param {boolean} deleted 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [tableName] 
-         * @param {string} [geometryType] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {number} [managedBy] 
-         * @param {string} [createdAt] 
-         * @param {string} [lastModifiedAt] 
-         * @param {number} [lastModifiedBy] 
-         * @param {string} [deletedAt] 
-         * @param {number} [deletedBy] 
-         * @param {any} [moreDataSchema] 
+         * @param {number} id
+         * @param {string} name
+         * @param {boolean} inactivated
+         * @param {number} createdBy
+         * @param {boolean} deleted
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [tableName]
+         * @param {string} [geometryType]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {number} [managedBy]
+         * @param {string} [createdAt]
+         * @param {string} [lastModifiedAt]
+         * @param {number} [lastModifiedBy]
+         * @param {string} [deletedAt]
+         * @param {number} [deletedBy]
+         * @param {any} [moreDataSchema]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1660,29 +1660,29 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous 
+         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous
          * @param {number} typeId FK sur la clé primaire du TypeThing de cet objet
-         * @param {string} name 
-         * @param {boolean} inactivated 
+         * @param {string} name
+         * @param {boolean} inactivated
          * @param {number} createdBy identifiant de l\\\&#39;utilisateur ayant créé cet enregistrement
          * @param {boolean} deleted cet enregisrement a été marqué comme effacé
-         * @param {number} posX 
-         * @param {number} posY 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [externalRef] 
-         * @param {string} [buildAt] 
-         * @param {ThingStatus} [status] 
-         * @param {string} [containedBy] 
-         * @param {number} [containedByOld] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {boolean} [validated] 
-         * @param {string} [validatedTime] 
-         * @param {number} [validatedBy] 
-         * @param {number} [managedBy] 
+         * @param {number} posX
+         * @param {number} posY
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [externalRef]
+         * @param {string} [buildAt]
+         * @param {ThingStatus} [status]
+         * @param {string} [containedBy]
+         * @param {number} [containedByOld]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {boolean} [validated]
+         * @param {string} [validatedTime]
+         * @param {number} [validatedBy]
+         * @param {number} [managedBy]
          * @param {string} [createdAt] date de création de cet enregistrement dans la base
          * @param {string} [lastModifiedAt] date de la dernière modication de cet enregistrement
          * @param {number} [lastModifiedBy] utilisateur ayant effectué la dernière modication de cet enregistrement
@@ -1854,26 +1854,26 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * Updates the information related to a typeThing
          * @summary TypeThingUpdate allows to modify information about a specific typeThingId
          * @param {number} typeThingId Id of the typeThing
-         * @param {number} id 
-         * @param {string} name 
-         * @param {boolean} inactivated 
-         * @param {number} createdBy 
-         * @param {boolean} deleted 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [tableName] 
-         * @param {string} [geometryType] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {number} [managedBy] 
-         * @param {string} [createdAt] 
-         * @param {string} [lastModifiedAt] 
-         * @param {number} [lastModifiedBy] 
-         * @param {string} [deletedAt] 
-         * @param {number} [deletedBy] 
-         * @param {any} [moreDataSchema] 
+         * @param {number} id
+         * @param {string} name
+         * @param {boolean} inactivated
+         * @param {number} createdBy
+         * @param {boolean} deleted
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [tableName]
+         * @param {string} [geometryType]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {number} [managedBy]
+         * @param {string} [createdAt]
+         * @param {string} [lastModifiedAt]
+         * @param {number} [lastModifiedBy]
+         * @param {string} [deletedAt]
+         * @param {number} [deletedBy]
+         * @param {any} [moreDataSchema]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1884,29 +1884,29 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * Updates the status of a thing
          * @summary Update allows to modify information about a specific thingId
          * @param {string} thingId Id of the thing
-         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous 
+         * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous
          * @param {number} typeId FK sur la clé primaire du TypeThing de cet objet
-         * @param {string} name 
-         * @param {boolean} inactivated 
+         * @param {string} name
+         * @param {boolean} inactivated
          * @param {number} createdBy identifiant de l\\\&#39;utilisateur ayant créé cet enregistrement
          * @param {boolean} deleted cet enregisrement a été marqué comme effacé
-         * @param {number} posX 
-         * @param {number} posY 
-         * @param {string} [description] 
-         * @param {string} [comment] 
-         * @param {number} [externalId] 
-         * @param {string} [externalRef] 
-         * @param {string} [buildAt] 
-         * @param {ThingStatus} [status] 
-         * @param {string} [containedBy] 
-         * @param {number} [containedByOld] 
-         * @param {string} [inactivatedTime] 
-         * @param {number} [inactivatedBy] 
-         * @param {string} [inactivatedReason] 
-         * @param {boolean} [validated] 
-         * @param {string} [validatedTime] 
-         * @param {number} [validatedBy] 
-         * @param {number} [managedBy] 
+         * @param {number} posX
+         * @param {number} posY
+         * @param {string} [description]
+         * @param {string} [comment]
+         * @param {number} [externalId]
+         * @param {string} [externalRef]
+         * @param {string} [buildAt]
+         * @param {ThingStatus} [status]
+         * @param {string} [containedBy]
+         * @param {number} [containedByOld]
+         * @param {string} [inactivatedTime]
+         * @param {number} [inactivatedBy]
+         * @param {string} [inactivatedReason]
+         * @param {boolean} [validated]
+         * @param {string} [validatedTime]
+         * @param {number} [validatedBy]
+         * @param {number} [managedBy]
          * @param {string} [createdAt] date de création de cet enregistrement dans la base
          * @param {string} [lastModifiedAt] date de la dernière modication de cet enregistrement
          * @param {number} [lastModifiedBy] utilisateur ayant effectué la dernière modication de cet enregistrement
@@ -2101,26 +2101,26 @@ export class DefaultApi extends BaseAPI {
      * Updates the information related to a typeThing
      * @summary TypeThingUpdate allows to modify information about a specific typeThingId
      * @param {number} typeThingId Id of the typeThing
-     * @param {number} id 
-     * @param {string} name 
-     * @param {boolean} inactivated 
-     * @param {number} createdBy 
-     * @param {boolean} deleted 
-     * @param {string} [description] 
-     * @param {string} [comment] 
-     * @param {number} [externalId] 
-     * @param {string} [tableName] 
-     * @param {string} [geometryType] 
-     * @param {string} [inactivatedTime] 
-     * @param {number} [inactivatedBy] 
-     * @param {string} [inactivatedReason] 
-     * @param {number} [managedBy] 
-     * @param {string} [createdAt] 
-     * @param {string} [lastModifiedAt] 
-     * @param {number} [lastModifiedBy] 
-     * @param {string} [deletedAt] 
-     * @param {number} [deletedBy] 
-     * @param {any} [moreDataSchema] 
+     * @param {number} id
+     * @param {string} name
+     * @param {boolean} inactivated
+     * @param {number} createdBy
+     * @param {boolean} deleted
+     * @param {string} [description]
+     * @param {string} [comment]
+     * @param {number} [externalId]
+     * @param {string} [tableName]
+     * @param {string} [geometryType]
+     * @param {string} [inactivatedTime]
+     * @param {number} [inactivatedBy]
+     * @param {string} [inactivatedReason]
+     * @param {number} [managedBy]
+     * @param {string} [createdAt]
+     * @param {string} [lastModifiedAt]
+     * @param {number} [lastModifiedBy]
+     * @param {string} [deletedAt]
+     * @param {number} [deletedBy]
+     * @param {any} [moreDataSchema]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
@@ -2133,29 +2133,29 @@ export class DefaultApi extends BaseAPI {
      * Updates the status of a thing
      * @summary Update allows to modify information about a specific thingId
      * @param {string} thingId Id of the thing
-     * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous 
+     * @param {string} id cet Universally unique identifier (UUID) sera généré automatiquement pour vous
      * @param {number} typeId FK sur la clé primaire du TypeThing de cet objet
-     * @param {string} name 
-     * @param {boolean} inactivated 
+     * @param {string} name
+     * @param {boolean} inactivated
      * @param {number} createdBy identifiant de l\\\&#39;utilisateur ayant créé cet enregistrement
      * @param {boolean} deleted cet enregisrement a été marqué comme effacé
-     * @param {number} posX 
-     * @param {number} posY 
-     * @param {string} [description] 
-     * @param {string} [comment] 
-     * @param {number} [externalId] 
-     * @param {string} [externalRef] 
-     * @param {string} [buildAt] 
-     * @param {ThingStatus} [status] 
-     * @param {string} [containedBy] 
-     * @param {number} [containedByOld] 
-     * @param {string} [inactivatedTime] 
-     * @param {number} [inactivatedBy] 
-     * @param {string} [inactivatedReason] 
-     * @param {boolean} [validated] 
-     * @param {string} [validatedTime] 
-     * @param {number} [validatedBy] 
-     * @param {number} [managedBy] 
+     * @param {number} posX
+     * @param {number} posY
+     * @param {string} [description]
+     * @param {string} [comment]
+     * @param {number} [externalId]
+     * @param {string} [externalRef]
+     * @param {string} [buildAt]
+     * @param {ThingStatus} [status]
+     * @param {string} [containedBy]
+     * @param {number} [containedByOld]
+     * @param {string} [inactivatedTime]
+     * @param {number} [inactivatedBy]
+     * @param {string} [inactivatedReason]
+     * @param {boolean} [validated]
+     * @param {string} [validatedTime]
+     * @param {number} [validatedBy]
+     * @param {number} [managedBy]
      * @param {string} [createdAt] date de création de cet enregistrement dans la base
      * @param {string} [lastModifiedAt] date de la dernière modication de cet enregistrement
      * @param {number} [lastModifiedBy] utilisateur ayant effectué la dernière modication de cet enregistrement

@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS go_thing.thing
     comment            text,
     external_id        integer,
     external_ref       text,
-    build_at           date,
+    build_at           timestamp,
     status             thing_status_type,
     contained_by       uuid,
     contained_by_old   integer,  -- to simplify initial import of data

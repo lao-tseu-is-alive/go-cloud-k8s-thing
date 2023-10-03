@@ -102,7 +102,7 @@
                           </template>
                           <v-locale-provider locale="fr">
                             <v-date-picker
-                              v-model="editedItem.build_at as any"
+                              v-model="editedItem.build_at"
                               cancel-text="ANNULER"
                               header="Choisissez une date SVP"
                               title="Date de construction"
@@ -112,8 +112,8 @@
                               elevation="24"
                               position="relative"
                               input-mode="calendar"
-                              @click:save="menuDateConstruction = false"
-                              @click:cancel="menuDateConstruction = false"
+                              @click:save="editDateBuild(false)"
+                              @click:cancel="editDateBuild(true)"
                             >
                             </v-date-picker>
                           </v-locale-provider>
@@ -355,7 +355,7 @@ import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { getDateFromTimeStamp, getDateIsoFromTimeStamp, isNullOrUndefined } from "@/tools/utils";
+import { getDateFromTimeStamp, getDateIsoFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
 import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
@@ -573,11 +573,31 @@ const editItem = async (item: ThingList) => {
   if (res.data !== null) {
     log.l(`ok, filling editedItem with Thing id : ${res.data.id}`)
     editedItem.value = Object.assign({}, res.data)
+    if (editedItem.value.build_at !== undefined) {
+      if (editedItem.value.build_at.indexOf("T") > 0) {
+        editedItem.value.build_at = editedItem.value.build_at.split("T")[0]
+      }
+    }
     dialog.value = true
     log.l(`Now inside editing id : ${res.data.id}`)
   } else {
     log.w(`problem retrieving getThing(${id})`, res.err)
   }
+}
+
+const editDateBuild = (cancel: boolean) => {
+  log.t(`#> entering ... cancel=${cancel}`)
+  if (cancel !== true) {
+    if (editedItem.value.build_at !== undefined) {
+      if (editedItem.value.build_at.indexOf("T") > 0) {
+        editedItem.value.build_at = editedItem.value.build_at.split("T")[0]
+      } else {
+        editedItem.value.build_at = new Date(editedItem.value.build_at).toISOString().split("T")[0]
+      }
+    }
+  }
+  log.t(`<# exit ... build_at=${editedItem.value.build_at}`)
+  menuDateConstruction.value = false
 }
 
 const newThing = () => {
@@ -639,7 +659,7 @@ const save = async () => {
     Object.assign(records[editedIndex.value], editedItem.value)
     log.l(`build_at : ${editedItem.value.build_at}`)
     if (editedItem.value.build_at != undefined) {
-      const tmpDate = (new Date(editedItem.value.build_at)).toISOString()
+      const tmpDate = new Date(editedItem.value.build_at).toISOString()
       log.l(`tmpDate : ${tmpDate}`)
       editedItem.value.build_at = tmpDate
     }
