@@ -30,10 +30,10 @@ type Error struct {
 
 // Thing defines model for Thing.
 type Thing struct {
-	BuildAt        *string `json:"build_at,omitempty"`
-	Comment        *string `json:"comment,omitempty"`
-	ContainedBy    *string `json:"contained_by,omitempty"`
-	ContainedByOld *int32  `json:"contained_by_old,omitempty"`
+	BuildAt        *time.Time `json:"build_at,omitempty"`
+	Comment        *string    `json:"comment,omitempty"`
+	ContainedBy    *string    `json:"contained_by,omitempty"`
+	ContainedByOld *int32     `json:"contained_by_old,omitempty"`
 
 	// date de création de cet enregistrement dans la base
 	CreatedAt *time.Time `json:"created_at,omitempty"`

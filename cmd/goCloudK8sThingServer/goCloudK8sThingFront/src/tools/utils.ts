@@ -1,3 +1,4 @@
+/*eslint @typescript-eslint/no-explicit-any: "off"*/
 import { getLog } from "@/config"
 
 const log = getLog("Utils", 2, 2)
@@ -36,6 +37,16 @@ export const getDateFromTimeStamp = (isoDate: string) => {
   const dateTS = dateIso2Fr(isoDate.split("T")[0])
   log.l(`dateTS : ${dateTS}`, isoDate)
   return dateTS
+}
+
+export const getDateIsoFromTimeStamp = (isoDate: string): string => {
+  log.t(`#> entering : ${isoDate}`, isoDate)
+  if (typeof isoDate !== "string") return "not_date"
+  if (isNullOrUndefined(isoDate) || isoDate.indexOf("T") < 0) return ""
+  const dateISO = isoDate.split("T")[0]
+  //const dateISO = `${dateTS.getFullYear()}-${dateTS.getMonth()}-${dateTS.getDate()}`
+  log.l(`dateTS : ${dateISO}`)
+  return dateISO
 }
 
 export const truncateText = (text: string, maxSize = 40): string => {

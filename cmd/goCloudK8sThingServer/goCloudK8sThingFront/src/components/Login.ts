@@ -2,7 +2,7 @@ import { SHA256 } from "crypto-es/lib/sha256"
 import axios from "axios"
 import { getLog, APP, BACKEND_URL, defaultAxiosTimeout } from "../config"
 
-const log = getLog("Login", 4, 1)
+const log = getLog("Login", 2, 1)
 
 export const getPasswordHash = (password: string) => SHA256(password).toString()
 

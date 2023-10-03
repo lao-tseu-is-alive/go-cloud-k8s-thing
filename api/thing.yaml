@@ -727,7 +727,7 @@ components:
           type: string
           title: "référence externe"
         build_at:
-          format: date,
+          format: date-time
           type: string
           title: "date de construction"
         status:

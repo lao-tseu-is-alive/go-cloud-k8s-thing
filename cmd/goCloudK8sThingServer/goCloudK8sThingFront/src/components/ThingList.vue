@@ -90,19 +90,19 @@
                           min-width="auto"
                           location="end"
                         >
-                          <template v-slot:activator="{ props }">
+                          <template #activator="{ props }">
                             <v-text-field
                               v-model="editedItem.build_at"
                               prepend-icon="mdi-calendar"
                               density="compact"
                               label="Date construction"
-                              v-bind="props"                              
+                              v-bind="props"
                               @click="menuDateConstruction = true"
                             />
                           </template>
                           <v-locale-provider locale="fr">
                             <v-date-picker
-                              v-model="(editedItem.build_at as any)"
+                              v-model="editedItem.build_at as any"
                               cancel-text="ANNULER"
                               header="Choisissez une date SVP"
                               title="Date de construction"
@@ -355,7 +355,7 @@ import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
+import { getDateFromTimeStamp, getDateIsoFromTimeStamp, isNullOrUndefined } from "@/tools/utils";
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
 import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
@@ -637,6 +637,13 @@ const save = async () => {
   if (editedIndex.value > -1) {
     //// HANDLING UPDATE OF EXISTING ITEM
     Object.assign(records[editedIndex.value], editedItem.value)
+    log.l(`build_at : ${editedItem.value.build_at}`)
+    if (editedItem.value.build_at != undefined) {
+      const tmpDate = (new Date(editedItem.value.build_at)).toISOString()
+      log.l(`tmpDate : ${tmpDate}`)
+      editedItem.value.build_at = tmpDate
+    }
+    log.l(`build_at : ${editedItem.value.build_at}`)
     const res = await updateThing(editedItem.value.id, editedItem.value)
     if (res.data === null) {
       const msg = `Save update failed. Problem:  ${res.err?.message}`

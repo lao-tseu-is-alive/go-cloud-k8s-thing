@@ -1084,7 +1084,7 @@
             "title": "référence externe"
           },
           "build_at": {
-            "format": "date,",
+            "format": "date-time",
             "type": "string",
             "title": "date de construction"
           },
@@ -1348,7 +1348,7 @@
             "type": "integer"
           },
           "more_data_schema": {
-            "format": "object"
+            "type": "object"
           }
         }
       },
