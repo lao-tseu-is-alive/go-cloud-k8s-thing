@@ -120,6 +120,7 @@ import {
   clearSessionStorage,
   doesCurrentSessionExist,
   getLocalJwtTokenAuth,
+  getUserId,
 } from "@/components/Login"
 import { Configuration } from "@/typescript-axios-client-generated/configuration"
 import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
@@ -129,7 +130,7 @@ let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
-const searchType = ref(1)
+const searchType = ref(0)
 const arrListTypeThing: TypeThingList[] = reactive([])
 const searchCreatedBy = ref(undefined)
 const searchInactivated = ref(false)
@@ -238,7 +239,7 @@ const clearFilters = () => {
   searchValidated.value = undefined
   searchInactivated.value = false
   searchOffset.value = 0
-  searchLimit.value = 25
+  searchLimit.value = 250
 }
 
 const initialize = () => {
@@ -246,6 +247,7 @@ const initialize = () => {
   const token = getLocalJwtTokenAuth()
   const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
   myApi = new DefaultApi(myConf)
+  searchCreatedBy.value = getUserId()
   myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0).then((resp) => {
     log.l("myAPi.typeThingList : ", resp)
     if (resp.status == 200) {
