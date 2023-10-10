@@ -40,7 +40,14 @@
                 <v-container>
                   <v-row>
                     <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-                      <v-text-field v-model="searchCreatedBy" density="compact" label="Id of user creator" />
+                      <v-text-field
+                        v-model="searchCreatedBy"
+                        type="number"
+                        min="1"
+                        density="compact"
+                        title="id de l'utilisateur qui a créé l'enregistrement"
+                        label="id créateur enregistrement"
+                      />
                     </v-col>
                     <v-col cols="12" sm="4" md="3" lg="2" xl="2">
                       <v-select
@@ -56,22 +63,24 @@
                       <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchInactivated" density="compact" label="Inactivated" />
+                      <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchValidated" density="compact" label="Validated" />
+                      <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-text-field
                         type="number"
+                        :rules="[rules.required, rules.minNumber1]"
+                        min="1"
                         v-model="searchLimit"
                         density="compact"
-                        label="Limit rows"
-                        hint="The number of rows to retrieve from db"
+                        label="Max rows"
+                        hint="Le nombre maximum d'enregistrements à récupérer dans la Base de données"
                       />
                     </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-text-field type="number" v-model="searchOffset" density="compact" label="Offset row" />
+                      <v-text-field type="number" v-model="searchOffset" density="compact" min="0" label="Offset row" />
                     </v-col>
                   </v-row>
                 </v-container>
@@ -140,8 +149,18 @@ const searchCreatedBy = ref(undefined)
 const searchKeywords = ref(undefined)
 const searchInactivated = ref(false)
 const searchValidated = ref(undefined)
-const searchLimit = ref(250)
+const searchLimit = ref(25)
 const searchOffset = ref(0)
+const rules = {
+  required: (value) => !!value || "Obligatoire.",
+  max20Chars: (value) => value.length <= 20 || "Max 20 caractères",
+  minNumber1: (value) => value > 1 || "Minimum autorisé = 1",
+  email: (value) => {
+    const pattern =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    return pattern.test(value) || "Format e-mail invalide."
+  },
+}
 
 const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
@@ -152,6 +171,7 @@ const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType = ref()
 const feedbackVisible = ref(false)
 let autoLogoutTimer: NodeJS.Timer | undefined
+
 const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: number = feedbackTimeout.value) => {
   log.t(`displayFeedBack() text:'${text}' type:'${type}'`)
   feedbackType.value = type

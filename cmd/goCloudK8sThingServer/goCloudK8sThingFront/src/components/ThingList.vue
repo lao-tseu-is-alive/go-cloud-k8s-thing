@@ -355,7 +355,7 @@ import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { getDateFromTimeStamp, getDateIsoFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
+import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
 import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
@@ -431,6 +431,7 @@ const defaultItem: Ref<Thing> = ref({
 })
 const editedItem: Ref<Thing> = ref(defaultItem)
 const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
+const searchLimit = ref(10)
 const numThingsFound = ref(0)
 const myProps = defineProps<{
   typeThing?: number | undefined
@@ -513,6 +514,7 @@ watch(
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
+        searchLimit.value = val < 1 ? 1 : val
         searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
       }
     }
@@ -783,7 +785,7 @@ const listThing = async (typeThing?: number, createdBy?: number) => {
       createdBy,
       myProps.inactivated,
       myProps.validated,
-      myProps.limit,
+      searchLimit.value,
       myProps.offset
     )
     clearRecords()
@@ -870,10 +872,10 @@ const searchThing = async (typeThing?: number, keywords?: string, createdBy?: nu
   if (createdBy != undefined) {
     createdBy = createdBy == 0 ? undefined : createdBy
   }
-  let urlParams = `?inactivated=${myProps.inactivated}&limit=${myProps.limit}&offset=${myProps.offset}`
+  let urlParams = `?inactivated=${myProps.inactivated}&limit=${searchLimit.value}&offset=${myProps.offset}`
   urlParams += keywords != undefined ? `&keywords=${keywords}` : ""
   urlParams += typeThing != undefined ? `&type=${typeThing}` : ""
-  urlParams += createdBy != undefined ? `&createdBy=${createdBy}` : ""
+  urlParams += createdBy != undefined ? `&created_by=${createdBy}` : ""
   urlParams += myProps.validated !== undefined ? `&validated=${myProps.validated}` : ""
   log.t(`After adjusting typeThing: ${typeThing}, keywords: ${keywords}, createdBy: ${createdBy} `)
   areWeReady.value = false
@@ -981,6 +983,7 @@ const initialize = async () => {
     baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
     basePath: BACKEND_URL + "/goapi/v1",
   })
+  searchLimit.value = +myProps.limit
   myApi = new DefaultApi(myConf)
   myAxios = axios.create({
     baseURL: BACKEND_URL + "/goapi/v1",
