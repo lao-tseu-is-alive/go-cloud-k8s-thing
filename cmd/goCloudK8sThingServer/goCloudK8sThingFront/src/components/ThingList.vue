@@ -434,6 +434,7 @@ const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
 const numThingsFound = ref(0)
 const myProps = defineProps<{
   typeThing?: number | undefined
+  searchKeywords?: string | undefined
   createdBy?: number | undefined
   inactivated?: boolean | undefined
   validated?: boolean | undefined
@@ -452,19 +453,32 @@ watch(
     log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        listThing(val, myProps.createdBy)
+        searchThing(val, myProps.searchKeywords, myProps.createdBy)
       }
     }
   }
   //  { immediate: true }
 )
+
+watch(
+  () => myProps.searchKeywords,
+  (val, oldValue) => {
+    log.t(` watch myProps.searchKeywords old: ${oldValue}, new val: ${val}`)
+    if (val !== undefined && areWeReady.value == true) {
+      if (val !== oldValue) {
+        searchThing(myProps.typeThing, val, myProps.createdBy)
+      }
+    }
+  }
+)
+
 watch(
   () => myProps.createdBy,
   (val, oldValue) => {
     log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        listThing(myProps.typeThing, val)
+        searchThing(myProps.typeThing, myProps.searchKeywords, val)
       }
     }
   }
@@ -475,7 +489,7 @@ watch(
     log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        listThing(myProps.typeThing, myProps.createdBy)
+        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
       }
     }
   }
@@ -487,7 +501,7 @@ watch(
     log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        listThing(myProps.typeThing, myProps.createdBy)
+        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
       }
     }
   }
@@ -499,7 +513,7 @@ watch(
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        listThing(myProps.typeThing, myProps.createdBy)
+        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
       }
     }
   }
@@ -844,6 +858,54 @@ const updateThing = async (id: string, t: Thing): Promise<netThing> => {
   }
 }
 
+const searchThing = async (typeThing?: number, keywords?: string, createdBy?: number) => {
+  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
+  areWeReady.value = false
+  if (typeThing != undefined) {
+    typeThing = typeThing == 0 ? undefined : typeThing
+  }
+  if (keywords != undefined) {
+    keywords = keywords == "" ? undefined : keywords
+  }
+  if (createdBy != undefined) {
+    createdBy = createdBy == 0 ? undefined : createdBy
+  }
+  let urlParams = `?inactivated=${myProps.inactivated}&limit=${myProps.limit}&offset=${myProps.offset}`
+  urlParams += keywords != undefined ? `&keywords=${keywords}` : ""
+  urlParams += typeThing != undefined ? `&type=${typeThing}` : ""
+  urlParams += createdBy != undefined ? `&createdBy=${createdBy}` : ""
+  urlParams += myProps.validated !== undefined ? `&validated=${myProps.validated}` : ""
+  log.t(`After adjusting typeThing: ${typeThing}, keywords: ${keywords}, createdBy: ${createdBy} `)
+  areWeReady.value = false
+  try {
+    const resp = await myAxios.get("thing/search" + urlParams)
+    log.l("myAxios.get(thing/search) : ", resp)
+    clearRecords()
+    resp.data.forEach((r) => {
+      records.push(r)
+    })
+    numThingsFound.value = await countThing(keywords, typeThing, createdBy)
+    areWeReady.value = true
+    return { data: resp.data, err: null }
+  } catch (err) {
+    clearRecords()
+    numThingsFound.value = await countThing(keywords, typeThing, createdBy)
+    areWeReady.value = true
+    if (axios.isAxiosError(err)) {
+      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
+      if (err.response !== undefined && err.response.data !== undefined) {
+        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
+        return { data: null, err: Error(`searchThing error : ${err.message}. Server says : ${srvMessage}`) }
+      } else {
+        return { data: null, err: Error(`searchThing error : ${err.message}.`) }
+      }
+    } else {
+      log.e("💥💥 unexpected error: ", err)
+      return { data: null, err: Error(`💥💥 searchThing error: in Try catch : ${err}`) }
+    }
+  }
+}
+
 const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
   log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
   if (typeThing != undefined) {
@@ -928,7 +990,7 @@ const initialize = async () => {
   areWeReady.value = true
 
   await loadTypeThingData()
-  await listThing(myProps.typeThing, myProps.createdBy)
+  await searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
 }
 
 onMounted(() => {

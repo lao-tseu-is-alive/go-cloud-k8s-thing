@@ -52,6 +52,9 @@
                         label="TypeObjet*"
                       ></v-select>
                     </v-col>
+                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
+                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
+                    </v-col>
                     <v-col cols="6" sm="4" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchInactivated" density="compact" label="Inactivated" />
                     </v-col>
@@ -86,6 +89,7 @@
             :offset="searchOffset"
             :type-thing="searchType"
             :created-by="searchCreatedBy"
+            :search-keywords="searchKeywords"
             :inactivated="searchInactivated"
             :validated="searchValidated"
             @thing-error="thingGotErr"
@@ -133,6 +137,7 @@ const showSearchCriteria = ref(true)
 const searchType = ref(0)
 const arrListTypeThing: TypeThingList[] = reactive([])
 const searchCreatedBy = ref(undefined)
+const searchKeywords = ref(undefined)
 const searchInactivated = ref(false)
 const searchValidated = ref(undefined)
 const searchLimit = ref(250)
@@ -235,6 +240,7 @@ const thingGotSuccess = (v: string) => {
 }
 const clearFilters = () => {
   searchCreatedBy.value = undefined
+  searchKeywords.value = undefined
   searchType.value = 0
   searchValidated.value = undefined
   searchInactivated.value = false

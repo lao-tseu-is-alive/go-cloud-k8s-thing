@@ -108,15 +108,28 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 		res []*ThingList
 		err error
 	)
-	searchThings := baseThingListQuery + searchThingsConditions
-	if params.Validated != nil {
-		searchThings += " AND validated = coalesce($7, validated) " + thingListOrderBy
-		err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
-			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords, &params.Validated)
+	searchThings := baseThingListQuery + listThingsConditions
+	if params.Keywords != nil {
+		searchThings += " AND text_search @@ plainto_tsquery('french', unaccent($6))"
+		if params.Validated != nil {
+			searchThings += " AND validated = coalesce($7, validated) " + thingListOrderBy
+			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords, &params.Validated)
+		} else {
+			searchThings += thingListOrderBy
+			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords)
+		}
 	} else {
-		searchThings += thingListOrderBy
-		err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
-			limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords)
+		if params.Validated != nil {
+			searchThings += " AND validated = coalesce($6, validated) " + thingListOrderBy
+			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Validated)
+		} else {
+			searchThings += thingListOrderBy
+			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
+		}
 	}
 
 	if err != nil {

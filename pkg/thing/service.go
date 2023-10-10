@@ -346,11 +346,11 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	}
 	list, err := s.Store.Search(offset, limit, params)
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.Search :%v", err))
-		} else {
+		if errors.Is(err, pgx.ErrNoRows) {
 			list = make([]*ThingList, 0)
-			return ctx.JSON(http.StatusNotFound, list)
+			return ctx.JSON(http.StatusOK, list)
+		} else {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.Search :%v", err))
 		}
 	}
 	return ctx.JSON(http.StatusOK, list)
