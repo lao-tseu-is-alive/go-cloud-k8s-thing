@@ -60,7 +60,7 @@ const _log = function (moduleName: string, callerName: string, msg: string, logt
       break
   }
   if (args.length > 0) {
-    args.map((v) => console.log(v))
+    args.forEach((v) => console.log(v))
   }
 }
 
