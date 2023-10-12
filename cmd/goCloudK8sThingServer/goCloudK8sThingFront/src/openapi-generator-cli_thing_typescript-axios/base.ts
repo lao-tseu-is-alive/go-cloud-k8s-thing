@@ -18,8 +18,9 @@ import type { Configuration } from './configuration';
 // @ts-ignore
 import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
+import { BACKEND_URL } from "@/config";
 
-export const BASE_PATH = "https://api.goeland.io".replace(/\/+$/, "");
+export const BASE_PATH = BACKEND_URL + "/goapi/v1";
 
 /**
  *

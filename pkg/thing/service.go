@@ -83,7 +83,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
 		} else {
 			list = make([]*ThingList, 0)
-			return ctx.JSON(http.StatusNotFound, list)
+			return ctx.JSON(http.StatusOK, list)
 		}
 	}
 	return ctx.JSON(http.StatusOK, list)
@@ -225,7 +225,7 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 
 	thing, err := s.Store.Get(thingId)
 	if err != nil {
-		if err != pgx.ErrNoRows {
+		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving thing :%v", err))
 		} else {
 			msg := fmt.Sprintf("Get(%v) no rows found in db", thingId)
