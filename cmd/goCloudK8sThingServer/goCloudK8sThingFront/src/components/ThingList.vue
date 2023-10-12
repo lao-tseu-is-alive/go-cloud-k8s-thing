@@ -357,11 +357,9 @@ import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
-import { Configuration } from "@/openapi-generator-cli_thing_typescript-axios"
-import { DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
+import { Configuration, DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { VDataTable } from "vuetify/labs/VDataTable"
-// import { ThingStatus } from "@/typescript-axios-client-generated/models/thing-status"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())

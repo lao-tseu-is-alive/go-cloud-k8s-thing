@@ -123,10 +123,10 @@
 import { onMounted, ref, reactive } from "vue"
 import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL } from "@/config"
+import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config";
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
-import { TypeThingList } from "@/typescript-axios-client-generated/models/type-thing-list"
+import { Configuration, DefaultApi, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import {
   getUserIsAdmin,
   getTokenStatus,
@@ -134,10 +134,8 @@ import {
   doesCurrentSessionExist,
   getLocalJwtTokenAuth,
   getUserId,
+  getSessionId,
 } from "@/components/Login"
-import { Configuration } from "@/typescript-axios-client-generated/configuration"
-import { DefaultApi } from "@/typescript-axios-client-generated/apis/default-api"
-
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
@@ -271,7 +269,11 @@ const clearFilters = () => {
 const initialize = () => {
   log.t(`# entering...  `)
   const token = getLocalJwtTokenAuth()
-  const myConf = new Configuration({ accessToken: token, basePath: BACKEND_URL + "/goapi/v1" })
+  const myConf = new Configuration({
+    accessToken: token,
+    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
+    basePath: BACKEND_URL + "/goapi/v1",
+  })
   myApi = new DefaultApi(myConf)
   searchCreatedBy.value = getUserId()
   myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0).then((resp) => {
