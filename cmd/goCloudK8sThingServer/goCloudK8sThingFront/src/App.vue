@@ -8,14 +8,15 @@
       >
       <template v-if="isUserAuthenticated">
         <v-spacer></v-spacer>
+        <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"> </v-btn>
         <v-btn variant="text" icon="mdi-magnify"></v-btn>
         <v-btn
           variant="text"
-          icon="mdi-filter"
-          title="afficher les critères de filtrage"
+          :icon="getFilterIcon()"
+          :title="getFilterTitle()"
           @click="showSearchCriteria = !showSearchCriteria"
         ></v-btn>
-        <v-btn variant="text" icon="mdi-dots-vertical"></v-btn>
+        <v-btn variant="text" icon="mdi-dots-vertical" title="Réglages" @click="showSettings = !showSettings"></v-btn>
         <v-btn variant="text" icon="mdi-logout" title="Logout" @click="logout"></v-btn>
       </template>
     </v-app-bar>
@@ -31,7 +32,7 @@
       </v-snackbar>
       <template v-if="isUserAuthenticated">
         <v-container>
-          <template v-if="showSearchCriteria">
+          <template v-if="showSearchCriteria && !showSettings">
             <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
               <template #title>
                 <span class="text-h5">Critères de filtrage</span>
@@ -39,7 +40,7 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
+                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
                       <v-text-field
                         v-model="searchCreatedBy"
                         type="number"
@@ -49,7 +50,7 @@
                         label="id créateur enregistrement"
                       />
                     </v-col>
-                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
+                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
                       <v-select
                         v-model="searchType"
                         item-title="name"
@@ -59,28 +60,14 @@
                         label="TypeObjet*"
                       ></v-select>
                     </v-col>
-                    <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
-                    </v-col>
-                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
+                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
                     </v-col>
-                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
+                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
                       <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
                     </v-col>
-                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-text-field
-                        type="number"
-                        :rules="[rules.required, rules.minNumber1]"
-                        min="1"
-                        v-model="searchLimit"
-                        density="compact"
-                        label="Max rows"
-                        hint="Le nombre maximum d'enregistrements à récupérer dans la Base de données"
-                      />
-                    </v-col>
-                    <v-col cols="6" sm="4" md="3" lg="2" xl="1">
-                      <v-text-field type="number" v-model="searchOffset" density="compact" min="0" label="Offset row" />
+                    <v-col cols="12" sm="6" md="6" lg="4" xl="6">
+                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
                     </v-col>
                   </v-row>
                 </v-container>
@@ -93,17 +80,49 @@
               </v-card-actions>
             </v-card>
           </template>
-          <ThingList
-            :limit="searchLimit"
-            :offset="searchOffset"
-            :type-thing="searchType"
-            :created-by="searchCreatedBy"
-            :search-keywords="searchKeywords"
-            :inactivated="searchInactivated"
-            :validated="searchValidated"
-            @thing-error="thingGotErr"
-            @thing-ok="thingGotSuccess"
-          />
+          <template v-else-if="showSettings">
+            <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
+              <template #title>
+                <span class="text-h5">Réglages</span>
+              </template>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4" lg="4" xl="4">
+                      <v-text-field
+                        type="number"
+                        :rules="[rules.required, rules.minNumber1]"
+                        min="1"
+                        v-model="searchLimit"
+                        density="compact"
+                        label="Max rows"
+                        hint="Le nombre maximum d'enregistrements à récupérer dans la Base de données"
+                      />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4" lg="4" xl="4">
+                      <v-text-field type="number" v-model="searchOffset" density="compact" min="0" label="Offset row" />
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+            </v-card>
+          </template>
+          <template v-if="showMap">
+            <h3>MAP</h3>
+          </template>
+          <template v-else>
+            <ThingList
+              :limit="searchLimit"
+              :offset="searchOffset"
+              :type-thing="searchType"
+              :created-by="searchCreatedBy"
+              :search-keywords="searchKeywords"
+              :inactivated="searchInactivated"
+              :validated="searchValidated"
+              @thing-error="thingGotErr"
+              @thing-ok="thingGotSuccess"
+            />
+          </template>
         </v-container>
       </template>
       <template v-else>
@@ -123,7 +142,7 @@
 import { onMounted, ref, reactive } from "vue"
 import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config";
+import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
 import { Configuration, DefaultApi, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
@@ -141,6 +160,8 @@ let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
+const showSettings = ref(false)
+const showMap = ref(false)
 const searchType = ref(0)
 const arrListTypeThing: TypeThingList[] = reactive([])
 const searchCreatedBy = ref(undefined)
@@ -177,6 +198,12 @@ const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: numbe
   feedbackTimeout.value = timeout
   feedbackVisible.value = true
 }
+
+const getMapIcon = () => (showMap.value ? "mdi-earth-off" : "mdi-earth")
+const getMapTitle = () => (showMap.value ? "cacher la carte" : "afficher la carte")
+const getFilterIcon = () => (showSearchCriteria.value ? "mdi-filter-off" : "mdi-filter")
+const getFilterTitle = () =>
+  showSearchCriteria.value ? "cacher les critères de filtrage" : "afficher les critères de filtrage"
 
 const logout = () => {
   log.t("# IN logout()")

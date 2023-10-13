@@ -432,6 +432,18 @@ func TestMainExec(t *testing.T) {
 			body:                         exampleThing,
 		},
 		{
+			name:                         "GET /status with valid JWT token should return JWT user data",
+			wantStatusCode:               http.StatusOK,
+			contentType:                  MIMEHtmlCharsetUTF8,
+			wantBody:                     "999999",
+			paramKeyValues:               make(map[string]string),
+			httpMethod:                   http.MethodGet,
+			url:                          defaultSecuredApi + "/status",
+			useFormUrlencodedContentType: false,
+			useJwtToken:                  true,
+			body:                         "",
+		},
+		{
 			name:                         "GET /thing with valid JWT token should return an list of Things",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
