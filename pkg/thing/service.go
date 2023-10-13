@@ -93,14 +93,10 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 // curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": NULL,"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	s.Log.Debug("trace: entering Create()")
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// IF USER IS NOT ADMIN RETURN 401 Unauthorized
 	currentUserId := claims.Id
 	/* TODO implement ACL & RBAC handling
 	if !s.Store.IsUserAllowedToCreate(currentUserId, typeThing) {
@@ -146,15 +142,6 @@ func (s Service) Create(ctx echo.Context) error {
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/count' |jq
 func (s Service) Count(ctx echo.Context, params CountParams) error {
 	s.Log.Info("trace: entering Count()")
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
-	// currentUserId := claims.Id
 	numThings, err := s.Store.Count(params)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
@@ -167,10 +154,7 @@ func (s Service) Count(ctx echo.Context, params CountParams) error {
 // curl -v -XDELETE -H "Content-Type: application/json"  -H "Authorization: Bearer $token" 'http://localhost:8888/users/93333' -> 400 Bad Request
 func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	s.Log.Info("trace: entering Delete(%v)", thingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
@@ -179,8 +163,8 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
-	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	if !s.Store.IsUserOwner(thingId, currentUserId) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
@@ -202,27 +186,23 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 // Get will retrieve the Thing with the given id in the store and return it
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/9999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
-	s.Log.Info("trace: entering Get(%v)", thingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	s.Log.Debug("trace: entering Get(%v)", thingId)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
-	// currentUserId := claims.Id
+	currentUserId := claims.Id
+	s.Log.Info("userid:%v, calling Get(%v)", currentUserId, thingId)
 	if s.Store.Exist(thingId) == false {
 		msg := fmt.Sprintf("Get(%v) cannot get this id, it does not exist !", thingId)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
 	/* TODO implement ACL & RBAC handling
-	if !s.Store.IsUserAllowedToDelete(currentUserId, typeThing) {
+	if !s.Store.IsUserAllowedToGet(currentUserId, typeThing) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-
 	thing, err := s.Store.Get(thingId)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
@@ -240,15 +220,12 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 // curl -s -XPUT -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test by GIL","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": {"info_value": 3230 },"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing/3999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	s.Log.Debug("trace: entering Update(id=%v)", thingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	s.Log.Info("userid:%v, calling Update(%v)", currentUserId, thingId)
 	if s.Store.Exist(thingId) == false {
 		msg := fmt.Sprintf("Update(%v) cannot update this id, it does not exist !", thingId)
 		s.Log.Warn(msg)
@@ -258,7 +235,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
 	/* TODO implement ACL & RBAC handling
-	if !s.Store.IsUserAllowedToCreate(currentUserId, typeThing) {
+	if !s.Store.IsUserAllowedToUpdate(currentUserId, typeThing) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
@@ -389,15 +366,12 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 // TypeThingCreate will insert a new TypeThing in the store
 func (s Service) TypeThingCreate(ctx echo.Context) error {
 	s.Log.Debug("trace: entering TypeThingCreate()")
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	s.Log.Info("userid:%v, calling TypeThingCreate(...)", currentUserId)
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
@@ -451,15 +425,6 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 
 func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) error {
 	s.Log.Info("trace: entering TypeThingCount()")
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
-	// currentUserId := claims.Id
 	numThings, err := s.Store.CountTypeThing(params)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
@@ -469,11 +434,8 @@ func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) e
 
 // TypeThingDelete will remove the given TypeThing entry from the store, and if not present will return 400 Bad Request
 func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
-	s.Log.Debug("trace: entering TypeThingUpdate(id=%v)", typeThingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	s.Log.Debug("trace: entering TypeThingDelete(id=%v)", typeThingId)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
@@ -501,15 +463,13 @@ func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 // TypeThingGet will retrieve the Thing with the given id in the store and return it
 func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 	s.Log.Info("trace: entering TypeThingGet(%v)", typeThingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// currentUserId := claims.Id
-	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
@@ -529,15 +489,12 @@ func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 
 func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	s.Log.Debug("trace: entering TypeThingUpdate(id=%v)", typeThingId)
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
+	claims, err := GetJwtCustomClaims(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	currentUserId := claims.Id
+	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	if !claims.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
@@ -572,4 +529,12 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	}
 	s.Log.Info("# TypeThingUpdate success updating TypeThing %#+v\n", thingUpdated)
 	return ctx.JSON(http.StatusOK, thingUpdated)
+}
+
+// GetJwtCustomClaims returns the JWT Custom claims from the received context jwtdata
+func GetJwtCustomClaims(ctx echo.Context) (goserver.JwtCustomClaims, error) {
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	return claims, err
 }
