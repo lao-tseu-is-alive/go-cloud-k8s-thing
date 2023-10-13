@@ -70,7 +70,7 @@ type UserLogin struct {
 	Username     string `json:"username"`
 }
 
-// login is just a trivial stupid example to test this server
+// login is just a trivial example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
 func (s ServiceThing) login(ctx echo.Context) error {
@@ -128,18 +128,6 @@ func (s ServiceThing) login(ctx echo.Context) error {
 		"token":   token.String(),
 		"session": sessionId,
 	})
-}
-
-func (s ServiceThing) restricted(ctx echo.Context) error {
-	s.Log.Debug("++ entering restricted zone()")
-	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-	return ctx.JSON(http.StatusCreated, claims)
 }
 
 func (s ServiceThing) GetStatus(ctx echo.Context) error {
@@ -304,7 +292,6 @@ func main() {
 	//TODO  Find a way to allow Login route to be available only in dev environment
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
-	r.GET("/secret", yourService.restricted)
 	r.GET("/status", yourService.GetStatus)
 
 	thingStore, err := thing.GetStorageInstance("pgx", db, l)
