@@ -31,54 +31,58 @@
         <v-alert class="ma-4" :type="feedbackType" :text="feedbackMsg" :color="feedbackType"></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
-        <v-container>
+        <v-container class="d-flex fill-height text-center" :fluid="true">
           <template v-if="showSearchCriteria && !showSettings">
-            <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
-              <template #title>
-                <span class="text-h5">Critères de filtrage</span>
-              </template>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                      <v-text-field
-                        v-model="searchCreatedBy"
-                        type="number"
-                        min="1"
-                        density="compact"
-                        title="id de l'utilisateur qui a créé l'enregistrement"
-                        label="id créateur enregistrement"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                      <v-select
-                        v-model="searchType"
-                        item-title="name"
-                        item-value="id"
-                        :items="arrListTypeThing"
-                        density="compact"
-                        label="TypeObjet*"
-                      ></v-select>
-                    </v-col>
-                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
-                    </v-col>
-                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6" lg="4" xl="6">
-                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
-                  >Réinitialiser Filtres</v-btn
-                >
-              </v-card-actions>
-            </v-card>
+            <v-row class="d-flex">
+              <v-col cols="12">
+                <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
+                  <template #title>
+                    <span class="text-h5">Critères de filtrage</span>
+                  </template>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                          <v-text-field
+                            v-model="searchCreatedBy"
+                            type="number"
+                            min="1"
+                            density="compact"
+                            title="id de l'utilisateur qui a créé l'enregistrement"
+                            label="id créateur enregistrement"
+                          />
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                          <v-select
+                            v-model="searchType"
+                            item-title="name"
+                            item-value="id"
+                            :items="arrListTypeThing"
+                            density="compact"
+                            label="TypeObjet*"
+                          ></v-select>
+                        </v-col>
+                        <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                          <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
+                        </v-col>
+                        <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                          <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6" lg="4" xl="6">
+                          <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
+                      >Réinitialiser Filtres</v-btn
+                    >
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
           </template>
           <template v-else-if="showSettings">
             <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
@@ -107,22 +111,26 @@
               </v-card-text>
             </v-card>
           </template>
-          <template v-if="showMap">
-            <h3>MAP</h3>
-          </template>
-          <template v-else>
-            <ThingList
-              :limit="searchLimit"
-              :offset="searchOffset"
-              :type-thing="searchType"
-              :created-by="searchCreatedBy"
-              :search-keywords="searchKeywords"
-              :inactivated="searchInactivated"
-              :validated="searchValidated"
-              @thing-error="thingGotErr"
-              @thing-ok="thingGotSuccess"
-            />
-          </template>
+          <v-row class="d-flex fill-height">
+            <v-col cols="12">
+              <template v-if="showMap">
+                <MapLausanne :zoom="3"></MapLausanne>
+              </template>
+              <template v-else>
+                <ThingList
+                  :limit="searchLimit"
+                  :offset="searchOffset"
+                  :type-thing="searchType"
+                  :created-by="searchCreatedBy"
+                  :search-keywords="searchKeywords"
+                  :inactivated="searchInactivated"
+                  :validated="searchValidated"
+                  @thing-error="thingGotErr"
+                  @thing-ok="thingGotSuccess"
+                />
+              </template>
+            </v-col>
+          </v-row>
         </v-container>
       </template>
       <template v-else>
@@ -145,6 +153,7 @@ import { isNullOrUndefined } from "@/tools/utils"
 import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
+import MapLausanne from "@/components/MapLausanne.vue"
 import { Configuration, DefaultApi, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import {
   getUserIsAdmin,
