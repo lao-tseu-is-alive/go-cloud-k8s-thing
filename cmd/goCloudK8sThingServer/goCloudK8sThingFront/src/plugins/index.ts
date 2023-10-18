@@ -12,5 +12,6 @@ import vuetify from "./vuetify"
 import type { App } from "vue"
 
 export function registerPlugins(app: App) {
-  loadFonts().then(() => app.use(vuetify))
+  loadFonts()
+  app.use(vuetify)
 }
