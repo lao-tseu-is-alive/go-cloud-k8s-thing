@@ -1,4 +1,3 @@
-<style></style>
 <template>
   <v-container class="fill-height">
     <v-responsive class="d-flex fill-height">
@@ -355,10 +354,9 @@ import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { getDateFromTimeStamp, isNullOrUndefined } from "@/tools/utils"
+import { getDateFromTimeStamp } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration, DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
-import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { VDataTable } from "vuetify/labs/VDataTable"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
@@ -366,7 +364,6 @@ import { storeToRefs } from "pinia"
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
 let myApi: DefaultApi
-let myAxios: AxiosInstance
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const menuDateConstruction = ref(false)
@@ -451,7 +448,7 @@ watch(
   () => myProps.typeThing,
   (val, oldValue) => {
     log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value == true) {
+    if (val !== undefined && areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value.typeThing = val
         store.search(searchParameters.value)
@@ -465,7 +462,7 @@ watch(
   () => myProps.searchKeywords,
   (val, oldValue) => {
     log.t(` watch myProps.searchKeywords old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value == true) {
+    if (val !== undefined && areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value.searchKeywords = val
         store.search(searchParameters.value)
@@ -478,9 +475,14 @@ watch(
   () => myProps.createdBy,
   (val, oldValue) => {
     log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value == true) {
+    if (val !== undefined && areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value.createdBy = val
+        store.search(searchParameters.value)
+      }
+    } else {
+      searchParameters.value.createdBy = undefined
+      if (areWeReady.value) {
         store.search(searchParameters.value)
       }
     }
@@ -490,7 +492,7 @@ watch(
   () => myProps.validated,
   (val, oldValue) => {
     log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value == true) {
+    if (areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value.validated = val
         store.search(searchParameters.value)
@@ -503,7 +505,7 @@ watch(
   () => myProps.inactivated,
   (val, oldValue) => {
     log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value == true) {
+    if (areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value.inactivated = val
         store.search(searchParameters.value)
@@ -516,7 +518,7 @@ watch(
   () => myProps.limit,
   (val, oldValue) => {
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value == true) {
+    if (areWeReady.value) {
       if (val !== oldValue) {
         searchParameters.value = Object.assign({}, myProps)
         searchParameters.value.limit = val < 1 ? 1 : val
@@ -590,7 +592,7 @@ const editItem = async (item: ThingList) => {
   log.t(" #> entering EDIT ...", item)
   editedIndex.value = records.value.indexOf(item)
   const id = item.id
-  const res = await getThing(id)
+  const res = await store.get(id)
   if (res.data !== null) {
     log.l(`ok, filling editedItem with Thing id : ${res.data.id}`)
     editedItem.value = Object.assign({}, res.data)
@@ -608,7 +610,7 @@ const editItem = async (item: ThingList) => {
 
 const editDateBuild = (cancel: boolean) => {
   log.t(`#> entering ... cancel=${cancel}`)
-  if (cancel !== true) {
+  if (!cancel) {
     if (editedItem.value.build_at !== undefined) {
       if (editedItem.value.build_at.indexOf("T") > 0) {
         editedItem.value.build_at = editedItem.value.build_at.split("T")[0]
@@ -640,7 +642,7 @@ const deleteItem = (item: ThingList) => {
 
 const deleteItemConfirm = async () => {
   const id = deletedItem.value.id
-  const res = await deleteThing(id)
+  const res = await store.delete(id)
   if (res.err === null) {
     log.l(`ok, doing deletedItem(${id}) `)
     records.value.splice(editedIndex.value, 1)
@@ -677,7 +679,7 @@ const save = async () => {
   }
   if (editedIndex.value > -1) {
     //// HANDLING UPDATE OF EXISTING ITEM
-    Object.assign(records[editedIndex.value], editedItem.value)
+    records.value[editedIndex.value] = Object.assign({}, editedItem.value)
     log.l(`build_at : ${editedItem.value.build_at}`)
     if (editedItem.value.build_at != undefined) {
       const tmpDate = new Date(editedItem.value.build_at).toISOString()
@@ -685,20 +687,20 @@ const save = async () => {
       editedItem.value.build_at = tmpDate
     }
     log.l(`build_at : ${editedItem.value.build_at}`)
-    const res = await updateThing(editedItem.value.id, editedItem.value)
+    const res = await store.update(editedItem.value.id, editedItem.value)
     if (res.data === null) {
       const msg = `Save update failed. Problem:  ${res.err?.message}`
       log.w(msg)
       emit("thing-error", msg)
     } else {
-      Object.assign(records[editedIndex.value], res.data)
+      records.value[editedIndex.value] = Object.assign({}, res.data)
       const msg = `Vos modifications ont été enregistrées dans la Base avec succès.`
       log.w(msg)
       emit("thing-ok", msg)
     }
   } else {
     //// HANDLING CREATE OF NEW ITEM
-    const res = await createThing(editedItem.value.id, editedItem.value)
+    const res = await store.create(editedItem.value.id, editedItem.value)
     if (res.data === null) {
       const msg = `Save createThing failed. Problem:  ${res.err?.message}`
       log.w(msg)
@@ -728,115 +730,6 @@ const save = async () => {
   close()
 }
 
-type netThing = { data: Thing | null; err: Error | null }
-
-const getThing = async (id: string): Promise<netThing> => {
-  log.t(`> Entering.. getThing: ${id}`)
-  areWeReady.value = false
-  try {
-    const resp = await myApi.get(id)
-    log.l(`SUCCESS myAPi.get(id:${resp.data.id}`)
-    if (resp.status == 200) {
-      areWeReady.value = true
-      return { data: resp.data, err: null }
-    } else {
-      areWeReady.value = true
-      log.w("getThing got problem", resp)
-      return { data: null, err: Error(`problem in getThing status : ${resp.status}, ${resp.statusText}`) }
-    }
-  } catch (error) {
-    areWeReady.value = true
-    if (axios.isAxiosError(error)) {
-      log.w(`Try Catch Axios ERROR message:${error.message}, error:`, error)
-      if (error.response !== undefined && error.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(error.response.data.message) ? "" : error.response.data.message
-        const msg = `getThing error : ${error.message}. Server says : ${srvMessage}`
-        log.w(msg)
-        emit("thing-error", msg)
-        return { data: null, err: Error(msg) }
-      } else {
-        return { data: null, err: Error(`getThing error : ${error.message}.`) }
-      }
-    } else {
-      log.e("unexpected error: ", error)
-      return { data: null, err: Error(`unexpected error: in getThing Try catch : ${error}`) }
-    }
-  }
-}
-
-const createThing = async (id: string, t: Thing): Promise<netThing> => {
-  log.t(`> Entering.. createThing: ${id}`)
-  areWeReady.value = false
-  try {
-    const resp = await myAxios.post("thing", t)
-    log.l("myAxios.post(thing) : ", resp)
-    areWeReady.value = true
-    return { data: resp.data, err: null }
-  } catch (err) {
-    areWeReady.value = true
-    if (axios.isAxiosError(err)) {
-      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
-      if (err.response !== undefined && err.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
-        return { data: null, err: Error(`createThing error : ${err.message}. Server says : ${srvMessage}`) }
-      } else {
-        return { data: null, err: Error(`createThing error : ${err.message}.`) }
-      }
-    } else {
-      log.e("💥💥 unexpected error: ", err)
-      return { data: null, err: Error(`💥💥 createThing error: in deleteThing Try catch : ${err}`) }
-    }
-  }
-}
-const updateThing = async (id: string, t: Thing): Promise<netThing> => {
-  log.t(`> Entering.. updateThing: ${id}`)
-  areWeReady.value = false
-  try {
-    const resp = await myAxios.put("thing/" + id, t)
-    log.l("myAxios.put(thing/id) : ", resp)
-    areWeReady.value = true
-    return { data: resp.data, err: null }
-  } catch (err) {
-    areWeReady.value = true
-    if (axios.isAxiosError(err)) {
-      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
-      if (err.response !== undefined && err.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
-        return { data: null, err: Error(`updateThing error : ${err.message}. Server says : ${srvMessage}`) }
-      } else {
-        return { data: null, err: Error(`updateThing error : ${err.message}.`) }
-      }
-    } else {
-      log.e("💥💥 unexpected error: ", err)
-      return { data: null, err: Error(`💥💥 updateThing error: in deleteThing Try catch : ${err}`) }
-    }
-  }
-}
-const deleteThing = async (id: string): Promise<netThing> => {
-  log.t(`> Entering.. deleteThing: ${id}`)
-  areWeReady.value = false
-  try {
-    const resp = await myApi._delete(id)
-    log.l("myAPi._delete : ", resp)
-    areWeReady.value = true
-    return { data: null, err: null }
-  } catch (err) {
-    areWeReady.value = true
-    if (axios.isAxiosError(err)) {
-      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
-      if (err.response !== undefined && err.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
-        return { data: null, err: Error(`deleteThing error : ${err.message}. Server says : ${srvMessage}`) }
-      } else {
-        return { data: null, err: Error(`deleteThing error : ${err.message}.`) }
-      }
-    } else {
-      log.e("💥💥 unexpected error: ", err)
-      return { data: null, err: Error(`💥💥 unexpected error: in deleteThing Try catch : ${err}`) }
-    }
-  }
-}
-
 const getTypeThingName = (id: number): string => {
   if (id in dicoTypeThing) {
     return dicoTypeThing[id]
@@ -863,19 +756,12 @@ const initialize = async () => {
   })
 
   await store.init(Object.assign({}, myProps))
-  // searchLimit.value = +myProps.limit
   myApi = new DefaultApi(myConf)
-  myAxios = axios.create({
-    baseURL: BACKEND_URL + "/goapi/v1",
-    timeout: defaultAxiosTimeout,
-    headers: { "X-Goeland-Token": getSessionId(), Authorization: `Bearer ${getLocalJwtTokenAuth()}` },
-  } as CreateAxiosDefaults)
   areWeReady.value = true
 
   await loadTypeThingData()
   searchParameters.value = Object.assign({}, myProps)
   await store.search(searchParameters.value)
-  //await searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
 }
 
 onMounted(() => {
