@@ -13,10 +13,10 @@ export interface ISearchThingParameters {
   typeThing?: number | undefined
   searchKeywords?: string | undefined
   createdBy?: number | undefined
-  inactivated?: boolean | undefined
+  inactivated: boolean
   validated?: boolean | undefined
-  limit?: number | undefined
-  offset?: number | undefined
+  limit: number
+  offset: number
 }
 export const defaultListItem: ThingList = {
   id: crypto.randomUUID(),
@@ -70,10 +70,12 @@ export const useThingStore = defineStore("Thing", {
   state: () => {
     return {
       records: [] as ThingList[],
-      searchParameters: null as ISearchThingParameters | null,
+      searchParameters: { inactivated: false, limit: defaultQueryLimit, offset: 0 } as ISearchThingParameters,
       areWeReady: false,
-      numThingsFound: 0,
     }
+  },
+  getters: {
+    numRecords: (state) => state.records.length,
   },
   actions: {
     async get(id: string): Promise<netThing> {
@@ -107,15 +109,15 @@ export const useThingStore = defineStore("Thing", {
         }
       }
     },
-    async search(typeThing?: number, keywords?: string, createdBy?: number) {
-      log.t(`> Entering searchThing.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
+    async search(params: ISearchThingParameters) {
+      log.t(`> Entering searchThing.. typeThing: ${params.typeThing}, createdBy: ${params.createdBy} `)
       this.areWeReady = false
       const clearRecords = (): void => {
         if (this.records.length > 0) {
           this.records.splice(0)
         }
       }
-      const urlParams = getUrlParameters({ typeThing: typeThing, searchKeywords: keywords, createdBy: createdBy })
+      const urlParams = getUrlParameters(params)
       try {
         const resp = await myAxios.get("thing/search" + urlParams)
         log.l("myAxios.get(thing/search) : ", resp)
@@ -123,12 +125,10 @@ export const useThingStore = defineStore("Thing", {
         resp.data.forEach((r: Thing) => {
           this.records.push(r)
         })
-        this.numThingsFound = await this.count(keywords, typeThing, createdBy)
         this.areWeReady = true
         return { data: resp.data, err: null }
       } catch (err) {
         clearRecords()
-        this.numThingsFound = await this.count(keywords, typeThing, createdBy)
         this.areWeReady = true
         if (axios.isAxiosError(err)) {
           log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
@@ -192,16 +192,9 @@ export const useThingStore = defineStore("Thing", {
         }
       }
     },
-    async count(keywords?: string, typeThing?: number, createdBy?: number): Promise<number> {
-      log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
-      if (typeThing != undefined) {
-        typeThing = typeThing == 0 ? undefined : typeThing
-      }
-      if (createdBy != undefined) {
-        createdBy = createdBy == 0 ? undefined : createdBy
-      }
-      log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
-      const urlParams = getUrlParameters({ typeThing: typeThing, searchKeywords: keywords, createdBy: createdBy })
+    async count(params: ISearchThingParameters): Promise<number> {
+      log.t(`> Entering.. typeThing: ${params.typeThing}, createdBy: ${params.createdBy} `)
+      const urlParams = getUrlParameters(params)
       try {
         //myApi.count(keywords, typeThing, createdBy, myProps.inactivated, myProps.validated)
         const resp = await myAxios.get("thing/search" + urlParams)
@@ -243,7 +236,8 @@ export const useThingStore = defineStore("Thing", {
         }
       }
     },
-    async init() {
+    async init(searchParams: ISearchThingParameters) {
+      this.searchParameters = Object.assign({}, searchParams)
       myAxios = axios.create({
         baseURL: BACKEND_URL + "/goapi/v1",
         timeout: defaultAxiosTimeout,

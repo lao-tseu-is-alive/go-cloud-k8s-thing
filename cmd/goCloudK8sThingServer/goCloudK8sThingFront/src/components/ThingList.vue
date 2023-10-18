@@ -282,7 +282,7 @@
       </v-row>
       <v-row>
         <v-col cols="10"
-          >Trouvé {{ numThingsFound }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ areWeReady }}
+          >Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ areWeReady }}
         </v-col>
         <v-col cols="2">
           <template v-if="!areWeReady">
@@ -300,7 +300,7 @@
           >
             <template #top>
               <v-toolbar density="compact">
-                <v-toolbar-title style="text-align: left">{{ numThingsFound }} Thing trouvés...</v-toolbar-title>
+                <v-toolbar-title style="text-align: left">{{ store.numRecords }} Thing trouvés...</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn
                   dark
@@ -360,10 +360,11 @@ import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Logi
 import { Configuration, DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { VDataTable } from "vuetify/labs/VDataTable"
+import { useThingStore } from "@/components/ThingStore"
+import { storeToRefs } from "pinia"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
-const areWeReady = ref(false)
 let myApi: DefaultApi
 let myAxios: AxiosInstance
 const dialog = ref(false)
@@ -380,7 +381,8 @@ interface IDictionary {
 const dialogTab = ref(null)
 let dicoTypeThing: IDictionary = {}
 const arrListTypeThing: typeThingSelect[] = []
-const records: ThingList[] = reactive([])
+const store = useThingStore()
+const { records, searchParameters, areWeReady } = storeToRefs(store)
 const defaultListItem: Ref<ThingList> = ref({
   id: crypto.randomUUID(),
   type_id: 0,
@@ -429,16 +431,15 @@ const defaultItem: Ref<Thing> = ref({
 })
 const editedItem: Ref<Thing> = ref(defaultItem)
 const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
-const searchLimit = ref(10)
-const numThingsFound = ref(0)
+
 const myProps = defineProps<{
   typeThing?: number | undefined
   searchKeywords?: string | undefined
   createdBy?: number | undefined
-  inactivated?: boolean | undefined
+  inactivated: boolean
   validated?: boolean | undefined
-  limit?: number | undefined
-  offset?: number | undefined
+  limit: number
+  offset: number
 }>()
 
 //// EVENT SECTION
@@ -452,7 +453,8 @@ watch(
     log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        searchThing(val, myProps.searchKeywords, myProps.createdBy)
+        searchParameters.value.typeThing = val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -465,7 +467,8 @@ watch(
     log.t(` watch myProps.searchKeywords old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        searchThing(myProps.typeThing, val, myProps.createdBy)
+        searchParameters.value.searchKeywords = val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -477,7 +480,8 @@ watch(
     log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        searchThing(myProps.typeThing, myProps.searchKeywords, val)
+        searchParameters.value.createdBy = val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -488,7 +492,8 @@ watch(
     log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
+        searchParameters.value.validated = val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -500,7 +505,8 @@ watch(
     log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
     if (areWeReady.value == true) {
       if (val !== oldValue) {
-        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
+        searchParameters.value.inactivated = val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -512,8 +518,9 @@ watch(
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
     if (val !== undefined && areWeReady.value == true) {
       if (val !== oldValue) {
-        searchLimit.value = val < 1 ? 1 : val
-        searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
+        searchParameters.value = Object.assign({}, myProps)
+        searchParameters.value.limit = val < 1 ? 1 : val
+        store.search(searchParameters.value)
       }
     }
   }
@@ -533,7 +540,7 @@ const formTitle = computed(() => {
 })
 
 const propsValues = computed(() => {
-  return JSON.stringify(myProps, undefined, 3)
+  return JSON.stringify(searchParameters.value, undefined, 3)
 })
 
 // responsive header
@@ -581,7 +588,7 @@ const getHeaderVTable = computed(() => {
 //// FUNCTIONS SECTION
 const editItem = async (item: ThingList) => {
   log.t(" #> entering EDIT ...", item)
-  editedIndex.value = records.indexOf(item)
+  editedIndex.value = records.value.indexOf(item)
   const id = item.id
   const res = await getThing(id)
   if (res.data !== null) {
@@ -626,7 +633,7 @@ const newThing = () => {
 
 const deleteItem = (item: ThingList) => {
   log.t(" #> entering DELETE ...", item)
-  editedIndex.value = records.indexOf(item)
+  editedIndex.value = records.value.indexOf(item)
   deletedItem.value = Object.assign({}, item)
   dialogDelete.value = true
 }
@@ -636,7 +643,7 @@ const deleteItemConfirm = async () => {
   const res = await deleteThing(id)
   if (res.err === null) {
     log.l(`ok, doing deletedItem(${id}) `)
-    records.splice(editedIndex.value, 1)
+    records.value.splice(editedIndex.value, 1)
   } else {
     const msg = `problem doing deletedItem(${id}) ${res.err.message}`
     log.w(msg)
@@ -711,7 +718,7 @@ const save = async () => {
       newItem.created_at = editedItem.value.created_at
       newItem.pos_x = editedItem.value.pos_x
       newItem.pos_y = editedItem.value.pos_y
-      records.push(newItem)
+      records.value.push(newItem)
       //reset of editedItem is done in close()
       const msg = `Nouvel enregistrement sauvé dans la Base  id: ${res.data?.external_id}`
       log.w(msg)
@@ -719,11 +726,6 @@ const save = async () => {
     }
   }
   close()
-}
-const clearRecords = (): void => {
-  if (records.length > 0) {
-    records.splice(0)
-  }
 }
 
 type netThing = { data: Thing | null; err: Error | null }
@@ -758,53 +760,6 @@ const getThing = async (id: string): Promise<netThing> => {
     } else {
       log.e("unexpected error: ", error)
       return { data: null, err: Error(`unexpected error: in getThing Try catch : ${error}`) }
-    }
-  }
-}
-
-/**
- * listThing a list of things from server based on current criteria
- * @param typeThing filter the list with only this type of thing
- * @param createdBy filter the list with only records created by given user id
- */
-const listThing = async (typeThing?: number, createdBy?: number) => {
-  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
-  areWeReady.value = false
-  if (typeThing != undefined) {
-    typeThing = typeThing == 0 ? undefined : typeThing
-  }
-  if (createdBy != undefined) {
-    createdBy = createdBy == 0 ? undefined : createdBy
-  }
-  log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
-  try {
-    const resp = await myApi.list(
-      typeThing,
-      createdBy,
-      myProps.inactivated,
-      myProps.validated,
-      searchLimit.value,
-      myProps.offset
-    )
-    clearRecords()
-    resp.data.forEach((r) => {
-      records.push(r)
-    })
-    numThingsFound.value = await countThing(undefined, typeThing, createdBy)
-    areWeReady.value = true
-  } catch (error) {
-    clearRecords()
-    numThingsFound.value = await countThing(undefined, typeThing, createdBy)
-    areWeReady.value = true
-    if (axios.isAxiosError(error)) {
-      if (error.response !== undefined) {
-        log.w(`getThing error : ${error.message}. Server says : ${error.response.data}`)
-      } else {
-        log.w(`getThing error : ${error.message}.`)
-      }
-      numThingsFound.value = await countThing(undefined, typeThing, createdBy)
-    } else {
-      log.e("unexpected error: ", error)
     }
   }
 }
@@ -857,81 +812,6 @@ const updateThing = async (id: string, t: Thing): Promise<netThing> => {
     }
   }
 }
-
-const searchThing = async (typeThing?: number, keywords?: string, createdBy?: number) => {
-  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
-  areWeReady.value = false
-  if (typeThing != undefined) {
-    typeThing = typeThing == 0 ? undefined : typeThing
-  }
-  if (keywords != undefined) {
-    keywords = keywords == "" ? undefined : keywords
-  }
-  if (createdBy != undefined) {
-    createdBy = createdBy == 0 ? undefined : createdBy
-  }
-  let urlParams = `?inactivated=${myProps.inactivated}&limit=${searchLimit.value}&offset=${myProps.offset}`
-  urlParams += keywords != undefined ? `&keywords=${keywords}` : ""
-  urlParams += typeThing != undefined ? `&type=${typeThing}` : ""
-  urlParams += createdBy != undefined ? `&created_by=${createdBy}` : ""
-  urlParams += myProps.validated !== undefined ? `&validated=${myProps.validated}` : ""
-  log.t(`After adjusting typeThing: ${typeThing}, keywords: ${keywords}, createdBy: ${createdBy} `)
-  areWeReady.value = false
-  try {
-    const resp = await myAxios.get("thing/search" + urlParams)
-    log.l("myAxios.get(thing/search) : ", resp)
-    clearRecords()
-    resp.data.forEach((r) => {
-      records.push(r)
-    })
-    numThingsFound.value = await countThing(keywords, typeThing, createdBy)
-    areWeReady.value = true
-    return { data: resp.data, err: null }
-  } catch (err) {
-    clearRecords()
-    numThingsFound.value = await countThing(keywords, typeThing, createdBy)
-    areWeReady.value = true
-    if (axios.isAxiosError(err)) {
-      log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
-      if (err.response !== undefined && err.response.data !== undefined) {
-        const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
-        return { data: null, err: Error(`searchThing error : ${err.message}. Server says : ${srvMessage}`) }
-      } else {
-        return { data: null, err: Error(`searchThing error : ${err.message}.`) }
-      }
-    } else {
-      log.e("💥💥 unexpected error: ", err)
-      return { data: null, err: Error(`💥💥 searchThing error: in Try catch : ${err}`) }
-    }
-  }
-}
-
-const countThing = async (keywords?: string, typeThing?: number, createdBy?: number): Promise<number> => {
-  log.t(`> Entering.. typeThing: ${typeThing}, createdBy: ${createdBy} `)
-  if (typeThing != undefined) {
-    typeThing = typeThing == 0 ? undefined : typeThing
-  }
-  if (createdBy != undefined) {
-    createdBy = createdBy == 0 ? undefined : createdBy
-  }
-  log.t(`After adjusting typeThing: ${typeThing}, createdBy: ${createdBy} `)
-  try {
-    const resp = await myApi.count(keywords, typeThing, createdBy, myProps.inactivated, myProps.validated)
-    return resp.data
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response !== undefined) {
-        log.w(`countThing error : ${error.message}. Server says : ${error.response.data}`)
-      } else {
-        log.w(`countThing error : ${error.message}.`)
-      }
-    } else {
-      log.e("unexpected error: ", error)
-    }
-    return 0
-  }
-}
-
 const deleteThing = async (id: string): Promise<netThing> => {
   log.t(`> Entering.. deleteThing: ${id}`)
   areWeReady.value = false
@@ -981,7 +861,9 @@ const initialize = async () => {
     baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
     basePath: BACKEND_URL + "/goapi/v1",
   })
-  searchLimit.value = +myProps.limit
+
+  await store.init(Object.assign({}, myProps))
+  // searchLimit.value = +myProps.limit
   myApi = new DefaultApi(myConf)
   myAxios = axios.create({
     baseURL: BACKEND_URL + "/goapi/v1",
@@ -991,7 +873,9 @@ const initialize = async () => {
   areWeReady.value = true
 
   await loadTypeThingData()
-  await searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
+  searchParameters.value = Object.assign({}, myProps)
+  await store.search(searchParameters.value)
+  //await searchThing(myProps.typeThing, myProps.searchKeywords, myProps.createdBy)
 }
 
 onMounted(() => {

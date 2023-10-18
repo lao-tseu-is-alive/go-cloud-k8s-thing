@@ -80,7 +80,7 @@ WHERE id = $1;
 	existThing        = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;`
 	isActiveThing     = `SELECT COUNT(*) FROM go_thing.thing WHERE inactivated=false AND id = $1;`
 	existThingOwnedBy = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1 AND _created_by = $2;`
-	countThing        = `SELECT COUNT(*) FROM go_thing.thing`
+	countThing        = `SELECT COUNT(*) FROM go_thing.thing `
 	deleteThing       = `
 UPDATE go_thing.thing
 SET
