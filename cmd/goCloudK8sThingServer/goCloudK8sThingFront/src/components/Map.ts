@@ -113,6 +113,7 @@ async function getWmtsBaseLayers(url: string, defaultBaseLayer: string) {
  * @param centerOfMap the position where you want to center map in MN95 Coordinates [x,y] array
  * @param zoomLevel
  * @param baseLayer one of orthophotos_ortho_lidar_2016 fonds_geo_osm_bdcad_(gris|couleur)
+ * @param divLayerSwitcherContent is the reference to the div where you want ot render the layer list
  * @returns an instance of an OpenLayer Map
  */
 export async function createLausanneMap(
@@ -137,10 +138,12 @@ export async function createLausanneMap(
     }),
   })
   const layerSwitcher = new LayerSwitcher({
-    tipLabel: "Légende", // Optional label for button
+    activationMode: "click",
+    tipLabel: "Afficher la liste des fonds de plan", // Optional label for button
+    collapseTipLabel: "Cacher la liste des fonds de plan", // Optional label for button
     groupSelectStyle: "children", // Can be 'children' [default], 'group' or 'none'
   })
-  map.addControl(layerSwitcher)
+  // map.addControl(layerSwitcher)
   // MAP EVENTS
   map.on("click", async (evt) => {
     const x = Number(evt.coordinate[0])
