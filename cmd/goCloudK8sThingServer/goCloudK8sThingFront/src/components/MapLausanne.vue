@@ -15,10 +15,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
   min-height: 450px;
 }
 .mouse-coordinates {
-  position: absolute;
-  top: 10px;
-  left: 50px;
-  z-index: 250;
+  z-index: 245;
 }
 
 .searchBox {
@@ -64,9 +61,11 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
   }
 }
 .ol-zoom {
-  top: calc($button_size_20px/2); // = 1.05em = 21px
+  position: absolute;
+  top: calc($button_size_20px/2 + 2em); // = 1.05em = 21px
   left: unset !important;
   right: 0.5em;
+  margin-bottom: 1em;
   background-color: rgba(255, 255, 255, 0);
 
   .ol-zoom-in {
@@ -78,6 +77,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
   }
 
   .ol-zoom-out {
+    top: calc($button_size_20px/2 + $button_size_20px + 1.5em); // = 1.05em = 21px
     height: 42px;
     width: 42px;
     min-width: 42px;
@@ -87,11 +87,12 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 }
 .layers_button {
   // .v-btn.v-size--default font-size: 0.875rem = 14px (= body font size)
-  margin-right: -0.3em; // -4px
+  position: absolute;
   top: calc($searchbox_height + (3 * $button_size_20px) + 0.2em); // 197px
   left: unset !important;
   right: 0.5em;
   z-index: 250;
+  background-color: #feffeb;
 }
 
 .layer-switcher-dialog {
@@ -116,7 +117,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 .gps_button {
   // .v-btn.v-size--default font-size: 0.875rem = 14px (= body font size)
   margin-right: -0.3em; // -4px
-  top: $searchbox_height + (4.5*$button_size_14px) + 0.2; // 260px
+  top: calc($searchbox_height + (4.5 * $button_size_14px) + 0.2em); // 260px
 }
 
 .ol-attribution {
@@ -158,20 +159,20 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
       </v-dialog>
     </div>
     <v-btn
-      outlined
       icon="mdi-layers-outline"
       aria-label="selection couches"
+      color="white"
       class="layers_button"
       height="42"
       min-width="42"
-      right
       width="42"
       @click.stop="toggleLayerSwitcher"
     ></v-btn>
-    <v-sheet class="mouse-coordinates" :elevation="10" :height="50" :width="400" border rounded>
-      <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
-      <div>Propriétés:{{ propsValues }}</div>
-    </v-sheet>
+    <div class="text-xs-center">
+      <v-footer class="text-center bottom--1 mouse-coordinates" >
+        <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>&nbsp;
+      </v-footer>
+    </div>
     <div class="map" id="map" ref="myMap">
       <noscript> You need to have a browser with javascript support to see this OpenLayers map of Lausanne </noscript>
     </div>
