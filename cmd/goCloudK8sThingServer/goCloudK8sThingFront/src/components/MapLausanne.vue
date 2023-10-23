@@ -163,9 +163,9 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
       aria-label="selection couches"
       color="white"
       class="layers_button"
-      height="42"
-      min-width="42"
-      width="42"
+      height="45"
+      min-width="45"
+      width="45"
       @click.stop="toggleLayerSwitcher"
     ></v-btn>
     <div class="text-xs-center">

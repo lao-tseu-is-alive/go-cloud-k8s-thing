@@ -167,10 +167,12 @@ import {
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
+const feedbackTimeError =  6000
+const feedbackTimeWarning =  4000
 const displaySize = reactive(useDisplay())
-const showSearchCriteria = ref(true)
+const showSearchCriteria = ref(false)
 const showSettings = ref(false)
-const showMap = ref(false)
+const showMap = ref(true)
 const searchType = ref(0)
 const arrListTypeThing: TypeThingList[] = reactive([])
 const searchCreatedBy = ref(undefined)
@@ -194,7 +196,7 @@ const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
 const isNetworkOk = ref(true)
 const drawer = ref(false)
-const feedbackTimeout = ref(6000) // default display time 5sec
+const feedbackTimeout = ref(2000) // default display time 5sec
 const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType = ref()
 const feedbackVisible = ref(false)
@@ -235,7 +237,7 @@ const checkIsSessionTokenValid = () => {
       .then((val) => {
         if (val.data == null) {
           log.e(`# getTokenStatus() ${val.msg}, ERROR is: `, val.err)
-          displayFeedBack(`Problème réseau :${val.msg}`, "error")
+          displayFeedBack(`Problème réseau :${val.msg}`, "error", feedbackTimeError)
         } else {
           log.l(`# getTokenStatus() SUCCESS ${val.msg} data: `, val.data)
           if (isNullOrUndefined(val.err) && val.status === 200) {
@@ -248,15 +250,15 @@ const checkIsSessionTokenValid = () => {
             // jwt token is no more valid
             isUserAuthenticated.value = false
             isUserAdmin.value = false
-            displayFeedBack("Votre session a expiré !", "warning")
+            displayFeedBack("Votre session a expiré !", "warning", feedbackTimeWarning )
             logout()
           }
-          displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error")
+          displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error", feedbackTimeError)
         }
       })
       .catch((err) => {
         log.e("# getJwtToken() in catch ERROR err: ", err)
-        displayFeedBack(`Il semble qu'il y a eu un problème réseau ! erreur: ${err}`, "error")
+        displayFeedBack(`Il semble qu'il y a eu un problème réseau ! erreur: ${err}`, "error", feedbackTimeError)
       })
   } else {
     log.w("SESSION DOES NOT EXIST OR HAS EXPIRED !")
@@ -285,7 +287,7 @@ const loginFailure = (v: string) => {
 
 const thingGotErr = (v: string) => {
   log.w(`# entering... val:${v} `)
-  displayFeedBack(v, "error")
+  displayFeedBack(v, "error", feedbackTimeError)
 }
 
 const thingGotSuccess = (v: string) => {
@@ -337,7 +339,7 @@ onMounted(() => {
   window.addEventListener("offline", () => {
     log.w("OFFLINE :((")
     isNetworkOk.value = false
-    displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error")
+    displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error", feedbackTimeError)
   })
 })
 </script>
