@@ -1,20 +1,30 @@
 /**
- * Created by cgil on 2022-03-30.
- *
- * v.2.0.0 : Migration to TypeScript on 2021-12-21.
+ * Map.ts
+ * Created by CGil on 2023-10-23.
+ * allow to display an OpenLayers Map in Lausanne Switzerland
+ * and handle various interactions
  */
 import proj4 from "proj4"
 import OlMap from "ol/Map"
 import OlView from "ol/View"
+import OlFeature from "ol/Feature"
+//import OlFormatGeoJSON from "ol/format/GeoJSON"
+import OlPoint from "ol/geom/Point"
 import OlProjection from "ol/proj/Projection"
+import OlLayer from "ol/layer/Layer"
 import OlLayerTile from "ol/layer/Tile"
+import OlLayerVector from "ol/layer/Vector"
+import OlSourceVector from "ol/source/Vector"
+import { Icon, Style } from "ol/style"
 import OlFormatWMTSCapabilities from "ol/format/WMTSCapabilities"
 import OlSourceWMTS, { optionsFromCapabilities, Options } from "ol/source/WMTS"
 import { register } from "ol/proj/proj4"
-import LayerSwitcher from "ol-layerswitcher"
+// import LayerSwitcher from "ol-layerswitcher"
 import { getLog } from "@/config"
+import { isNullOrUndefined } from "@/tools/utils"
+import { Coordinate } from "ol/coordinate"
 
-const log = getLog("Login", 4, 2)
+const log = getLog("Map", 4, 2)
 
 const urlLausanneMN95 = "https://tilesmn95.lausanne.ch/tiles/1.0.0/LausanneWMTS.xml"
 const MaxExtent = [2532500, 1149000, 2545625, 1161000]
@@ -47,7 +57,7 @@ async function getWMTSCapabilitiesFromUrl(url: string) {
   return WMTSCapabilities
 }
 
-function getWmtsSource(WMTSCapabilitiesParsed, layerName: string) {
+function getWmtsSource(WMTSCapabilitiesParsed: object, layerName: string) {
   const localDebug = false
   if (localDebug) log.t(`layerName: ${layerName}`)
   const WMTSOptions = optionsFromCapabilities(WMTSCapabilitiesParsed, {
@@ -60,13 +70,13 @@ function getWmtsSource(WMTSCapabilitiesParsed, layerName: string) {
   return new OlSourceWMTS(<Options>WMTSOptions)
 }
 
-function createBaseOlLayerTile(parsedWmtsCapabilities, title: string, layerName: string, visible = false) {
-  return new OlLayerTile({
-    title: title,
-    type: "base",
+function createBaseOlLayerTile(parsedWmtsCapabilities: object, title: string, layerName: string, visible = false) {
+  const tempTileLayer = new OlLayerTile({
     visible,
     source: getWmtsSource(parsedWmtsCapabilities, layerName),
   })
+  tempTileLayer.setProperties({ title: title, type: "base" })
+  return tempTileLayer
 }
 
 async function getWmtsBaseLayers(url: string, defaultBaseLayer: string) {
@@ -75,7 +85,7 @@ async function getWmtsBaseLayers(url: string, defaultBaseLayer: string) {
     const WMTSCapabilities = await getWMTSCapabilitiesFromUrl(url)
 
     const WMTSCapabilitiesParsed = parser.read(WMTSCapabilities)
-    console.log(`## in getWmtsBaseLayers(${url} : WMTSCapabilitiesParsed : \n`, WMTSCapabilitiesParsed)
+    // console.log(`## in getWmtsBaseLayers(${url} : WMTSCapabilitiesParsed : \n`, WMTSCapabilitiesParsed)
     arrWmtsLayers.push(
       createBaseOlLayerTile(
         WMTSCapabilitiesParsed,
@@ -108,7 +118,7 @@ async function getWmtsBaseLayers(url: string, defaultBaseLayer: string) {
   }
 }
 /**
- * check if the given f is a Function
+ * createLausanneMap will create a map in the given div
  * @param divOfMap the id of the div you want to draw a map
  * @param centerOfMap the position where you want to center map in MN95 Coordinates [x,y] array
  * @param zoomLevel
@@ -137,18 +147,75 @@ export async function createLausanneMap(
       zoom: zoomLevel,
     }),
   })
+  /*
   const layerSwitcher = new LayerSwitcher({
     activationMode: "click",
     tipLabel: "Afficher la liste des fonds de plan", // Optional label for button
     collapseTipLabel: "Cacher la liste des fonds de plan", // Optional label for button
     groupSelectStyle: "children", // Can be 'children' [default], 'group' or 'none'
   })
-  // map.addControl(layerSwitcher)
+  map.addControl(layerSwitcher)
+   */
   // MAP EVENTS
+  /*
   map.on("click", async (evt) => {
     const x = Number(evt.coordinate[0])
     const y = Number(evt.coordinate[1])
     log.l(`#in olmap.click at x,y : [${x.toFixed(2)}, ${y.toFixed(2)}]\n`)
   })
+   */
   return map
+}
+
+export const getLayerByName = (olMap: OlMap, layerName: string): null | OlLayer => {
+  log.t(`## in getLayerByName layerName: ${layerName} `)
+  if (isNullOrUndefined(olMap)) {
+    log.w("NO WAY : olMap is NULL")
+    return null
+  }
+  olMap.getLayers().forEach((layer) => {
+    if (layer.get("name") !== undefined && layer.get("name") === layerName) {
+      return layer
+    }
+  })
+  log.l(`## in getLayerByName : the layer [${layerName}] was not found returning NULL `)
+  return null
+}
+
+export const addNewMarker = (olMap: OlMap, layerName: string, markerPos: Coordinate, markerTitle: string) => {
+  log.t("In addNewMarker markerPos:", markerPos)
+  const olLayer = getLayerByName(olMap, layerName)
+  const iconFeature = new OlFeature({
+    geometry: new OlPoint(markerPos),
+    title: markerTitle,
+    id: 0,
+  })
+  const iconStyle = new Style({
+    image: new Icon({
+      anchor: [0.5, 46],
+      anchorXUnits: "fraction",
+      anchorYUnits: "pixels",
+      src: "/img/gomarker_star.png",
+    }),
+  })
+  iconFeature.setStyle(iconStyle)
+  if (olLayer == null) {
+    // layer was not yet created so just do it
+    log.t(`In addNewMarker creating ${layerName}`)
+    const vectorSource = new OlSourceVector({ features: [iconFeature] })
+    const vectorLayer = new OlLayerVector({
+      source: vectorSource,
+    })
+    vectorLayer.setProperties({ title: layerName, name: layerName })
+    // vectorLayer.setMap(olMap); // overlay ?
+    olMap.addLayer(vectorLayer)
+  } else {
+    log.t(`In addNewMarker adding feature to existing ${layerName}`)
+    const vectorSource = olLayer.getSource() as OlSourceVector
+    if (vectorSource !== null) {
+      vectorSource.clear()
+      vectorSource.addFeature(iconFeature)
+    } // on efface ancien marker
+  }
+  return iconFeature
 }

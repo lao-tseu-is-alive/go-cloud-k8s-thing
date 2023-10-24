@@ -169,8 +169,9 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
       @click.stop="toggleLayerSwitcher"
     ></v-btn>
     <div class="text-xs-center">
-      <v-footer class="text-center bottom--1 mouse-coordinates" >
-        <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>&nbsp;
+      <v-footer class="text-center bottom--1 mouse-coordinates">
+        <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
+        &nbsp;
       </v-footer>
     </div>
     <div class="map" id="map" ref="myMap">
@@ -199,7 +200,7 @@ const myProps = defineProps<{
 
 //// EVENT SECTION
 
-//const emit = defineEmits(["thing-ok", "thing-error"])
+const emit = defineEmits(["map-click", "map-error"])
 
 //// WATCH SECTION
 watch(
@@ -236,6 +237,11 @@ const initialize = async (center) => {
     myOlMap.on("pointermove", (evt) => {
       posMouseX.value = +Number(evt.coordinate[0]).toFixed(2)
       posMouseY.value = +Number(evt.coordinate[1]).toFixed(2)
+    })
+    myOlMap.on("click", (evt) => {
+      const x = +Number(evt.coordinate[0]).toFixed(2)
+      const y = +Number(evt.coordinate[1]).toFixed(2)
+      emit("map-click", [x, y])
     })
     const divToc = document.getElementById("divLayerSwitcher")
     LayerSwitcher.renderPanel(myOlMap, divToc, {})

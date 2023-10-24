@@ -146,6 +146,8 @@ export const useThingStore = defineStore("Thing", {
     },
     async create(id: string, t: Thing): Promise<netThing> {
       log.t(`> Entering.. createThing: ${id}`)
+      if (t.pos_x !== undefined) t.pos_x = +t.pos_x
+      if (t.pos_y !== undefined) t.pos_y = +t.pos_y
       this.areWeReady = false
       try {
         const resp = await myAxios.post("thing", t)
@@ -170,6 +172,8 @@ export const useThingStore = defineStore("Thing", {
     },
     async update(id: string, t: Thing): Promise<netThing> {
       log.t(`> Entering.. updateThing: ${id}`)
+      if (t.pos_x !== undefined) t.pos_x = +t.pos_x
+      if (t.pos_y !== undefined) t.pos_y = +t.pos_y
       this.areWeReady = false
       try {
         const resp = await myAxios.put("thing/" + id, t)

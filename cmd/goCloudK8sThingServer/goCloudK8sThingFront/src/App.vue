@@ -114,7 +114,7 @@
           <v-row class="d-flex fill-height">
             <v-col cols="12">
               <template v-if="showMap">
-                <MapLausanne :zoom="3"></MapLausanne>
+                <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
               </template>
               <template v-else>
                 <ThingList
@@ -167,8 +167,8 @@ import {
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
-const feedbackTimeError =  6000
-const feedbackTimeWarning =  4000
+const feedbackTimeError = 6000
+const feedbackTimeWarning = 4000
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(false)
 const showSettings = ref(false)
@@ -250,7 +250,7 @@ const checkIsSessionTokenValid = () => {
             // jwt token is no more valid
             isUserAuthenticated.value = false
             isUserAdmin.value = false
-            displayFeedBack("Votre session a expiré !", "warning", feedbackTimeWarning )
+            displayFeedBack("Votre session a expiré !", "warning", feedbackTimeWarning)
             logout()
           }
           displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error", feedbackTimeError)
@@ -291,8 +291,12 @@ const thingGotErr = (v: string) => {
 }
 
 const thingGotSuccess = (v: string) => {
-  log.w(`# entering... val:${v} `)
+  log.t(`# entering... val:${v} `)
   displayFeedBack(v, "success")
+}
+
+const mapClickHandler = (pos: number[]) => {
+  log.t(`## entering... pos:${pos[0]}, ${pos[1]}`)
 }
 const clearFilters = () => {
   searchCreatedBy.value = undefined

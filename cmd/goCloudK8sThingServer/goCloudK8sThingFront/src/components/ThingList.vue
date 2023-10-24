@@ -121,6 +121,12 @@
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />
                       </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field v-model="editedItem.pos_x" density="compact" label="Coord X" />
+                      </v-col>
+                      <v-col cols="12" sm="4" md="3" lg="3">
+                        <v-text-field v-model="editedItem.pos_y" density="compact" label="Coord Y" />
+                      </v-col>
                     </v-row>
                   </v-window-item>
                   <v-window-item value="tab-info-more">
@@ -674,6 +680,8 @@ const closeDelete = () => {
 
 const save = async () => {
   log.t(" #> entering SAVE ...")
+  if (editedItem.value.pos_x !== 0) editedItem.value.pos_x = +editedItem.value.pos_x
+  if (editedItem.value.pos_y !== 0) editedItem.value.pos_y = +editedItem.value.pos_y
   if (editedItem.value.external_id !== undefined) {
     editedItem.value.external_id = +editedItem.value.external_id
   }
