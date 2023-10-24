@@ -1,4 +1,5 @@
-export const data = {
+// some sample data for testing purpose
+export const geoData = {
   type: "FeatureCollection",
   features: [
     {
@@ -19,6 +20,7 @@ export const data = {
         status: null,
         created_by: 999999,
         created_at: "2023-10-18T17:03:08.310109",
+        icon_path: "/img/gomarker_star_blue.png",
         pos_x: 2538226,
         pos_y: 1152359.56,
       },
@@ -28,21 +30,22 @@ export const data = {
       geometry: {
         type: "Point",
         crs: { type: "name", properties: { name: "EPSG:2056" } },
-        coordinates: [0, 0],
+        coordinates: [2538167.35, 1152368.92],
       },
       properties: {
         id: "fd053aae-b679-4037-ba9a-3c3669f1f7df",
         type_id: 11,
         name: "Amarrage du cirage",
-        description: "comme son nom l'indique",
+        description: "un bien bel amarrage,comme son nom indique",
         external_id: 9988997,
         inactivated: false,
         validated: true,
         status: null,
         created_by: 999999,
         created_at: "2023-10-13T10:42:32.140216",
-        pos_x: 0,
-        pos_y: 0,
+        icon_path: "/img/gomarker_star_green.png",
+        pos_x: 2538167.35,
+        pos_y: 1152368.92,
       },
     },
     {

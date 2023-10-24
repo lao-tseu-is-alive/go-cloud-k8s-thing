@@ -183,10 +183,10 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
 import { getLog } from "@/config"
-import { createLausanneMap } from "@/components/Map"
+import { addGeoJsonLayer, createLausanneMap } from "@/components/Map";
 import OlMap from "ol/Map"
 import LayerSwitcher from "ol-layerswitcher"
-
+import { geoData } from "@/components/geodata"
 const log = getLog("ThingListVue", 4, 2)
 const posMouseX = ref(0)
 const posMouseY = ref(0)
@@ -245,6 +245,7 @@ const initialize = async (center) => {
     })
     const divToc = document.getElementById("divLayerSwitcher")
     LayerSwitcher.renderPanel(myOlMap, divToc, {})
+    addGeoJsonLayer(myOlMap, "GoelandThingLayer", geoData)
   }
 }
 

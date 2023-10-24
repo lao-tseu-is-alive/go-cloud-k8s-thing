@@ -300,6 +300,7 @@
           <v-data-table
             :headers="getHeaderVTable as any"
             :items="records"
+            item-key="id"
             :sort-by="[{ key: 'external_id', order: 'asc' }]"
             class="elevation-1"
           >
@@ -321,7 +322,7 @@
               </v-toolbar>
             </template>
             <template #item.type_id="{ item }">
-              <v-label> {{ getTypeThingName(item.columns.type_id) }}</v-label>
+              <v-label> {{ getTypeThingName(item.type_id) }}</v-label>
             </template>
             <template #item.inactivated="{ item }">
               <v-checkbox-btn
@@ -338,7 +339,7 @@
               ></v-checkbox-btn>
             </template>
             <template #item.created_at="{ item }">
-              <v-label> {{ getDateFromTimeStamp(item.columns.created_at) }}</v-label>
+              <v-label> {{ getDateFromTimeStamp(item.created_at) }}</v-label>
             </template>
             <template #item.actions="{ item }">
               <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil</v-icon>
@@ -738,9 +739,10 @@ const save = async () => {
   close()
 }
 
-const getTypeThingName = (id: number): string => {
-  if (id in dicoTypeThing) {
-    return dicoTypeThing[id]
+const getTypeThingName = (type_id: number): string => {
+  log.t(`item type ${type_id}`)
+  if (type_id in dicoTypeThing) {
+    return dicoTypeThing[type_id]
   }
   return "# type inconnu #"
 }
