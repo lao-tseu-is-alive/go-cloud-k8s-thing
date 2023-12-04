@@ -164,6 +164,7 @@ import {
   getUserId,
   getSessionId,
 } from "@/components/Login"
+import { mapClickInfo } from "@/components/Map";
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
@@ -295,8 +296,9 @@ const thingGotSuccess = (v: string) => {
   displayFeedBack(v, "success")
 }
 
-const mapClickHandler = (pos: number[]) => {
-  log.t(`## entering... pos:${pos[0]}, ${pos[1]}`)
+const mapClickHandler = (clickInfo: mapClickInfo) => {
+  log.t(`## entering... pos:${clickInfo.x}, ${clickInfo.y}`)
+  log.t(`##features length :${clickInfo.features.length}`, clickInfo.features)
 }
 const clearFilters = () => {
   searchCreatedBy.value = undefined

@@ -35,6 +35,19 @@ const urlLausanneMN95 = "https://tilesmn95.lausanne.ch/tiles/1.0.0/LausanneWMTS.
 const MaxExtent = [2532500, 1149000, 2545625, 1161000]
 const lausanneGare = [2537968.5, 1152088.0]
 
+export interface mapFeatureInfo {
+  id: string
+  feature: OlFeature
+  layer: string
+  data: object
+}
+
+export interface mapClickInfo {
+  x: number
+  y: number
+  features: mapFeatureInfo[]
+}
+
 proj4.defs(
   "EPSG:2056",
   "+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs"

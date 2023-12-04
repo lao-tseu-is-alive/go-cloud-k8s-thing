@@ -14,10 +14,19 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
   height: 98%;
   min-height: 450px;
 }
+
+.tooltip {
+  position: relative;
+  padding: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  opacity: 0.8;
+  white-space: nowrap;
+  font: 12pt sans-serif;
+}
 .mouse-coordinates {
   z-index: 245;
 }
-
 .searchBox {
   // .v-input font-size: 16px; (= body font size)
   padding-left: 17px;
@@ -32,7 +41,6 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 
 .ol-control {
   font-size: 18px;
-
   button {
     background-color: rgba(245, 245, 245, 1);
     color: black;
@@ -175,24 +183,29 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
     </v-footer>
     <div class="map" id="map" ref="myMap">
       <noscript> You need to have a browser with javascript support to see this OpenLayers map of Lausanne </noscript>
+      <div ref="mapTooltip" class="tooltip"></div>
     </div>
   </v-responsive>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { getLog } from "@/config"
-import { addGeoJsonLayer, createLausanneMap } from "@/components/Map"
+import { addGeoJsonLayer, createLausanneMap, mapClickInfo, mapFeatureInfo } from "@/components/Map"
 import OlMap from "ol/Map"
+import OlOverlay from "ol/Overlay"
 import LayerSwitcher from "ol-layerswitcher"
 import { geoData } from "@/components/geodata"
+import { isNullOrUndefined } from "@/tools/utils"
 const log = getLog("ThingListVue", 4, 2)
+const myLayerName = "GoelandThingLayer"
 const posMouseX = ref(0)
 const posMouseY = ref(0)
 const layerSwitcherVisible = ref(false)
 const areWeReady = ref(false)
 let myOlMap: null | OlMap
-const myMap = ref(null)
+let myMapOverlay: null | OlOverlay
+const mapTooltip = ref<HTMLDivElement | null>(null)
 const myProps = defineProps<{
   zoom?: number | undefined
 }>()
@@ -216,10 +229,6 @@ watch(
 )
 //// COMPUTED SECTION
 
-const propsValues = computed(() => {
-  return JSON.stringify(myProps, undefined, 3)
-})
-
 //// FUNCTIONS SECTION
 const toggleLayerSwitcher = () => {
   log.t(`# toggleLayerSwitcher layerSwitcherVisible : ${layerSwitcherVisible.value}`)
@@ -236,15 +245,125 @@ const initialize = async (center) => {
     myOlMap.on("pointermove", (evt) => {
       posMouseX.value = +Number(evt.coordinate[0]).toFixed(2)
       posMouseY.value = +Number(evt.coordinate[1]).toFixed(2)
+      const features = []
+      if (myOlMap instanceof OlMap) {
+        myOlMap.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+          let layerName = ""
+          if (!isNullOrUndefined(layer)) {
+            layerName = layer.get("name")
+          }
+          // on veut les tooltip seulement pour la couche myLayerName
+          if (!isNullOrUndefined(layerName)) {
+            if (layerName.indexOf(myLayerName) > -1) {
+              const featureProps = feature.getProperties()
+              if (!isNullOrUndefined(featureProps)) {
+                const featureInfo = {
+                  id: featureProps.id,
+                  feature,
+                  layer: layerName,
+                  data: featureProps,
+                }
+                // log.l(`Feature id : ${feature_props.id}, info:`, info);
+                features.push(featureInfo)
+              } else {
+                features.push({
+                  id: 0,
+                  feature,
+                  layer: layerName,
+                })
+              }
+            }
+          }
+          // return feature
+        })
+      } // end of forEachFeatureAtPixel
+      if (features.length > 0) {
+        //log.w("##MapLausanne pointermove EVENT ->Array of features found :", features, mapTooltip.value)
+        let strToolTip = ""
+        let layerName = ""
+        features.forEach((featInfo) => {
+          const currentTitle = featInfo.data.name
+          layerName += `${featInfo.layer} `
+          if (!isNullOrUndefined(currentTitle)) {
+            strToolTip += `${currentTitle.replace(/(<([^>]+)>)/gi, "")}<br>`
+          }
+        })
+        if (strToolTip.length > 0 && layerName.indexOf(myLayerName) > -1) {
+          // log.w(`Before tooltip layer : ${layerName}`)
+          if (myMapOverlay instanceof OlOverlay) {
+            myMapOverlay.setPosition(evt.coordinate)
+          }
+          if (mapTooltip.value instanceof HTMLDivElement) {
+            mapTooltip.value.style.display = "block"
+            mapTooltip.value.innerHTML = strToolTip
+          }
+        } else {
+          if (mapTooltip.value instanceof HTMLDivElement) {
+            mapTooltip.value.style.display = "none"
+            mapTooltip.value.innerHTML = ""
+          }
+        }
+      } else {
+        if (mapTooltip.value instanceof HTMLDivElement) {
+          mapTooltip.value.style.display = "none"
+          mapTooltip.value.innerHTML = ""
+        }
+      }
     })
     myOlMap.on("click", (evt) => {
       const x = +Number(evt.coordinate[0]).toFixed(2)
       const y = +Number(evt.coordinate[1]).toFixed(2)
-      emit("map-click", [x, y])
+      const features: mapFeatureInfo[] = []
+      if (myOlMap instanceof OlMap) {
+        myOlMap.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+          let layerName = ""
+          if (!isNullOrUndefined(layer)) {
+            layerName = layer.get("name")
+          }
+          // on veut les tooltip seulement pour la couche myLayerName
+          if (!isNullOrUndefined(layerName)) {
+            if (layerName.indexOf(myLayerName) > -1) {
+              const featureProps = feature.getProperties()
+              if (!isNullOrUndefined(featureProps)) {
+                const featureInfo: mapFeatureInfo = {
+                  id: featureProps.id,
+                  feature,
+                  layer: layerName,
+                  data: featureProps,
+                }
+                // log.l(`Feature id : ${feature_props.id}, info:`, info);
+                features.push(featureInfo)
+              } else {
+                features.push({
+                  id: 0,
+                  feature,
+                  layer: layerName,
+                  data: null,
+                } as mapFeatureInfo)
+              }
+            }
+          }
+          // return feature
+        })
+      } // end of forEachFeatureAtPixel
+      if (features.length > 0) {
+        features.forEach((featInfo) => {
+          log.l("Feature found : ", featInfo)
+        })
+      }
+      emit("map-click", { x, y, features } as mapClickInfo)
     })
     const divToc = document.getElementById("divLayerSwitcher")
     LayerSwitcher.renderPanel(myOlMap, divToc, {})
-    addGeoJsonLayer(myOlMap, "GoelandThingLayer", geoData)
+    addGeoJsonLayer(myOlMap, myLayerName, geoData)
+    if (mapTooltip.value !== null) {
+      myMapOverlay = new OlOverlay({
+        element: mapTooltip.value as HTMLDivElement,
+        offset: [0, -40],
+        positioning: "top-center",
+      })
+      myOlMap.addOverlay(myMapOverlay)
+    }
   }
 }
 
