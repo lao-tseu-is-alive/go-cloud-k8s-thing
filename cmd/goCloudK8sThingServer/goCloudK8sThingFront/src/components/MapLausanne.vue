@@ -7,11 +7,11 @@ $button_size_14px: 3em; // = 42px (body font size = 14px)
 $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 .map {
   background-color: white;
-  position: absolute;
-  top: 0;
-  bottom: 0;
+  position: relative;
+  top: 0px;
+  bottom: 0px;
   width: 100%;
-  height: 99%;
+  height: 98%;
   min-height: 450px;
 }
 .mouse-coordinates {
@@ -88,8 +88,8 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 .layers_button {
   // .v-btn.v-size--default font-size: 0.875rem = 14px (= body font size)
   position: absolute;
-  top: calc($searchbox_height + (3 * $button_size_20px) + 0.2em); // 197px
-  left: unset !important;
+  top: calc($searchbox_height + (3 * $button_size_20px) + 1.5em); // 197px
+  //left: unset !important;
   right: 0.5em;
   z-index: 250;
   background-color: #feffeb;
@@ -158,6 +158,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
         </v-card>
       </v-dialog>
     </div>
+
     <v-btn
       icon="mdi-layers-outline"
       aria-label="selection couches"
@@ -168,12 +169,10 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
       width="45"
       @click.stop="toggleLayerSwitcher"
     ></v-btn>
-    <div class="text-xs-center">
-      <v-footer class="text-center bottom--1 mouse-coordinates">
-        <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
-        &nbsp;
-      </v-footer>
-    </div>
+    <v-footer class="text-center bottom--1 mouse-coordinates">
+      <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
+      &nbsp;
+    </v-footer>
     <div class="map" id="map" ref="myMap">
       <noscript> You need to have a browser with javascript support to see this OpenLayers map of Lausanne </noscript>
     </div>
@@ -183,7 +182,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
 import { getLog } from "@/config"
-import { addGeoJsonLayer, createLausanneMap } from "@/components/Map";
+import { addGeoJsonLayer, createLausanneMap } from "@/components/Map"
 import OlMap from "ol/Map"
 import LayerSwitcher from "ol-layerswitcher"
 import { geoData } from "@/components/geodata"

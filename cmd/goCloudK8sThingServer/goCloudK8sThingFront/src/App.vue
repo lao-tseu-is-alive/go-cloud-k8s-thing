@@ -31,9 +31,9 @@
         <v-alert class="ma-4" :type="feedbackType" :text="feedbackMsg" :color="feedbackType"></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
-        <v-container class="d-flex fill-height text-center" :fluid="true">
+        <v-responsive class="text-center pa-2">
           <template v-if="showSearchCriteria && !showSettings">
-            <v-row class="d-flex">
+            <v-row>
               <v-col cols="12">
                 <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
                   <template #title>
@@ -111,24 +111,24 @@
               </v-card-text>
             </v-card>
           </template>
-          <v-row class="d-flex fill-height">
-            <v-col cols="12">
-              <template v-if="showMap">
-                <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
-              </template>
-              <template v-else>
-                <ThingList
-                  :limit="searchLimit"
-                  :offset="searchOffset"
-                  :type-thing="searchType"
-                  :created-by="searchCreatedBy"
-                  :search-keywords="searchKeywords"
-                  :inactivated="searchInactivated"
-                  :validated="searchValidated"
-                  @thing-error="thingGotErr"
-                  @thing-ok="thingGotSuccess"
-                />
-              </template>
+        </v-responsive>
+        <v-container class="text-center fill-height pa-2" :fluid="true">
+          <v-row class="fill-height h-100">
+            <v-col cols="12" v-show="showMap" class="fill-height">
+              <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
+            </v-col>
+            <v-col cols="12" v-show="!showMap" class="">
+              <ThingList
+                :limit="searchLimit"
+                :offset="searchOffset"
+                :type-thing="searchType"
+                :created-by="searchCreatedBy"
+                :search-keywords="searchKeywords"
+                :inactivated="searchInactivated"
+                :validated="searchValidated"
+                @thing-error="thingGotErr"
+                @thing-ok="thingGotSuccess"
+              />
             </v-col>
           </v-row>
         </v-container>
@@ -170,7 +170,7 @@ type LevelAlert = "error" | "success" | "warning" | "info" | undefined
 const feedbackTimeError = 6000
 const feedbackTimeWarning = 4000
 const displaySize = reactive(useDisplay())
-const showSearchCriteria = ref(false)
+const showSearchCriteria = ref(true)
 const showSettings = ref(false)
 const showMap = ref(true)
 const searchType = ref(0)
