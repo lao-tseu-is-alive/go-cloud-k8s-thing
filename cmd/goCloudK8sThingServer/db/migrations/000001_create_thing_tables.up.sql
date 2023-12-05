@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS go_thing.type_thing
     inactivated_by     integer,
     inactivated_reason text,
     managed_by         integer,
+    icon_path          text default '/img/gomarker_star_blue.png' not null,
     _created_at        timestamp default now() not null,
     _created_by        integer                 not null,
     _last_modified_at  timestamp,

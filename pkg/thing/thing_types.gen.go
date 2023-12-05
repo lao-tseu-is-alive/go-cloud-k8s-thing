@@ -111,6 +111,7 @@ type TypeThing struct {
 	Description       *string                 `json:"description,omitempty"`
 	ExternalId        *int32                  `json:"external_id,omitempty"`
 	GeometryType      *string                 `json:"geometry_type,omitempty"`
+	IconPath          string                  `json:"icon_path"`
 	Id                int32                   `json:"id"`
 	Inactivated       bool                    `json:"inactivated"`
 	InactivatedBy     *int32                  `json:"inactivated_by,omitempty"`
@@ -129,6 +130,7 @@ type TypeThingList struct {
 	CreatedAt    time.Time `json:"created_at"`
 	ExternalId   *int32    `json:"external_id,omitempty"`
 	GeometryType *string   `json:"geometry_type,omitempty"`
+	IconPath     string    `json:"icon_path"`
 	Id           int32     `json:"id"`
 	Inactivated  bool      `json:"inactivated"`
 	Name         string    `json:"name"`

@@ -12,7 +12,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "servers": [
     {
@@ -1265,6 +1265,7 @@
         "required": [
           "id",
           "name",
+          "icon_path",
           "inactivated",
           "deleted",
           "created_by"
@@ -1319,6 +1320,10 @@
             "format": "int32",
             "type": "integer"
           },
+          "icon_path": {
+            "format": "text",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "type": "string"
@@ -1356,6 +1361,7 @@
         "required": [
           "id",
           "name",
+          "icon_path",
           "inactivated",
           "created_at"
         ],
@@ -1372,6 +1378,10 @@
           "external_id": {
             "format": "int32",
             "type": "integer"
+          },
+          "icon_path": {
+            "format": "text",
+            "type": "string"
           },
           "created_at": {
             "format": "date-time",

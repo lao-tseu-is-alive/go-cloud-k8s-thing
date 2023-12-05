@@ -29,9 +29,9 @@ WHERE _deleted = false
 	createTypeThing = `
 INSERT INTO go_thing.type_thing
     (name, description, comment, external_id, table_name, geometry_type,
-     managed_by, _created_at, _created_by, more_data_schema, text_search)
+     managed_by, icon_path, _created_at, _created_by, more_data_schema, text_search)
 VALUES ($1, $2, $3, $4, $5, $6,
-        $7, CURRENT_TIMESTAMP, $8, $9,
+        $7, $8, CURRENT_TIMESTAMP, $9, $10,
         to_tsvector('french', unaccent($1) ||
                               ' ' || coalesce(unaccent($2), ' ') ||
                               ' ' || coalesce(unaccent($3), ' ') ))
@@ -51,6 +51,7 @@ SELECT id,
        inactivated_by,
        inactivated_reason,
        managed_by,
+	   icon_path,
        _created_at as created_at,
        _created_by as created_by,
        _last_modified_at as last_modified_at,
@@ -87,9 +88,10 @@ SET
     inactivated_by     = $10,
     inactivated_reason = $11,
     managed_by         = $12,
+	icon_path          = $13,
     _last_modified_at  = CURRENT_TIMESTAMP,
-    _last_modified_by  = $13,
-    more_data_schema   = $14,
+    _last_modified_by  = $14,
+    more_data_schema   = $15,
     text_search = to_tsvector('french', unaccent($2) ||
                              ' ' || coalesce(unaccent($3), ' ') ||
                              ' ' || coalesce(unaccent($4), ' ') )

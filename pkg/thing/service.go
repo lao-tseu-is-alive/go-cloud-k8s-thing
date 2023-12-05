@@ -393,6 +393,7 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 		LastModifiedAt:    nil,
 		LastModifiedBy:    nil,
 		ManagedBy:         nil,
+		IconPath:          "",
 		MoreDataSchema:    nil,
 		Name:              "",
 		TableName:         nil,

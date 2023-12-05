@@ -70,7 +70,8 @@ const (
   "description": "Piscine publique ou privée",
   "geometry_type": "bbox", 
   "external_id": 987654321,
-  "name": "Piscine"
+  "name": "Piscine",
+  "icon_path": "/img/gomarker_star_blue.png"
 }
 
 `
@@ -80,7 +81,8 @@ const (
   "comment": "Attention la piscine est 🤔 ...️⁉️⚠️  🏴 ‍☠️ 💀 ☠️ ☢️ ☣️ 💣 💥, ",
   "geometry_type": "bbox", 
   "external_id": 987654321,
-  "name": "Piscine"
+  "name": "Piscine",
+  "icon_path": "/img/gomarker_star_blue.png"
 }
 `
 )

@@ -350,15 +350,15 @@ func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
 	err := db.Conn.QueryRow(context.Background(), createTypeThing,
 		/*	INSERT INTO go_thing.type_thing
 			    (name, description, comment, external_id, table_name, geometry_type,
-			     managed_by, _created_at, _created_by, more_data_schema, text_search)
+			     managed_by, icon_path, _created_at, _created_by, more_data_schema, text_search)
 			VALUES ($1, $2, $3, $4, $5, $6,
-			        $7, CURRENT_TIMESTAMP, $8, $9,
+			        $7, $8, CURRENT_TIMESTAMP, $9, $10,
 			        to_tsvector('french', unaccent($1) ||
 			                              ' ' || coalesce(unaccent($2), ' ') ||
 			                              ' ' || coalesce(unaccent($3), ' ') ));
 		*/
 		tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, &tt.GeometryType, //$6
-		&tt.ManagedBy, tt.CreatedBy, &tt.MoreDataSchema).Scan(&lastInsertId)
+		&tt.ManagedBy, tt.IconPath, tt.CreatedBy, &tt.MoreDataSchema).Scan(&lastInsertId)
 	if err != nil {
 		db.log.Error("CreateTypeThing(%q) unexpectedly failed. error : %v", tt.Name, err)
 		return nil, err
@@ -379,29 +379,30 @@ func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
 
 	rowsAffected, err := db.dbi.ExecActionQuery(updateTypeTing,
 		/*		UPDATE go_thing.type_thing
-				SET
-				    name               = $2,
-				    description        = $3,
-				    comment            = $4,
-				    external_id        = $5,
-				    table_name         = $6,
-				    geometry_type      = $7,
-				    inactivated        = $8,
-				    inactivated_time   = $9,
-				    inactivated_by     = $10,
-				    inactivated_reason = $11,
-				    managed_by         = $12,
-				    _last_modified_at  = CURRENT_TIMESTAMP,
-				    _last_modified_by  = $13,
-				    more_data_schema   = $14,
-				    text_search = to_tsvector('french', unaccent($2) ||
-				                             ' ' || coalesce(unaccent($3), ' ') ||
-				                             ' ' || coalesce(unaccent($4), ' ') )
-				WHERE id = $1;
+						SET
+						    name               = $2,
+						    description        = $3,
+						    comment            = $4,
+						    external_id        = $5,
+						    table_name         = $6,
+						    geometry_type      = $7,
+						    inactivated        = $8,
+						    inactivated_time   = $9,
+						    inactivated_by     = $10,
+						    inactivated_reason = $11,
+						    managed_by         = $12,
+							icon_path          = $13,
+				            _last_modified_at  = CURRENT_TIMESTAMP,
+				            _last_modified_by  = $14,
+				            more_data_schema   = $15,
+						    text_search = to_tsvector('french', unaccent($2) ||
+						                             ' ' || coalesce(unaccent($3), ' ') ||
+						                             ' ' || coalesce(unaccent($4), ' ') )
+						WHERE id = $1;
 		*/
 		id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
 		&tt.GeometryType, tt.Inactivated, &tt.InactivatedTime, &tt.InactivatedBy, &tt.InactivatedReason, //$11
-		&tt.ManagedBy, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
+		&tt.ManagedBy, tt.IconPath, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
 	if err != nil {
 
 		db.log.Error("UpdateTypeThing(%q) unexpectedly failed. error : %v", id, err)
