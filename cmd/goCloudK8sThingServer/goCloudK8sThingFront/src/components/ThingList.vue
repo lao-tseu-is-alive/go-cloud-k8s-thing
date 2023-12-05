@@ -342,8 +342,8 @@
               <v-label> {{ getDateFromTimeStamp(item.created_at) }}</v-label>
             </template>
             <template #item.actions="{ item }">
-              <v-icon size="small" class="me-2" @click="editItem(item.raw)"> mdi-pencil</v-icon>
-              <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete</v-icon>
+              <v-icon size="small" class="me-2" @click="editItem(item)"> mdi-pencil</v-icon>
+              <v-icon size="small" @click="deleteItem(item)"> mdi-delete</v-icon>
             </template>
             <template #no-data>
               <v-alert type="warning">No data available</v-alert>
@@ -364,7 +364,6 @@ import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { getDateFromTimeStamp } from "@/tools/utils"
 import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
 import { Configuration, DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
-import { VDataTable } from "vuetify/labs/VDataTable"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
 
