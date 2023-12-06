@@ -26,3 +26,8 @@ ___goCloudK8sThingServer_test_go.test
 /documentation/design+microservices+v2.pdf
 /cmd/goCloudK8sThingServer/goCloudK8sThingFront/openapitools.json
 /cmd/goCloudK8sThingServer/typescript-axios-client-generated.zip
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/Google_Maps_pin.svg
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/Googlemap.svg
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/map-marker-pin-3d.svg
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/Map-Warning-Icon.svg
+/cmd/goCloudK8sThingServer/openapitools.json

@@ -76,12 +76,12 @@ export const geoData = {
       geometry: {
         type: "Point",
         crs: { type: "name", properties: { name: "EPSG:2056" } },
-        coordinates: [0, 0],
+        coordinates: [2538178.17, 1152413.56],
       },
       properties: {
         id: "1999971f-53d7-4eb6-8898-97f257ea5f27",
-        type_id: 3,
-        name: "GilouVille du château  mm 💥💥",
+        type_id: 5,
+        name: "Bâtiment du château de Gilou 💥💥",
         description: "Another  a nice test",
         external_id: 1234567890,
         inactivated: false,
@@ -89,8 +89,9 @@ export const geoData = {
         status: "Planifié",
         created_by: 999999,
         created_at: "2023-07-27T16:22:04.825275",
-        pos_x: 0,
-        pos_y: 0,
+        icon_path: "/img/gomarker_building.png",
+        pos_x: 2538178.17,
+        pos_y: 1152413.56,
       },
     },
     {
