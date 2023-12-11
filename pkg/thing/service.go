@@ -57,6 +57,35 @@ type Service struct {
 	ListDefaultLimit int
 }
 
+func (s Service) GeoJson(ctx echo.Context, params GeoJsonParams) error {
+	s.Log.Info("trace: entering Thing List() params:%+v", params)
+	// get the current user from JWT TOKEN
+	u := ctx.Get("jwtdata").(*jwt.Token)
+	claims := goserver.JwtCustomClaims{}
+	err := u.DecodeClaims(&claims)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	limit := s.ListDefaultLimit
+	if params.Limit != nil {
+		limit = int(*params.Limit)
+	}
+	offset := 0
+	if params.Offset != nil {
+		offset = int(*params.Offset)
+	}
+	jsonResult, err := s.Store.GeoJson(offset, limit, params)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
+		} else {
+			jsonResult = "empty"
+			return ctx.JSONBlob(http.StatusOK, []byte(jsonResult))
+		}
+	}
+	return ctx.JSONBlob(http.StatusOK, []byte(jsonResult))
+}
+
 // List sends a list of things in the store based on the given parameters filters
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing?limit=3&ofset=0' |jq
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing?limit=3&type=112' |jq

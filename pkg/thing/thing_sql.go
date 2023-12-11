@@ -118,7 +118,7 @@ UPDATE go_thing.thing SET
 WHERE id = $1;
 `
 
-	geoJsonThingSearch = `
+	baseGeoJsonThingSearch = `
 SELECT row_to_json(fc)
 FROM (SELECT 'FeatureCollection'                         AS type,
              coalesce(array_to_json(array_agg(f)), '[]') AS features
@@ -133,18 +133,18 @@ FROM (SELECT 'FeatureCollection'                         AS type,
                                              inactivated,
                                              validated,
                                              status,
+										     (SELECT icon_path FROM go_thing.type_thing tt WHERE tt.id = t.type_id) as icon_path,
                                              _created_by    as created_by,
                                              _created_at    as created_at,
                                              st_x(position) as pos_x,
                                              st_y(position) as pos_y) AS l)) AS properties
             FROM go_thing.thing t
-            WHERE _deleted = false
-              AND position IS NOT NULL
-              AND type_id = coalesce($3, type_id)
-              AND _created_by = coalesce($4, _created_by)
-              AND inactivated = coalesce($5, inactivated)
-              AND text_search @@ plainto_tsquery('french', unaccent($6))
-            ORDER BY _created_at DESC
-            LIMIT $1 OFFSET $2) AS f) AS fc
+            WHERE _deleted = false AND position IS NOT NULL
+               
+`
+	geoJsonListEndOfQuery = `
+		AND text_search @@ plainto_tsquery('french', unaccent($6))
+        ORDER BY _created_at DESC
+        LIMIT $1 OFFSET $2) AS f) AS fc
 `
 )

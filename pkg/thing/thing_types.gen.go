@@ -13,6 +13,21 @@ const (
 	JWTAuthScopes = "JWTAuth.Scopes"
 )
 
+// Defines values for FeatureType.
+const (
+	FeatureTypeFeature FeatureType = "Feature"
+)
+
+// Defines values for FeatureCollectionType.
+const (
+	FeatureCollectionTypeFeatureCollection FeatureCollectionType = "FeatureCollection"
+)
+
+// Defines values for GeometryCollectionType.
+const (
+	GeometryCollectionTypeGeometryCollection GeometryCollectionType = "GeometryCollection"
+)
+
 // Defines values for ThingStatus.
 const (
 	Abandonné      ThingStatus = "Abandonné"
@@ -26,6 +41,94 @@ const (
 type Error struct {
 	Code    int32  `json:"code"`
 	Message string `json:"message"`
+}
+
+// GeoJSon Feature
+type Feature struct {
+	// GeoJSon geometry collection
+	Geometry   GeometryCollection      `json:"geometry"`
+	Id         *interface{}            `json:"id,omitempty"`
+	Properties *map[string]interface{} `json:"properties,omitempty"`
+	Type       FeatureType             `json:"type"`
+}
+
+// FeatureType defines model for Feature.Type.
+type FeatureType string
+
+// GeoJSon Feature collection
+type FeatureCollection struct {
+	Features []Feature             `json:"features"`
+	Type     FeatureCollectionType `json:"type"`
+}
+
+// FeatureCollectionType defines model for FeatureCollection.Type.
+type FeatureCollectionType string
+
+// GeoJSon geometry
+type Geometry struct {
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// GeoJSon geometry collection
+type GeometryCollection struct {
+	Geometries []Geometry             `json:"geometries"`
+	Type       GeometryCollectionType `json:"type"`
+}
+
+// GeometryCollectionType defines model for GeometryCollection.Type.
+type GeometryCollectionType string
+
+// LineString defines model for LineString.
+type LineString struct {
+	Coordinates *[]Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// MultiLineString defines model for MultiLineString.
+type MultiLineString struct {
+	Coordinates *[][]Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// MultiPoint defines model for MultiPoint.
+type MultiPoint struct {
+	Coordinates *[]Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// MultiPolygon defines model for MultiPolygon.
+type MultiPolygon struct {
+	Coordinates *[][][]Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// Point defines model for Point.
+type Point struct {
+	// Point in 3D space
+	Coordinates *Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
+}
+
+// Point in 3D space
+type Point3D = []float32
+
+// Polygon defines model for Polygon.
+type Polygon struct {
+	Coordinates *[][]Point3D `json:"coordinates,omitempty"`
+
+	// the geometry type
+	Type interface{} `json:"type"`
 }
 
 // Thing defines model for Thing.
@@ -186,6 +289,27 @@ type CountParams struct {
 
 	// validation flag to filter the things to return
 	Validated *bool `form:"validated,omitempty" json:"validated,omitempty"`
+}
+
+// GeoJsonParams defines parameters for GeoJson.
+type GeoJsonParams struct {
+	// TypeThing id to filter by the things to return
+	Type *int32 `form:"type,omitempty" json:"type,omitempty"`
+
+	// id of the creator to filter by the things to return
+	CreatedBy *int32 `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// inactivated flag to filter the things to return
+	Inactivated *bool `form:"inactivated,omitempty" json:"inactivated,omitempty"`
+
+	// validation flag to filter the things to return
+	Validated *bool `form:"validated,omitempty" json:"validated,omitempty"`
+
+	// maximum number of results to return
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// offset rows to skip before returning rows
+	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // SearchParams defines parameters for Search.

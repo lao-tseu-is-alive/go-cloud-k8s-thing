@@ -10,6 +10,8 @@ import (
 
 // Storage is an interface to different implementation of persistence for Things/TypeThing
 type Storage interface {
+	// GeoJson returns a geoJson of existing things with the given offset and limit.
+	GeoJson(offset, limit int, params GeoJsonParams) (string, error)
 	// List returns the list of existing things with the given offset and limit.
 	List(offset, limit int, params ListParams) ([]*ThingList, error)
 	// ListByExternalId returns the list of existing things having the given externalId with the given offset and limit.

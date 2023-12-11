@@ -119,6 +119,83 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - JWTAuth: []
+  /thing/geojson:
+    get:
+      summary: List returns a geoJson of things found
+      description: Returns the geoJson of the thing selected by the givven parameters
+      operationId: GeoJson
+      parameters:
+        - name: type
+          in: query
+          description: TypeThing id to filter by the things to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+        - name: created_by
+          in: query
+          description: id of the creator to filter by the things to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+        - name: inactivated
+          in: query
+          description: inactivated flag to filter the things to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: boolean
+        - name: validated
+          in: query
+          description: validation flag to filter the things to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: query
+          description: offset rows to skip before returning rows
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: get List of thing response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureCollection'
+        "401":
+          description: Access token is missing or invalid
+        default:
+          description: unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - JWTAuth: []
   /thing/by-external-id/{externalId}:
     get:
       summary: ListByExternalId returns a list of thing filtered by externalId
@@ -979,6 +1056,177 @@ components:
             - "Abandonné"
             - "Démoli"
       format: "public.thing_status_type"
+    
+    Geometry:
+      type: object
+      description: GeoJSon geometry
+      required:
+        - type
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometry-objects
+      properties:
+        type:
+          oneOf:
+          - $ref: '#/components/schemas/Point'
+          - $ref: '#/components/schemas/LineString'
+          - $ref: '#/components/schemas/Polygon'  
+          - $ref: '#/components/schemas/LineString'
+          - $ref: '#/components/schemas/MultiPoint'
+          - $ref: '#/components/schemas/MultiLineString'
+          - $ref: '#/components/schemas/MultiPolygon'
+          description: the geometry type
+
+    Point3D:
+      type: array
+      description: Point in 3D space
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id2
+      minItems: 2
+      maxItems: 3
+      items:
+        type: number
+  
+    Point:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id2
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              $ref: '#/components/schemas/Point3D'
+
+    LineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id3
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/components/schemas/Point3D'
+  
+    Polygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id4
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point3D'
+  
+    MultiPoint:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id5
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/components/schemas/Point3D'
+  
+    MultiLineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point3D'
+  
+  
+    MultiPolygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: "#/components/schemas/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Point3D'
+
+    GeometryCollection:
+      type: object
+      description: GeoJSon geometry collection
+      required:
+      - type
+      - geometries
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometrycollection
+      properties:
+        type:
+          type: string
+          enum:
+          - GeometryCollection
+        geometries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Geometry'
+    Feature:
+      type: object
+      description: GeoJSon Feature
+      required:
+      - type
+      - geometry
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946#section-3.2
+      properties:
+        type:
+          type: string
+          enum:
+            - Feature
+        id:
+          anyOf: 
+            - type: integer
+            - type: string
+        geometry:
+          $ref: '#/components/schemas/GeometryCollection'
+        properties:
+          type: object
+
+    FeatureCollection:
+      type: object
+      description: GeoJSon Feature collection
+      required:
+        - type
+        - features
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946#section-3.3
+      properties:
+        type:
+          type: string
+          enum:
+          - FeatureCollection
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
     Error:
       required:
         - code
