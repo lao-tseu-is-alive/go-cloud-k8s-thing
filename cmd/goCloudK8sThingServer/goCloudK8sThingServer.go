@@ -21,6 +21,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"runtime"
 	"strings"
@@ -278,11 +279,26 @@ func main() {
 	l.Info("Will start HTTP server listening on port %s", listenAddr)
 	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
+
+	customCounter := prometheus.NewCounter( // create new counter metric. This is replacement for `prometheus.Metric` struct
+		prometheus.CounterOpts{
+			Name: fmt.Sprintf("%s_custom_requests_total", version.APP),
+			Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+		},
+	)
+	if err := prometheus.Register(customCounter); err != nil { // register your new counter metric with default metrics registry
+		l.Fatal("💥💥 ERROR: 'calling prometheus.Register got error: %v'\n", err)
+	}
+
 	// https://echo.labstack.com/docs/middleware/prometheus
 	mwConfig := echoprometheus.MiddlewareConfig{
+		AfterNext: func(c echo.Context, err error) {
+			customCounter.Inc() // use our custom metric in middleware. after every request increment the counter
+		},
+		// does not gather metrics on routes starting with `/health`
 		Skipper: func(c echo.Context) bool {
 			return strings.HasPrefix(c.Path(), "/health")
-		}, // does not gather metrics on routes starting with `/health`
+		},
 		Subsystem: version.APP,
 	}
 	e.Use(echoprometheus.NewMiddlewareWithConfig(mwConfig)) // adds middleware to gather metrics
