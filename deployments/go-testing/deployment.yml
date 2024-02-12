@@ -186,7 +186,7 @@ spec:
           - 100
       containers:
       - name: go-cloud-k8s-thing
-        image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.0.4
+        image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.0.6
         imagePullPolicy: Always
         securityContext:
           seccompProfile:
@@ -260,6 +260,16 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: DB_SSL_MODE
+                name: app-configs
+          - name: ADMIN_USER
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_USER
+                name: app-configs
+          - name: ADMIN_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_PASSWORD
                 name: app-configs
           - name: JWT_SECRET
             valueFrom:
