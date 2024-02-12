@@ -326,14 +326,14 @@
             </template>
             <template #item.inactivated="{ item }">
               <v-checkbox-btn
-                v-model="item.columns.inactivated"
+                v-model="item.inactivated"
                 :disabled="true"
                 class="d-none d-lg-block"
               ></v-checkbox-btn>
             </template>
             <template #item.validated="{ item }">
               <v-checkbox-btn
-                v-model="item.columns.validated"
+                v-model="item.validated"
                 :disabled="true"
                 class="d-none d-lg-block"
               ></v-checkbox-btn>
@@ -528,6 +528,20 @@ watch(
       if (val !== oldValue) {
         searchParameters.value = Object.assign({}, myProps)
         searchParameters.value.limit = val < 1 ? 1 : val
+        store.search(searchParameters.value)
+      }
+    }
+  }
+)
+
+watch(
+  () => myProps.offset,
+  (val, oldValue) => {
+    log.t(` watch myProps.offset old: ${oldValue}, new val: ${val}`)
+    if (areWeReady.value) {
+      if (val !== oldValue) {
+        searchParameters.value = Object.assign({}, myProps)
+        searchParameters.value.offset = val < 1 ? 1 : val
         store.search(searchParameters.value)
       }
     }

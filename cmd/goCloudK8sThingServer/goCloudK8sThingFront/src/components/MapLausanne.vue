@@ -179,6 +179,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
     ></v-btn>
     <v-footer class="text-center bottom--1 mouse-coordinates">
       <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
+      <div>Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ searchParameters }} ready:{{ areWeReady }}</div>
       &nbsp;
     </v-footer>
     <div class="map" id="map" ref="myMap">
@@ -197,12 +198,18 @@ import OlOverlay from "ol/Overlay"
 import LayerSwitcher from "ol-layerswitcher"
 import { geoData } from "@/components/geodata"
 import { isNullOrUndefined } from "@/tools/utils"
+import { useThingStore } from "@/components/ThingStore"
+import { storeToRefs } from "pinia"
+
+const store = useThingStore()
+const { searchParameters, areWeReady } = storeToRefs(store)
+
 const log = getLog("ThingListVue", 4, 2)
 const myLayerName = "GoelandThingLayer"
 const posMouseX = ref(0)
 const posMouseY = ref(0)
 const layerSwitcherVisible = ref(false)
-const areWeReady = ref(false)
+// const areWeReady = ref(false)
 let myOlMap: null | OlMap
 let myMapOverlay: null | OlOverlay
 const mapTooltip = ref<HTMLDivElement | null>(null)
@@ -327,6 +334,7 @@ const initialize = async (center) => {
               if (!isNullOrUndefined(featureProps)) {
                 const featureInfo: mapFeatureInfo = {
                   id: featureProps.id,
+                  // @ts-expect-error it's ok
                   feature,
                   layer: layerName,
                   data: featureProps,
@@ -334,12 +342,8 @@ const initialize = async (center) => {
                 // log.l(`Feature id : ${feature_props.id}, info:`, info);
                 features.push(featureInfo)
               } else {
-                features.push({
-                  id: 0,
-                  feature,
-                  layer: layerName,
-                  data: null,
-                } as mapFeatureInfo)
+                // @ts-expect-error it's ok
+                features.push({ id: 0, feature, layer: layerName, data: null } as mapFeatureInfo)
               }
             }
           }
@@ -371,5 +375,6 @@ onMounted(() => {
   log.t("mounted()")
   const placeStFrancoisM95 = [2538202, 1152364]
   initialize(placeStFrancoisM95)
+  log.l("onMounted store :", areWeReady, searchParameters)
 })
 </script>

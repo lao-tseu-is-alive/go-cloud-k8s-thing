@@ -299,7 +299,9 @@ export const addGeoJsonLayer = (olMap: OlMap, layerName: string, geoJsonData: ob
     // layer was not yet created so let's create it with the brand new marker icon feature
     const vectorSource = getVectorSourceGeoJson(geoJsonData)
     const vectorLayer = new OlLayerVector({
+      // @ts-expect-error it's ok
       source: vectorSource,
+      // @ts-expect-error it's what is in ol doc
       style: getPointStyle,
     })
     vectorLayer.setProperties({ title: layerName, name: layerName })

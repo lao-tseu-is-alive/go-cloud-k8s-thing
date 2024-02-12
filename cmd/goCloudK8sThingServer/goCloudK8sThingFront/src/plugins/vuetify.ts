@@ -43,8 +43,9 @@ export default createVuetify({
     themes: {
       myCustomLightTheme,
     },
-  },*/
+  },
   blueprint: md3,
+  */
   components: {},
   date: {
     //adapter: VuetifyDateAdapter,

@@ -2,13 +2,13 @@
   <v-app>
     <v-app-bar color="primary" density="compact">
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>{{ `${APP} v${VERSION}` }}</v-toolbar-title>
+      <v-toolbar-title>{{ `${APP_TITLE} v${VERSION}` }}</v-toolbar-title>
       <template v-if="DEV"
         ><span class="left-0">{{ displaySize.name }}</span></template
       >
       <template v-if="isUserAuthenticated">
         <v-spacer></v-spacer>
-        <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"> </v-btn>
+        <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"></v-btn>
         <v-btn variant="text" icon="mdi-magnify"></v-btn>
         <v-btn
           variant="text"
@@ -31,66 +31,71 @@
         <v-alert class="ma-4" :type="feedbackType" :text="feedbackMsg" :color="feedbackType"></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
-        <v-responsive class="text-center pa-2">
-          <template v-if="showSearchCriteria && !showSettings">
-            <v-row>
-              <v-col cols="12">
-                <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
-                  <template #title>
-                    <span class="text-h5">Critères de filtrage</span>
-                  </template>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                          <v-text-field
-                            v-model="searchCreatedBy"
-                            type="number"
-                            min="1"
-                            density="compact"
-                            title="id de l'utilisateur qui a créé l'enregistrement"
-                            label="id créateur enregistrement"
-                          />
-                        </v-col>
-                        <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                          <v-select
-                            v-model="searchType"
-                            item-title="name"
-                            item-value="id"
-                            :items="arrListTypeThing"
-                            density="compact"
-                            label="TypeObjet*"
-                          ></v-select>
-                        </v-col>
-                        <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                          <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
-                        </v-col>
-                        <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                          <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
-                        </v-col>
-                        <v-col cols="12" sm="6" md="6" lg="4" xl="6">
-                          <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
-                      >Réinitialiser Filtres</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-            </v-row>
-          </template>
-          <template v-else-if="showSettings">
-            <v-card density="compact" elevation="4" prepend-icon="mdi-filter">
-              <template #title>
-                <span class="text-h5">Réglages</span>
-              </template>
-              <v-card-text>
-                <v-container>
+        <v-card class="mx-auto">
+          <v-toolbar color="transparent" class="px-0">
+            <v-icon>mdi-magnify</v-icon>
+
+            <v-toolbar-title>Critères de filtrage...</v-toolbar-title>
+
+            <v-spacer></v-spacer>
+            <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
+              >Réinitialiser Filtres</v-btn
+            >
+
+            <template #extension>
+              <v-tabs v-model="tabs" color="primary" grow>
+                <v-tab :value="1">
+                  <v-icon>mdi-filter</v-icon>
+                </v-tab>
+
+                <v-tab :value="2">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-tab>
+              </v-tabs>
+            </template>
+          </v-toolbar>
+
+          <v-window v-model="tabs">
+            <v-window-item :value="1">
+              <v-card>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                      <v-text-field
+                        v-model="searchCreatedBy"
+                        type="number"
+                        min="1"
+                        density="compact"
+                        title="id de l'utilisateur qui a créé l'enregistrement"
+                        label="id créateur enregistrement"
+                      />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                      <v-select
+                        v-model="searchType"
+                        item-title="name"
+                        item-value="id"
+                        :items="arrListTypeThing"
+                        density="compact"
+                        label="TypeObjet*"
+                      ></v-select>
+                    </v-col>
+                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                      <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
+                    </v-col>
+                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                      <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="6" lg="4" xl="6">
+                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-window-item>
+            <v-window-item :value="2">
+              <v-card>
+                <v-card-text>
                   <v-row>
                     <v-col cols="12" sm="6" md="4" lg="4" xl="4">
                       <v-text-field
@@ -107,20 +112,18 @@
                       <v-text-field type="number" v-model="searchOffset" density="compact" min="0" label="Offset row" />
                     </v-col>
                   </v-row>
-                </v-container>
-              </v-card-text>
-            </v-card>
-          </template>
-        </v-responsive>
+                </v-card-text>
+              </v-card>
+            </v-window-item>
+          </v-window>
+        </v-card>
+
         <v-container class="text-center fill-height pa-2" :fluid="true">
-          <v-row class="fill-height h-100">
-            <v-col cols="12" v-show="showMap" class="fill-height">
-              <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
-            </v-col>
-            <v-col cols="12" v-show="!showMap" class="">
+          <v-row class="fill-height h-90">
+            <v-col cols="12" class="">
               <ThingList
-                :limit="searchLimit"
-                :offset="searchOffset"
+                :limit="+searchLimit"
+                :offset="+searchOffset"
                 :type-thing="searchType"
                 :created-by="searchCreatedBy"
                 :search-keywords="searchKeywords"
@@ -129,6 +132,11 @@
                 @thing-error="thingGotErr"
                 @thing-ok="thingGotSuccess"
               />
+            </v-col>
+          </v-row>
+          <v-row class="fill-height h-100">
+            <v-col cols="12" v-show="showMap" class="fill-height">
+              <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
             </v-col>
           </v-row>
         </v-container>
@@ -164,7 +172,8 @@ import {
   getUserId,
   getSessionId,
 } from "@/components/Login"
-import { mapClickInfo } from "@/components/Map";
+import { mapClickInfo } from "@/components/Map"
+
 const log = getLog(APP, 4, 2)
 let myApi: DefaultApi
 type LevelAlert = "error" | "success" | "warning" | "info" | undefined
@@ -173,15 +182,16 @@ const feedbackTimeWarning = 4000
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const showSettings = ref(false)
-const showMap = ref(true)
+const showMap = ref(false)
 const searchType = ref(0)
 const arrListTypeThing: TypeThingList[] = reactive([])
-const searchCreatedBy = ref(undefined)
+const searchCreatedBy = ref(0)
 const searchKeywords = ref(undefined)
 const searchInactivated = ref(false)
 const searchValidated = ref(undefined)
 const searchLimit = ref(25)
 const searchOffset = ref(0)
+const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
   max20Chars: (value) => value.length <= 20 || "Max 20 caractères",
@@ -201,7 +211,7 @@ const feedbackTimeout = ref(2000) // default display time 5sec
 const feedbackMsg = ref(`${APP}, v.${VERSION}`)
 const feedbackType = ref()
 const feedbackVisible = ref(false)
-let autoLogoutTimer: NodeJS.Timer | undefined
+let autoLogoutTimer: number
 
 const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: number = feedbackTimeout.value) => {
   log.t(`displayFeedBack() text:'${text}' type:'${type}'`)
@@ -275,8 +285,8 @@ const loginSuccess = (v: string) => {
   displayFeedBack("Vous êtes authentifié sur l'application.", "success")
   initialize()
   if (isNullOrUndefined(autoLogoutTimer)) {
-    // check every 60 seconds(60'000 milliseconds) if jwt is still valid
-    autoLogoutTimer = setInterval(checkIsSessionTokenValid, 60000)
+    // check every 600 seconds(600'000 milliseconds) if jwt is still valid
+    autoLogoutTimer = window.setInterval(checkIsSessionTokenValid, 600000)
   }
 }
 
@@ -301,7 +311,7 @@ const mapClickHandler = (clickInfo: mapClickInfo) => {
   log.t(`##features length :${clickInfo.features.length}`, clickInfo.features)
 }
 const clearFilters = () => {
-  searchCreatedBy.value = undefined
+  searchCreatedBy.value = 0
   searchKeywords.value = undefined
   searchType.value = 0
   searchValidated.value = undefined
