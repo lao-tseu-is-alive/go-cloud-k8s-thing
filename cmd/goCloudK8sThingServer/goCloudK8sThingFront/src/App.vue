@@ -80,7 +80,7 @@
                         v-model="searchType"
                         item-title="name"
                         item-value="id"
-                        :items="arrListTypeThing"
+                        :items="store.arrListTypeThing"
                         density="compact"
                         label="TypeObjet*"
                       ></v-select>
@@ -163,39 +163,36 @@
 import { onMounted, ref, reactive } from "vue"
 import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config"
+import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
 import { useAppStore } from "@/appStore"
 import Login from "@/components/Login.vue"
+import { useThingStore } from "@/components/ThingStore"
 import ThingList from "@/components/ThingList.vue"
 import MapLausanne from "@/components/MapLausanne.vue"
-import { Configuration, DefaultApi, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import {
   getUserIsAdmin,
   getTokenStatus,
   clearSessionStorage,
   doesCurrentSessionExist,
-  getLocalJwtTokenAuth,
   getUserId,
-  getSessionId,
 } from "@/components/Login"
 import { mapClickInfo } from "@/components/Map"
 
 const log = getLog(APP, 4, 2)
 const appStore = useAppStore()
 const defaultFeedbackErrorTimeout = 5000 // default display time 5sec
-let myApi: DefaultApi
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const showSettings = ref(false)
 const showMap = ref(false)
 const searchType = ref(0)
-const arrListTypeThing: TypeThingList[] = reactive([])
 const searchCreatedBy = ref(0)
 const searchKeywords = ref(undefined)
 const searchInactivated = ref(false)
 const searchValidated = ref(undefined)
 const searchLimit = ref(25)
 const searchOffset = ref(0)
+const store = useThingStore()
 const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
@@ -257,7 +254,11 @@ const checkIsSessionTokenValid = () => {
             appStore.displayFeedBack("Votre session a expiré !", "warning", defaultFeedbackErrorTimeout)
             logout()
           }
-          appStore.displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error", defaultFeedbackErrorTimeout)
+          appStore.displayFeedBack(
+            `Un problème est survenu avec votre session erreur: ${val.err}`,
+            "error",
+            defaultFeedbackErrorTimeout
+          )
         }
       })
       .catch((err) => {
@@ -295,7 +296,7 @@ const loginFailure = (v: string) => {
 
 const thingGotErr = (v: string) => {
   log.w(`# entering... val:${v} `)
-  appStore.displayFeedBack(v, "error", feedbackTimeError)
+  appStore.displayFeedBack(v, "error", defaultFeedbackErrorTimeout)
 }
 
 const thingGotSuccess = (v: string) => {
@@ -319,24 +320,7 @@ const clearFilters = () => {
 
 const initialize = () => {
   log.t(`# entering...  `)
-  const token = getLocalJwtTokenAuth()
-  const myConf = new Configuration({
-    accessToken: token,
-    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
-    basePath: BACKEND_URL + "/goapi/v1",
-  })
-  myApi = new DefaultApi(myConf)
   searchCreatedBy.value = getUserId()
-  myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0).then((resp) => {
-    log.l("myAPi.typeThingList : ", resp)
-    if (resp.status == 200) {
-      resp.data.forEach((r) => {
-        arrListTypeThing.push(r)
-      })
-    } else {
-      //display alert with status code > 200
-    }
-  })
 }
 
 onMounted(() => {

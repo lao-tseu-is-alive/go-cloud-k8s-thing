@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
 import { isNullOrUndefined } from "@/tools/utils"
-import { Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
+import { Thing, ThingList, TypeThing } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 
@@ -66,12 +66,23 @@ export const defaultItem: Thing = {
 
 type netThing = { data: Thing | null; err: Error | null }
 
+interface typeThingSelect {
+  id: number
+  name: string
+}
+interface IDictionary {
+  [key: number]: string
+}
+
 export const useThingStore = defineStore("Thing", {
   state: () => {
     return {
       records: [] as ThingList[],
+      arrListTypeThing: [] as typeThingSelect[],
+      dicoTypeThing: {} as IDictionary,
       searchParameters: { inactivated: false, limit: defaultQueryLimit, offset: 0 } as ISearchThingParameters,
       areWeReady: false,
+      isInitDone: false,
     }
   },
   getters: {
@@ -240,14 +251,58 @@ export const useThingStore = defineStore("Thing", {
         }
       }
     },
+    async getTypes(): Promise<netThing> {
+      log.t(`> Entering getTypes:`)
+      this.areWeReady = false
+      try {
+        const resp = await myAxios.get("types")
+        log.l(`SUCCESS myAPi.getTypes`)
+        if (resp.status == 200) {
+          resp.data.forEach((r: TypeThing) => {
+            this.arrListTypeThing.push(r)
+          })
+          this.areWeReady = true
+          return { data: resp.data, err: null }
+        } else {
+          this.areWeReady = true
+          log.w("getTypes got problem", resp)
+          return { data: null, err: Error(`problem in getTypes status : ${resp.status}, ${resp.statusText}`) }
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          log.w(`getTypes Try Catch Axios ERROR message:${error.message}, error:`, error)
+          if (error.response !== undefined && error.response.data !== undefined) {
+            const srvMessage = isNullOrUndefined(error.response.data.message) ? "" : error.response.data.message
+            const msg = `getTypes error : ${error.message}. Server says : ${srvMessage}`
+            log.w(msg)
+            return { data: null, err: Error(msg) }
+          } else {
+            return { data: null, err: Error(`getTypes error : ${error.message}.`) }
+          }
+        } else {
+          log.e("unexpected error: ", error)
+          return { data: null, err: Error(`unexpected error: in getTypes Try catch : ${error}`) }
+        }
+      }
+    },
     async init(searchParams: ISearchThingParameters) {
+      this.areWeReady = false
       this.searchParameters = Object.assign({}, searchParams)
       myAxios = axios.create({
         baseURL: BACKEND_URL + "/goapi/v1",
         timeout: defaultAxiosTimeout,
         headers: { "X-Goeland-Token": getSessionId(), Authorization: `Bearer ${getLocalJwtTokenAuth()}` },
       } as CreateAxiosDefaults)
+      const res = await this.getTypes()
+      if (res.err === null) {
+        log.l(`ok, doing getTypes() `)
+      } else {
+        const msg = `problem in ThingStore init doing getTypes() error:${res.err.message}`
+        log.w(msg)
+      }
+      this.dicoTypeThing = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.name]))
       this.areWeReady = true
+      this.isInitDone = true
     },
   },
 })

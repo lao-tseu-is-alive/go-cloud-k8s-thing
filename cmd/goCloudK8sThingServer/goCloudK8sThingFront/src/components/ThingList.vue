@@ -39,7 +39,7 @@
                           v-model="editedItem.type_id"
                           item-title="name"
                           item-value="id"
-                          :items="arrListTypeThing"
+                          :items="store.arrListTypeThing"
                           density="compact"
                           label="TypeObjet*"
                         ></v-select>
@@ -325,18 +325,10 @@
               <v-label> {{ getTypeThingName(item.type_id) }}</v-label>
             </template>
             <template #item.inactivated="{ item }">
-              <v-checkbox-btn
-                v-model="item.inactivated"
-                :disabled="true"
-                class="d-none d-lg-block"
-              ></v-checkbox-btn>
+              <v-checkbox-btn v-model="item.inactivated" :disabled="true" class="d-none d-lg-block"></v-checkbox-btn>
             </template>
             <template #item.validated="{ item }">
-              <v-checkbox-btn
-                v-model="item.validated"
-                :disabled="true"
-                class="d-none d-lg-block"
-              ></v-checkbox-btn>
+              <v-checkbox-btn v-model="item.validated" :disabled="true" class="d-none d-lg-block"></v-checkbox-btn>
             </template>
             <template #item.created_at="{ item }">
               <v-label> {{ getDateFromTimeStamp(item.created_at) }}</v-label>
@@ -360,30 +352,20 @@
 import { onMounted, reactive, ref, computed, nextTick, watch } from "vue"
 import type { Ref } from "vue"
 import { useDisplay } from "vuetify"
-import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
+import { getLog } from "@/config"
 import { getDateFromTimeStamp } from "@/tools/utils"
-import { getLocalJwtTokenAuth, getSessionId, getUserId } from "@/components/Login"
-import { Configuration, DefaultApi, Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
+import { getUserId } from "@/components/Login"
+import { Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
-let myApi: DefaultApi
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const menuDateConstruction = ref(false)
 
-interface typeThingSelect {
-  id: number
-  name: string
-}
-interface IDictionary {
-  [key: number]: string
-}
 const dialogTab = ref(null)
-let dicoTypeThing: IDictionary = {}
-const arrListTypeThing: typeThingSelect[] = []
 const store = useThingStore()
 const { records, searchParameters, areWeReady } = storeToRefs(store)
 const defaultListItem: Ref<ThingList> = ref({
@@ -753,36 +735,14 @@ const save = async () => {
 }
 
 const getTypeThingName = (type_id: number): string => {
-  log.t(`item type ${type_id}`)
-  if (type_id in dicoTypeThing) {
-    return dicoTypeThing[type_id]
+  if (type_id in store.dicoTypeThing) {
+    return store.dicoTypeThing[type_id]
   }
   return "# type inconnu #"
 }
-
-const loadTypeThingData = async (): Promise<void> => {
-  const resp = await myApi.typeThingList(undefined, undefined, undefined, undefined, 300, 0)
-  log.l("myAPi.typeThingList : ", resp)
-  resp.data.forEach((r) => {
-    const temp = { id: r.id, name: r.name }
-    arrListTypeThing.push(temp)
-  })
-  dicoTypeThing = Object.fromEntries(arrListTypeThing.map((x) => [x.id, x.name]))
-}
-
 const initialize = async () => {
-  const token = getLocalJwtTokenAuth()
-  const myConf = new Configuration({
-    accessToken: token,
-    baseOptions: { timeout: defaultAxiosTimeout, headers: { "X-Goeland-Token": getSessionId() } },
-    basePath: BACKEND_URL + "/goapi/v1",
-  })
-
   await store.init(Object.assign({}, myProps))
-  myApi = new DefaultApi(myConf)
   areWeReady.value = true
-
-  await loadTypeThingData()
   searchParameters.value = Object.assign({}, myProps)
   await store.search(searchParameters.value)
 }
