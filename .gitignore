@@ -31,3 +31,6 @@ ___goCloudK8sThingServer_test_go.test
 /cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/map-marker-pin-3d.svg
 /cmd/goCloudK8sThingServer/goCloudK8sThingFront/graphics/Map-Warning-Icon.svg
 /cmd/goCloudK8sThingServer/openapitools.json
+.env_go_cloud_k8s_thing
+/deployments/go-testing/myLocalConfigMap.yaml
+/deployments/go-testing/soiConfigMap.yaml

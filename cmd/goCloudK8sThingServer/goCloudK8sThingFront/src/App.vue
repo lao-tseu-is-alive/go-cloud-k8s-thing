@@ -22,13 +22,18 @@
     </v-app-bar>
     <v-main>
       <v-snackbar
-        v-model="feedbackVisible"
-        :timeout="feedbackTimeout"
+        v-model="appStore.feedbackVisible"
+        :timeout="appStore.feedbackTimeout"
         rounded="pill"
-        :color="feedbackType"
+        :color="appStore.feedbackType"
         location="top"
       >
-        <v-alert class="ma-4" :type="feedbackType" :text="feedbackMsg" :color="feedbackType"></v-alert>
+        <v-alert
+          class="ma-4"
+          :type="appStore.feedbackType"
+          :text="appStore.feedbackMsg"
+          :color="appStore.feedbackType"
+        ></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
         <v-card class="mx-auto">
@@ -159,6 +164,7 @@ import { onMounted, ref, reactive } from "vue"
 import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "@/tools/utils"
 import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION, BACKEND_URL, defaultAxiosTimeout } from "@/config"
+import { useAppStore } from "@/appStore"
 import Login from "@/components/Login.vue"
 import ThingList from "@/components/ThingList.vue"
 import MapLausanne from "@/components/MapLausanne.vue"
@@ -175,10 +181,9 @@ import {
 import { mapClickInfo } from "@/components/Map"
 
 const log = getLog(APP, 4, 2)
+const appStore = useAppStore()
+const defaultFeedbackErrorTimeout = 5000 // default display time 5sec
 let myApi: DefaultApi
-type LevelAlert = "error" | "success" | "warning" | "info" | undefined
-const feedbackTimeError = 6000
-const feedbackTimeWarning = 4000
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const showSettings = ref(false)
@@ -207,19 +212,7 @@ const isUserAuthenticated = ref(false)
 const isUserAdmin = ref(false)
 const isNetworkOk = ref(true)
 const drawer = ref(false)
-const feedbackTimeout = ref(2000) // default display time 5sec
-const feedbackMsg = ref(`${APP}, v.${VERSION}`)
-const feedbackType = ref()
-const feedbackVisible = ref(false)
 let autoLogoutTimer: number
-
-const displayFeedBack = (text: string, type: LevelAlert = "info", timeout: number = feedbackTimeout.value) => {
-  log.t(`displayFeedBack() text:'${text}' type:'${type}'`)
-  feedbackType.value = type
-  feedbackMsg.value = text
-  feedbackTimeout.value = timeout
-  feedbackVisible.value = true
-}
 
 const getMapIcon = () => (showMap.value ? "mdi-earth-off" : "mdi-earth")
 const getMapTitle = () => (showMap.value ? "cacher la carte" : "afficher la carte")
@@ -232,7 +225,7 @@ const logout = () => {
   clearSessionStorage()
   isUserAuthenticated.value = false
   isUserAdmin.value = false
-  displayFeedBack("Vous vous êtes déconnecté de l'application avec succès !", "success")
+  appStore.displayFeedBack("Vous vous êtes déconnecté de l'application avec succès !", "success")
   if (isNullOrUndefined(autoLogoutTimer)) {
     clearInterval(autoLogoutTimer)
   }
@@ -248,7 +241,7 @@ const checkIsSessionTokenValid = () => {
       .then((val) => {
         if (val.data == null) {
           log.e(`# getTokenStatus() ${val.msg}, ERROR is: `, val.err)
-          displayFeedBack(`Problème réseau :${val.msg}`, "error", feedbackTimeError)
+          appStore.displayFeedBack(`Problème réseau :${val.msg}`, "error", defaultFeedbackErrorTimeout)
         } else {
           log.l(`# getTokenStatus() SUCCESS ${val.msg} data: `, val.data)
           if (isNullOrUndefined(val.err) && val.status === 200) {
@@ -261,15 +254,19 @@ const checkIsSessionTokenValid = () => {
             // jwt token is no more valid
             isUserAuthenticated.value = false
             isUserAdmin.value = false
-            displayFeedBack("Votre session a expiré !", "warning", feedbackTimeWarning)
+            appStore.displayFeedBack("Votre session a expiré !", "warning", defaultFeedbackErrorTimeout)
             logout()
           }
-          displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error", feedbackTimeError)
+          appStore.displayFeedBack(`Un problème est survenu avec votre session erreur: ${val.err}`, "error", defaultFeedbackErrorTimeout)
         }
       })
       .catch((err) => {
         log.e("# getJwtToken() in catch ERROR err: ", err)
-        displayFeedBack(`Il semble qu'il y a eu un problème réseau ! erreur: ${err}`, "error", feedbackTimeError)
+        appStore.displayFeedBack(
+          `Il semble qu'il y a eu un problème réseau ! erreur: ${err}`,
+          "error",
+          defaultFeedbackErrorTimeout
+        )
       })
   } else {
     log.w("SESSION DOES NOT EXIST OR HAS EXPIRED !")
@@ -281,8 +278,8 @@ const loginSuccess = (v: string) => {
   log.t(`# entering... val:${v} `)
   isUserAuthenticated.value = true
   isUserAdmin.value = getUserIsAdmin()
-  feedbackVisible.value = false
-  displayFeedBack("Vous êtes authentifié sur l'application.", "success")
+  appStore.hideFeedBack()
+  appStore.displayFeedBack("Vous êtes authentifié sur l'application.", "success")
   initialize()
   if (isNullOrUndefined(autoLogoutTimer)) {
     // check every 600 seconds(600'000 milliseconds) if jwt is still valid
@@ -298,12 +295,12 @@ const loginFailure = (v: string) => {
 
 const thingGotErr = (v: string) => {
   log.w(`# entering... val:${v} `)
-  displayFeedBack(v, "error", feedbackTimeError)
+  appStore.displayFeedBack(v, "error", feedbackTimeError)
 }
 
 const thingGotSuccess = (v: string) => {
   log.t(`# entering... val:${v} `)
-  displayFeedBack(v, "success")
+  appStore.displayFeedBack(v, "success")
 }
 
 const mapClickHandler = (clickInfo: mapClickInfo) => {
@@ -343,19 +340,17 @@ const initialize = () => {
 }
 
 onMounted(() => {
-  log.t("mounted()")
-  log.w(`${APP} - ${VERSION}, du ${BUILD_DATE}`)
-  log.l("displaySize ", displaySize)
+  log.l(`Main App.vue ${APP}-${VERSION}, du ${BUILD_DATE}`)
 
   window.addEventListener("online", () => {
     log.w("ONLINE AGAIN :)")
-    isNetworkOk.value = true
-    displayFeedBack('⚡⚡🚀  LA CONNEXION RESEAU EST RÉTABLIE :  😊 vous êtes "ONLINE"  ', "success")
+    appStore.networkOnLine()
+    appStore.displayFeedBack('⚡⚡🚀  LA CONNEXION RESEAU EST RÉTABLIE :  😊 vous êtes "ONLINE"  ', "success")
   })
   window.addEventListener("offline", () => {
     log.w("OFFLINE :((")
-    isNetworkOk.value = false
-    displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error", feedbackTimeError)
+    appStore.networkOffLine()
+    appStore.displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error", defaultFeedbackErrorTimeout)
   })
 })
 </script>
