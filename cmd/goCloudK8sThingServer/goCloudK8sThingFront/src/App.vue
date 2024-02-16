@@ -36,91 +36,104 @@
         ></v-alert>
       </v-snackbar>
       <template v-if="isUserAuthenticated">
-        <v-card class="mx-auto">
-          <v-toolbar color="transparent" class="px-0">
-            <v-icon>mdi-magnify</v-icon>
+        <div class="text-center">
+          <v-overlay v-model="store.busyDoingNetWork" class="align-center justify-center">
+            <v-progress-circular color="primary" indeterminate size="64"></v-progress-circular>
+            <v-alert>
+              <v-alert-title>Chargement des données... isInitDone: {{ store.isInitDone }}, areWeReady: {{ areWeReady }}</v-alert-title>
+            </v-alert>
+          </v-overlay>
+        </div>
+        <v-card v-show="showSearchCriteria" variant="elevated" elevation="14" class="mx-4">
+          <v-card-item>
+            <v-toolbar color="transparent" class="px-0">
+              <v-icon>mdi-magnify</v-icon>
+              <v-toolbar-title>Critères de filtrage...</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
+                >Réinitialiser Filtres</v-btn
+              >
+              <template #extension>
+                <v-tabs v-model="tabs" color="primary" grow>
+                  <v-tab :value="1">
+                    <v-icon>mdi-filter</v-icon>
+                  </v-tab>
 
-            <v-toolbar-title>Critères de filtrage...</v-toolbar-title>
+                  <v-tab :value="2">
+                    <v-icon>mdi-dots-vertical</v-icon>
+                  </v-tab>
+                </v-tabs>
+              </template>
+            </v-toolbar>
 
-            <v-spacer></v-spacer>
-            <v-btn dark color="primary" variant="flat" prepend-icon="mdi-eraser" @click.prevent="clearFilters"
-              >Réinitialiser Filtres</v-btn
-            >
-
-            <template #extension>
-              <v-tabs v-model="tabs" color="primary" grow>
-                <v-tab :value="1">
-                  <v-icon>mdi-filter</v-icon>
-                </v-tab>
-
-                <v-tab :value="2">
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-tab>
-              </v-tabs>
-            </template>
-          </v-toolbar>
-
-          <v-window v-model="tabs">
-            <v-window-item :value="1">
-              <v-card>
-                <v-card-text>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                      <v-text-field
-                        v-model="searchCreatedBy"
-                        type="number"
-                        min="1"
-                        density="compact"
-                        title="id de l'utilisateur qui a créé l'enregistrement"
-                        label="id créateur enregistrement"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6" lg="2" xl="2">
-                      <v-select
-                        v-model="searchType"
-                        item-title="name"
-                        item-value="id"
-                        :items="store.arrListTypeThing"
-                        density="compact"
-                        label="TypeObjet*"
-                      ></v-select>
-                    </v-col>
-                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
-                    </v-col>
-                    <v-col cols="6" sm="3" md="3" lg="2" xl="1">
-                      <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6" lg="4" xl="6">
-                      <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-              </v-card>
-            </v-window-item>
-            <v-window-item :value="2">
-              <v-card>
-                <v-card-text>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4" lg="4" xl="4">
-                      <v-text-field
-                        type="number"
-                        :rules="[rules.required, rules.minNumber1]"
-                        min="1"
-                        v-model="searchLimit"
-                        density="compact"
-                        label="Max rows"
-                        hint="Le nombre maximum d'enregistrements à récupérer dans la Base de données"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4" lg="4" xl="4">
-                      <v-text-field type="number" v-model="searchOffset" density="compact" min="0" label="Offset row" />
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-              </v-card>
-            </v-window-item>
-          </v-window>
+            <v-window v-model="tabs">
+              <v-window-item :value="1">
+                <v-card>
+                  <v-card-text>
+                    <v-row>
+                      <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                        <v-text-field
+                          v-model="searchCreatedBy"
+                          type="number"
+                          min="1"
+                          density="compact"
+                          title="id de l'utilisateur qui a créé l'enregistrement"
+                          label="id créateur enregistrement"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6" lg="2" xl="2">
+                        <v-select
+                          v-model="searchType"
+                          item-title="name"
+                          item-value="id"
+                          :items="store.arrListTypeThing"
+                          density="compact"
+                          label="TypeObjet*"
+                        ></v-select>
+                      </v-col>
+                      <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                        <v-checkbox v-model="searchInactivated" density="compact" label="Inactivé ?" />
+                      </v-col>
+                      <v-col cols="6" sm="3" md="3" lg="2" xl="1">
+                        <v-checkbox v-model="searchValidated" density="compact" label="Validé ? " />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6" lg="4" xl="6">
+                        <v-text-field v-model="searchKeywords" density="compact" label="mot clés" />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-window-item>
+              <v-window-item :value="2">
+                <v-card>
+                  <v-card-text>
+                    <v-row>
+                      <v-col cols="12" sm="6" md="4" lg="4" xl="4">
+                        <v-text-field
+                          type="number"
+                          :rules="[rules.required, rules.minNumber1]"
+                          min="1"
+                          v-model="searchLimit"
+                          density="compact"
+                          label="Max rows"
+                          hint="Le nombre maximum d'enregistrements à récupérer dans la Base de données"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4" lg="4" xl="4">
+                        <v-text-field
+                          type="number"
+                          v-model="searchOffset"
+                          density="compact"
+                          min="0"
+                          label="Offset row"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-window-item>
+            </v-window>
+          </v-card-item>
         </v-card>
 
         <v-container class="text-center fill-height pa-2" :fluid="true">
@@ -146,6 +159,7 @@
           </v-row>
         </v-container>
       </template>
+
       <template v-else>
         <Login
           :msg="`Authentification ${APP_TITLE}:`"
@@ -166,7 +180,7 @@ import { isNullOrUndefined } from "@/tools/utils"
 import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
 import { useAppStore } from "@/appStore"
 import Login from "@/components/Login.vue"
-import { useThingStore } from "@/components/ThingStore"
+import { useThingStore, ISearchThingParameters } from "@/components/ThingStore"
 import ThingList from "@/components/ThingList.vue"
 import MapLausanne from "@/components/MapLausanne.vue"
 import {
@@ -177,6 +191,7 @@ import {
   getUserId,
 } from "@/components/Login"
 import { mapClickInfo } from "@/components/Map"
+import { storeToRefs } from "pinia"
 
 const log = getLog(APP, 4, 2)
 const appStore = useAppStore()
@@ -185,6 +200,15 @@ const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const showSettings = ref(false)
 const showMap = ref(false)
+const defaultSearchParameters = {
+  searchCreatedBy: 0,
+  searchKeywords: undefined,
+  searchType: 0,
+  searchValidated: undefined,
+  searchInactivated: false,
+  searchOffset: 0,
+  searchLimit: 250,
+} as ISearchThingParameters
 const searchType = ref(0)
 const searchCreatedBy = ref(0)
 const searchKeywords = ref(undefined)
@@ -193,6 +217,7 @@ const searchValidated = ref(undefined)
 const searchLimit = ref(25)
 const searchOffset = ref(0)
 const store = useThingStore()
+const { areWeReady } = storeToRefs(store)
 const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
@@ -281,11 +306,11 @@ const loginSuccess = (v: string) => {
   isUserAdmin.value = getUserIsAdmin()
   appStore.hideFeedBack()
   appStore.displayFeedBack("Vous êtes authentifié sur l'application.", "success")
-  initialize()
   if (isNullOrUndefined(autoLogoutTimer)) {
     // check every 600 seconds(600'000 milliseconds) if jwt is still valid
     autoLogoutTimer = window.setInterval(checkIsSessionTokenValid, 600000)
   }
+  initialize()
 }
 
 const loginFailure = (v: string) => {
@@ -318,9 +343,13 @@ const clearFilters = () => {
   searchLimit.value = 250
 }
 
-const initialize = () => {
-  log.t(`# entering...  `)
+const initialize = async () => {
+  log.t(`# App.vue entering initialize...  `)
   searchCreatedBy.value = getUserId()
+  if (!store.isInitDone) {
+    await store.init(Object.assign({}, defaultSearchParameters))
+    log.l("## Initialize in ThingListVue Done, dicoTypeThing : ", store.dicoTypeThing)
+  }
 }
 
 onMounted(() => {

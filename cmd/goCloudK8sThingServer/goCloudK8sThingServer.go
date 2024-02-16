@@ -321,7 +321,7 @@ func main() {
 		Store:            thingStore,
 		JwtSecret:        []byte(secret),
 		JwtDuration:      tokenDuration,
-		ListDefaultLimit: 10,
+		ListDefaultLimit: 50,
 	}
 	thing.RegisterHandlers(r, &objService)
 

@@ -731,43 +731,7 @@ INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, ta
                                  more_data_schema, geometry_type)
 VALUES (112, 'SPADOM - Ouvrages - Oeuvre d''art', 'Ouvrage SPADOM QGIS Oeuvre d''art', null, 112, null, false, null,
         null, null, 7, '2022-04-25 16:03:03.180000', 7, null, null, false, null, null, null, 'bbox');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (93, 'Portail', 'Portail', null, 93, null, true, '2023-07-21 16:42:30.000000', 1, 'not used in goeland', 6,
-        '2013-10-10 07:49:07.360000', 6, null, null, false, null, null, null, 'bbox');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (75, 'Orchidée', 'Orchidée (SPP)', null, 75, 'ThiOrchidee', true, '2023-07-21 16:41:50.000000', 1,
-        'never used in goeland, thank''s spadom...', 10958, '2009-08-17 10:30:07.797000', 10958, null, null, false,
-        null, null, null, 'point');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (64, 'Local souterrain', 'Local souterrain', null, 64, 'ThiOuvrageRV', true, '2023-07-21 16:41:31.000000', 1,
-        'not used in goeland', 10958, '2006-12-21 15:06:29.390000', 10958, null, null, false, null, null, null, 'bbox');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (62, 'Réservoir', 'Réservoir', null, 62, 'ThiOuvrageRV', true, '2023-07-21 16:41:14.000000', 1,
-        'not used in goeland', 10958, '2006-12-21 15:05:01.700000', 10958, null, null, false, null, null, null, 'bbox');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (44, 'Porte-à-faux', 'Porte-à-faux', null, 44, 'ThiOuvrageRV', true, '2023-07-21 16:39:36.000000', 1,
-        'not used in goeland', 6, '2002-02-08 15:06:10.043000', 6, null, null, false, null, null, null, 'bbox');
-INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
-                                 inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
-                                 _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
-VALUES (60, 'Rampe', 'Rampe', null, 60, 'ThiOuvrageRV', true, '2023-07-21 16:40:51.000000', 1, 'not used in goeland',
-        10958, '2006-12-21 15:03:18.310000', 10958, null, null, false, null, null, null, 'bbox');
+
 
 
 

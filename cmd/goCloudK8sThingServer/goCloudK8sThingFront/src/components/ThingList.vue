@@ -287,11 +287,11 @@
       </v-row>
       <v-row>
         <v-col cols="10"
-          >Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ areWeReady }}
+          >Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ propsValues }} ready:{{ store.areWeReady }}
         </v-col>
         <v-col cols="2">
-          <template v-if="!areWeReady">
-            <v-btn :loading="!areWeReady" class="flex-grow-1" height="48" variant="tonal"> chargement... </v-btn>
+          <template v-if="!store.areWeReady">
+            <v-btn :loading="!store.areWeReady" class="flex-grow-1" height="48" variant="tonal"> chargement... </v-btn>
           </template>
         </v-col>
       </v-row>
@@ -322,7 +322,7 @@
               </v-toolbar>
             </template>
             <template #item.type_id="{ item }">
-              <v-label> {{ getTypeThingName(item.type_id) }}</v-label>
+              <v-label> {{ store.dicoTypeThing[item.type_id] }}</v-label>
             </template>
             <template #item.inactivated="{ item }">
               <v-checkbox-btn v-model="item.inactivated" :disabled="true" class="d-none d-lg-block"></v-checkbox-btn>
@@ -367,7 +367,7 @@ const menuDateConstruction = ref(false)
 
 const dialogTab = ref(null)
 const store = useThingStore()
-const { records, searchParameters, areWeReady } = storeToRefs(store)
+const { records, searchParameters } = storeToRefs(store)
 const defaultListItem: Ref<ThingList> = ref({
   id: crypto.randomUUID(),
   type_id: 0,
@@ -436,7 +436,7 @@ watch(
   () => myProps.typeThing,
   (val, oldValue) => {
     log.t(` watch myProps.typeThing old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value) {
+    if (val !== undefined && store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value.typeThing = val
         store.search(searchParameters.value)
@@ -450,7 +450,7 @@ watch(
   () => myProps.searchKeywords,
   (val, oldValue) => {
     log.t(` watch myProps.searchKeywords old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value) {
+    if (val !== undefined && store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value.searchKeywords = val
         store.search(searchParameters.value)
@@ -463,14 +463,14 @@ watch(
   () => myProps.createdBy,
   (val, oldValue) => {
     log.t(` watch myProps.createdBy old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value) {
+    if (val !== undefined && store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value.createdBy = val
         store.search(searchParameters.value)
       }
     } else {
       searchParameters.value.createdBy = undefined
-      if (areWeReady.value) {
+      if (store.areWeReady) {
         store.search(searchParameters.value)
       }
     }
@@ -480,7 +480,7 @@ watch(
   () => myProps.validated,
   (val, oldValue) => {
     log.t(` watch myProps.validated old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value) {
+    if (store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value.validated = val
         store.search(searchParameters.value)
@@ -493,7 +493,7 @@ watch(
   () => myProps.inactivated,
   (val, oldValue) => {
     log.t(` watch myProps.inactivated old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value) {
+    if (store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value.inactivated = val
         store.search(searchParameters.value)
@@ -506,7 +506,7 @@ watch(
   () => myProps.limit,
   (val, oldValue) => {
     log.t(` watch myProps.limit old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value) {
+    if (store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value = Object.assign({}, myProps)
         searchParameters.value.limit = val < 1 ? 1 : val
@@ -520,7 +520,7 @@ watch(
   () => myProps.offset,
   (val, oldValue) => {
     log.t(` watch myProps.offset old: ${oldValue}, new val: ${val}`)
-    if (areWeReady.value) {
+    if (store.areWeReady) {
       if (val !== oldValue) {
         searchParameters.value = Object.assign({}, myProps)
         searchParameters.value.offset = val < 1 ? 1 : val
@@ -741,10 +741,12 @@ const getTypeThingName = (type_id: number): string => {
   return "# type inconnu #"
 }
 const initialize = async () => {
-  await store.init(Object.assign({}, myProps))
-  areWeReady.value = true
-  searchParameters.value = Object.assign({}, myProps)
+  if (!store.isInitDone) {
+    await store.init(Object.assign({}, myProps))
+    log.l("## Initialize in ThingListVue Done, dicoTypeThing : ", store.dicoTypeThing)
+  }
   await store.search(searchParameters.value)
+  store.areWeReady = true
 }
 
 onMounted(() => {

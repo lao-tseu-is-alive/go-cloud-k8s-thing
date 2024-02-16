@@ -179,7 +179,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
     ></v-btn>
     <v-footer class="text-center bottom--1 mouse-coordinates">
       <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
-      <div>Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ searchParameters }} ready:{{ areWeReady }}</div>
+      <div>Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ searchParameters }} </div>
       &nbsp;
     </v-footer>
     <div class="map" id="map" ref="myMap">
@@ -202,14 +202,13 @@ import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
 
 const store = useThingStore()
-const { searchParameters, areWeReady } = storeToRefs(store)
+const { searchParameters } = storeToRefs(store)
 
 const log = getLog("ThingListVue", 4, 2)
 const myLayerName = "GoelandThingLayer"
 const posMouseX = ref(0)
 const posMouseY = ref(0)
 const layerSwitcherVisible = ref(false)
-// const areWeReady = ref(false)
 let myOlMap: null | OlMap
 let myMapOverlay: null | OlOverlay
 const mapTooltip = ref<HTMLDivElement | null>(null)
@@ -226,7 +225,7 @@ watch(
   () => myProps.zoom,
   (val, oldValue) => {
     log.t(` watch myProps.zoom old: ${oldValue}, new val: ${val}`)
-    if (val !== undefined && areWeReady.value == true) {
+    if (val !== undefined) {
       if (val !== oldValue) {
         // do something
       }
@@ -375,6 +374,5 @@ onMounted(() => {
   log.t("mounted()")
   const placeStFrancoisM95 = [2538202, 1152364]
   initialize(placeStFrancoisM95)
-  log.l("onMounted store :", areWeReady, searchParameters)
 })
 </script>

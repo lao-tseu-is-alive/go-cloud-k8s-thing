@@ -372,7 +372,7 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	limit := s.ListDefaultLimit
+	limit := 250
 	if params.Limit != nil {
 		limit = int(*params.Limit)
 	}

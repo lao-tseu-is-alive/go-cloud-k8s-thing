@@ -87,6 +87,7 @@ export const useThingStore = defineStore("Thing", {
   },
   getters: {
     numRecords: (state) => state.records.length,
+    busyDoingNetWork: (state) => !state.areWeReady,
   },
   actions: {
     async get(id: string): Promise<netThing> {
@@ -286,6 +287,7 @@ export const useThingStore = defineStore("Thing", {
       }
     },
     async init(searchParams: ISearchThingParameters) {
+      log.t(`> Entering ThingStore init`)
       this.areWeReady = false
       this.searchParameters = Object.assign({}, searchParams)
       myAxios = axios.create({
