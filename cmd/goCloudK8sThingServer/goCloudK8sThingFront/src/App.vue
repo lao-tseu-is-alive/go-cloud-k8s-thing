@@ -3,11 +3,11 @@
     <v-app-bar color="primary" density="compact">
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title>{{ `${APP_TITLE} v${VERSION}` }}</v-toolbar-title>
-      <template v-if="DEV"
-        ><span class="left-0">{{ displaySize.name }}</span></template
-      >
+      <template v-if="DEV">
+        <span class="left-0">{{ displaySize.name }}. TypeThings[{{ numTypeThings }}] areWeReady:{{ areWeReady }}</span>
+      </template>
+      <v-spacer></v-spacer>
       <template v-if="isUserAuthenticated">
-        <v-spacer></v-spacer>
         <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"></v-btn>
         <v-btn variant="text" icon="mdi-magnify"></v-btn>
         <v-btn
@@ -37,10 +37,12 @@
       </v-snackbar>
       <template v-if="isUserAuthenticated">
         <div class="text-center">
-          <v-overlay v-model="store.busyDoingNetWork" class="align-center justify-center">
+          <v-overlay v-model="busyDoingNetWork" class="align-center justify-center">
             <v-progress-circular color="primary" indeterminate size="64"></v-progress-circular>
             <v-alert>
-              <v-alert-title>Chargement des données... isInitDone: {{ store.isInitDone }}, areWeReady: {{ areWeReady }}</v-alert-title>
+              <v-alert-title>
+                Chargement des données... isInitDone: {{ store.isInitDone }},areWeReady:{{ areWeReady }}
+              </v-alert-title>
             </v-alert>
           </v-overlay>
         </div>
@@ -111,8 +113,9 @@
                       <v-col cols="12" sm="6" md="4" lg="4" xl="4">
                         <v-text-field
                           type="number"
-                          :rules="[rules.required, rules.minNumber1]"
+                          :rules="[rules.required, rules.minNumber1, rules.maxNumber1]"
                           min="1"
+                          max="maxSearchLimit"
                           v-model="searchLimit"
                           density="compact"
                           label="Max rows"
@@ -180,7 +183,7 @@ import { isNullOrUndefined } from "@/tools/utils"
 import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
 import { useAppStore } from "@/appStore"
 import Login from "@/components/Login.vue"
-import { useThingStore, ISearchThingParameters } from "@/components/ThingStore"
+import { useThingStore, ISearchThingParameters, maxSearchLimit, defaultQueryLimit } from "@/components/ThingStore"
 import ThingList from "@/components/ThingList.vue"
 import MapLausanne from "@/components/MapLausanne.vue"
 import {
@@ -200,29 +203,21 @@ const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
 const showSettings = ref(false)
 const showMap = ref(false)
-const defaultSearchParameters = {
-  searchCreatedBy: 0,
-  searchKeywords: undefined,
-  searchType: 0,
-  searchValidated: undefined,
-  searchInactivated: false,
-  searchOffset: 0,
-  searchLimit: 250,
-} as ISearchThingParameters
 const searchType = ref(0)
 const searchCreatedBy = ref(0)
 const searchKeywords = ref(undefined)
 const searchInactivated = ref(false)
 const searchValidated = ref(undefined)
-const searchLimit = ref(25)
+const searchLimit = ref(defaultQueryLimit)
 const searchOffset = ref(0)
 const store = useThingStore()
-const { areWeReady } = storeToRefs(store)
+const { areWeReady, busyDoingNetWork, numTypeThings } = storeToRefs(store)
 const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
   max20Chars: (value) => value.length <= 20 || "Max 20 caractères",
   minNumber1: (value) => value > 1 || "Minimum autorisé = 1",
+  maxNumber1: (value) => value <= maxSearchLimit || `Maximum autorisé = ${maxSearchLimit}`,
   email: (value) => {
     const pattern =
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -334,21 +329,31 @@ const mapClickHandler = (clickInfo: mapClickInfo) => {
   log.t(`##features length :${clickInfo.features.length}`, clickInfo.features)
 }
 const clearFilters = () => {
+  log.t(`# App.vue clearFilters  `)
   searchCreatedBy.value = 0
   searchKeywords.value = undefined
   searchType.value = 0
   searchValidated.value = undefined
   searchInactivated.value = false
   searchOffset.value = 0
-  searchLimit.value = 250
+  searchLimit.value = defaultQueryLimit
 }
 
 const initialize = async () => {
   log.t(`# App.vue entering initialize...  `)
   searchCreatedBy.value = getUserId()
+  const initialSearchParameters = Object.assign({}, {
+    createdBy: searchCreatedBy.value,
+    searchKeywords: searchKeywords.value,
+    typeThing: searchType.value,
+    validated: searchValidated.value,
+    inactivated: searchInactivated.value,
+    limit: searchLimit.value,
+    offset: searchOffset.value,
+  } as ISearchThingParameters)
   if (!store.isInitDone) {
-    await store.init(Object.assign({}, defaultSearchParameters))
-    log.l("## Initialize in ThingListVue Done, dicoTypeThing : ", store.dicoTypeThing)
+    await store.init(initialSearchParameters)
+    log.l(`## Initialize in ThingListVue Done, arrListTypeThing length : ${numTypeThings}`)
   }
 }
 

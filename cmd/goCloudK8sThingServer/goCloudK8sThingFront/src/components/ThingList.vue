@@ -364,7 +364,7 @@ const displaySize = reactive(useDisplay())
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const menuDateConstruction = ref(false)
-
+const maxLimit = 1000
 const dialogTab = ref(null)
 const store = useThingStore()
 const { records, searchParameters } = storeToRefs(store)
@@ -510,7 +510,10 @@ watch(
       if (val !== oldValue) {
         searchParameters.value = Object.assign({}, myProps)
         searchParameters.value.limit = val < 1 ? 1 : val
-        store.search(searchParameters.value)
+        if (val > maxLimit) {
+          searchParameters.value.limit = maxLimit
+        }
+          store.search(searchParameters.value)
       }
     }
   }
@@ -741,10 +744,12 @@ const getTypeThingName = (type_id: number): string => {
   return "# type inconnu #"
 }
 const initialize = async () => {
+  /* this section is already present in App.vue initialize called by loginSuccess
   if (!store.isInitDone) {
     await store.init(Object.assign({}, myProps))
-    log.l("## Initialize in ThingListVue Done, dicoTypeThing : ", store.dicoTypeThing)
+    log.l("## Initialize in ThingListVue Done, dicoTypeThing  ")
   }
+  */
   await store.search(searchParameters.value)
   store.areWeReady = true
 }

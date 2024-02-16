@@ -5,7 +5,7 @@ import { Thing, ThingList, TypeThing } from "@/openapi-generator-cli_thing_types
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 
-const defaultQueryLimit = 10
+export const defaultQueryLimit = 100
 const log = getLog("ThingStore", 4, 2)
 let myAxios: AxiosInstance
 
@@ -18,6 +18,8 @@ export interface ISearchThingParameters {
   limit: number
   offset: number
 }
+
+export const maxSearchLimit: number = 1000
 export const defaultListItem: ThingList = {
   id: crypto.randomUUID(),
   type_id: 0,
@@ -87,6 +89,7 @@ export const useThingStore = defineStore("Thing", {
   },
   getters: {
     numRecords: (state) => state.records.length,
+    numTypeThings: (state) => state.arrListTypeThing.length,
     busyDoingNetWork: (state) => !state.areWeReady,
   },
   actions: {
@@ -123,6 +126,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async search(params: ISearchThingParameters) {
       log.t(`> Entering searchThing.. typeThing: ${params.typeThing}, createdBy: ${params.createdBy} `)
+      const startTime = performance.now()
       this.areWeReady = false
       const clearRecords = (): void => {
         if (this.records.length > 0) {
@@ -130,17 +134,29 @@ export const useThingStore = defineStore("Thing", {
         }
       }
       const urlParams = getUrlParameters(params)
+      clearRecords()
+      const afterClearRecordsTime = performance.now()
+      log.w(`>> in searchThing.. afterClearRecordsTime: ${Math.round(afterClearRecordsTime - startTime)} milliseconds `)
       try {
         const resp = await myAxios.get("thing/search" + urlParams)
-        log.l("myAxios.get(thing/search) : ", resp)
-        clearRecords()
+        const afterAwaitMyAxiosGetTime = performance.now()
+        log.w(
+          `>> in searchThing.. afterAwaitMyAxiosGetTime: ${Math.round(afterAwaitMyAxiosGetTime - afterClearRecordsTime)} milliseconds `
+        )
+        log.l("myAxios.get(thing/search) : ")
+        this.records = resp.data
+        /* next loop takes 4560 milliseconds with 1000 rows (14 milliseconds with direct allocation
         resp.data.forEach((r: Thing) => {
           this.records.push(r)
         })
+        */
+        const afterRespDataForEachTime = performance.now()
+        log.w(
+          `>> in searchThing.. afterRespDataForEachTime: ${Math.round(afterRespDataForEachTime - afterAwaitMyAxiosGetTime)} milliseconds `
+        )
         this.areWeReady = true
         return { data: resp.data, err: null }
       } catch (err) {
-        clearRecords()
         this.areWeReady = true
         if (axios.isAxiosError(err)) {
           log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
@@ -313,6 +329,7 @@ const getUrlParameters = (searchParam: ISearchThingParameters): string => {
   const localSearchParam = Object.assign({}, searchParam)
   if (localSearchParam.limit == undefined) localSearchParam.limit = defaultQueryLimit
   if (localSearchParam.offset == undefined) localSearchParam.offset = 0
+  if (localSearchParam.inactivated == undefined) localSearchParam.inactivated = false
   if (searchParam.typeThing != undefined) {
     localSearchParam.typeThing = searchParam.typeThing == 0 ? undefined : searchParam.typeThing
   }
