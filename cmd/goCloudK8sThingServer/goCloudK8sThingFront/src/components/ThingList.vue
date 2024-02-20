@@ -552,7 +552,7 @@ const propsValues = computed(() => {
 
 // responsive header
 const getHeaderVTable = computed(() => {
-  log.t(`#> Entering... ${displaySize.name}`)
+  log.t(`#> Entering getHeaderVTable... ${displaySize.name}`)
   if (displaySize.name === "lg") {
     return [
       {
@@ -614,7 +614,7 @@ const editItem = async (item: ThingList) => {
 }
 
 const editDateBuild = (cancel: boolean) => {
-  log.t(`#> entering ... cancel=${cancel}`)
+  log.t(`#> entering editDateBuild... cancel=${cancel}`)
   if (!cancel) {
     if (editedItem.value.build_at !== undefined) {
       if (editedItem.value.build_at.indexOf("T") > 0) {
@@ -629,7 +629,7 @@ const editDateBuild = (cancel: boolean) => {
 }
 
 const newThing = () => {
-  log.t("#> entering ...")
+  log.t("#> entering newThing...")
   editedItem.value = Object.assign({}, defaultItem.value)
   editedItem.value.id = crypto.randomUUID()
   editedItem.value.created_by = getUserId()
@@ -639,7 +639,7 @@ const newThing = () => {
 }
 
 const deleteItem = (item: ThingList) => {
-  log.t(" #> entering DELETE ...", item)
+  log.t(" #> entering deleteItem...", item)
   editedIndex.value = records.value.indexOf(item)
   deletedItem.value = Object.assign({}, item)
   dialogDelete.value = true
@@ -660,7 +660,7 @@ const deleteItemConfirm = async () => {
 }
 
 const close = () => {
-  log.t(" #> entering CLOSE ...")
+  log.t(" #> entering CLOSE...")
   dialog.value = false
   nextTick(() => {
     editedItem.value = Object.assign({}, defaultItem.value)
@@ -678,7 +678,7 @@ const closeDelete = () => {
 }
 
 const save = async () => {
-  log.t(" #> entering SAVE ...")
+  log.t(" #> entering SAVE...")
   if (editedItem.value.pos_x !== 0) editedItem.value.pos_x = +editedItem.value.pos_x
   if (editedItem.value.pos_y !== 0) editedItem.value.pos_y = +editedItem.value.pos_y
   if (editedItem.value.external_id !== undefined) {
@@ -750,8 +750,8 @@ const initialize = async () => {
     log.l("## Initialize in ThingListVue Done, dicoTypeThing  ")
   }
   */
+  store.clearError()
   await store.search(searchParameters.value)
-  store.areWeReady = true
 }
 
 onMounted(() => {

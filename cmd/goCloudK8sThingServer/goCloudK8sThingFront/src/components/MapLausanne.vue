@@ -204,7 +204,7 @@ import { storeToRefs } from "pinia"
 const store = useThingStore()
 const { searchParameters } = storeToRefs(store)
 
-const log = getLog("ThingListVue", 4, 2)
+const log = getLog("MapLausanneVue", 4, 2)
 const myLayerName = "GoelandThingLayer"
 const posMouseX = ref(0)
 const posMouseY = ref(0)
@@ -245,7 +245,7 @@ const toggleLayerSwitcher = () => {
   }
 }
 const initialize = async (center) => {
-  log.t(" #> entering initialize ...")
+  log.t(" #> entering initialize...")
   myOlMap = await createLausanneMap("map", center, 8, "fonds_geo_osm_bdcad_couleur")
   if (myOlMap !== null) {
     myOlMap.on("pointermove", (evt) => {

@@ -9,14 +9,12 @@
       <v-spacer></v-spacer>
       <template v-if="isUserAuthenticated">
         <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"></v-btn>
-        <v-btn variant="text" icon="mdi-magnify"></v-btn>
         <v-btn
           variant="text"
           :icon="getFilterIcon()"
           :title="getFilterTitle()"
           @click="showSearchCriteria = !showSearchCriteria"
         ></v-btn>
-        <v-btn variant="text" icon="mdi-dots-vertical" title="Réglages" @click="showSettings = !showSettings"></v-btn>
         <v-btn variant="text" icon="mdi-logout" title="Logout" @click="logout"></v-btn>
       </template>
     </v-app-bar>
@@ -140,7 +138,7 @@
         </v-card>
 
         <v-container class="text-center fill-height pa-2" :fluid="true">
-          <v-row class="fill-height h-90">
+          <v-row class="">
             <v-col cols="12" class="">
               <ThingList
                 :limit="+searchLimit"
@@ -162,7 +160,6 @@
           </v-row>
         </v-container>
       </template>
-
       <template v-else>
         <Login
           :msg="`Authentification ${APP_TITLE}:`"
@@ -201,7 +198,6 @@ const appStore = useAppStore()
 const defaultFeedbackErrorTimeout = 5000 // default display time 5sec
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
-const showSettings = ref(false)
 const showMap = ref(false)
 const searchType = ref(0)
 const searchCreatedBy = ref(0)
@@ -211,7 +207,7 @@ const searchValidated = ref(undefined)
 const searchLimit = ref(defaultQueryLimit)
 const searchOffset = ref(0)
 const store = useThingStore()
-const { areWeReady, busyDoingNetWork, numTypeThings } = storeToRefs(store)
+const { areWeReady, busyDoingNetWork, numRecords, numTypeThings, isThereAnError } = storeToRefs(store)
 const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
@@ -353,12 +349,26 @@ const initialize = async () => {
   } as ISearchThingParameters)
   if (!store.isInitDone) {
     await store.init(initialSearchParameters)
-    log.l(`## Initialize in ThingListVue Done, arrListTypeThing length : ${numTypeThings}`)
+    log.l(`## Initialize in ThingListVue Done, arrListTypeThing length : ${numTypeThings.value}`)
   }
 }
 
 onMounted(() => {
   log.l(`Main App.vue ${APP}-${VERSION}, du ${BUILD_DATE}`)
+
+  store.$subscribe((mutation, state) => {
+    log.t(`## App.vue subscribe mutation of store ${mutation.storeId}, type: ${mutation.type}`)
+    //    mutation.type // 'direct' | 'patch object' | 'patch function'
+    // same as cartStore.$id  :    mutation.storeId // 'cart'
+    log.l(
+      `## areWeReady: ${areWeReady.value}, isThereAnError: ${isThereAnError.value}, numTypeThings:${numTypeThings.value}, numRecords:${numRecords.value}`
+    )
+    if (isThereAnError.value == true) {
+      const msgErr = `⚡⚡⚠ ERROR in store ${mutation.storeId} : ${state.lastErrorMessage}`
+      log.w(msgErr)
+      appStore.displayFeedBack(msgErr, "error", defaultFeedbackErrorTimeout)
+    }
+  })
 
   window.addEventListener("online", () => {
     log.w("ONLINE AGAIN :)")

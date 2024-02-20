@@ -84,6 +84,8 @@ export const useThingStore = defineStore("Thing", {
       dicoTypeThing: {} as IDictionary,
       searchParameters: { inactivated: false, limit: defaultQueryLimit, offset: 0 } as ISearchThingParameters,
       areWeReady: false,
+      isThereAnError: false,
+      lastErrorMessage: "",
       isInitDone: false,
     }
   },
@@ -95,6 +97,7 @@ export const useThingStore = defineStore("Thing", {
   actions: {
     async get(id: string): Promise<netThing> {
       log.t(`> Entering getThing: ${id}`)
+      this.clearError()
       this.areWeReady = false
       try {
         const resp = await myAxios.get("thing/" + id)
@@ -126,6 +129,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async search(params: ISearchThingParameters) {
       log.t(`> Entering searchThing.. typeThing: ${params.typeThing}, createdBy: ${params.createdBy} `)
+      this.clearError()
       const startTime = performance.now()
       this.areWeReady = false
       const clearRecords = (): void => {
@@ -136,11 +140,11 @@ export const useThingStore = defineStore("Thing", {
       const urlParams = getUrlParameters(params)
       clearRecords()
       const afterClearRecordsTime = performance.now()
-      log.w(`>> in searchThing.. afterClearRecordsTime: ${Math.round(afterClearRecordsTime - startTime)} milliseconds `)
+      log.l(`>> in searchThing.. afterClearRecordsTime: ${Math.round(afterClearRecordsTime - startTime)} milliseconds `)
       try {
         const resp = await myAxios.get("thing/search" + urlParams)
         const afterAwaitMyAxiosGetTime = performance.now()
-        log.w(
+        log.l(
           `>> in searchThing.. afterAwaitMyAxiosGetTime: ${Math.round(afterAwaitMyAxiosGetTime - afterClearRecordsTime)} milliseconds `
         )
         log.l("myAxios.get(thing/search) : ")
@@ -151,15 +155,17 @@ export const useThingStore = defineStore("Thing", {
         })
         */
         const afterRespDataForEachTime = performance.now()
-        log.w(
+        log.l(
           `>> in searchThing.. afterRespDataForEachTime: ${Math.round(afterRespDataForEachTime - afterAwaitMyAxiosGetTime)} milliseconds `
         )
         this.areWeReady = true
         return { data: resp.data, err: null }
       } catch (err) {
         this.areWeReady = true
+        this.isThereAnError = true
         if (axios.isAxiosError(err)) {
           log.w(`Try Catch Axios ERROR message:${err.message}, error:`, err)
+          this.lastErrorMessage = err.message
           if (err.response !== undefined && err.response.data !== undefined) {
             const srvMessage = isNullOrUndefined(err.response.data.message) ? "" : err.response.data.message
             return { data: null, err: Error(`searchThing error : ${err.message}. Server says : ${srvMessage}`) }
@@ -168,6 +174,7 @@ export const useThingStore = defineStore("Thing", {
           }
         } else {
           log.e("💥💥 unexpected error: ", err)
+          this.lastErrorMessage = `${err}`
           return { data: null, err: Error(`💥💥 searchThing error: in Try catch : ${err}`) }
         }
       }
@@ -176,6 +183,7 @@ export const useThingStore = defineStore("Thing", {
       log.t(`> Entering.. createThing: ${id}`)
       if (t.pos_x !== undefined) t.pos_x = +t.pos_x
       if (t.pos_y !== undefined) t.pos_y = +t.pos_y
+      this.clearError()
       this.areWeReady = false
       try {
         const resp = await myAxios.post("thing", t)
@@ -202,6 +210,7 @@ export const useThingStore = defineStore("Thing", {
       log.t(`> Entering.. updateThing: ${id}`)
       if (t.pos_x !== undefined) t.pos_x = +t.pos_x
       if (t.pos_y !== undefined) t.pos_y = +t.pos_y
+      this.clearError()
       this.areWeReady = false
       try {
         const resp = await myAxios.put("thing/" + id, t)
@@ -226,6 +235,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async count(params: ISearchThingParameters): Promise<number> {
       log.t(`> Entering.. typeThing: ${params.typeThing}, createdBy: ${params.createdBy} `)
+      this.clearError()
       const urlParams = getUrlParameters(params)
       try {
         //myApi.count(keywords, typeThing, createdBy, myProps.inactivated, myProps.validated)
@@ -246,6 +256,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async delete(id: string): Promise<netThing> {
       log.t(`> Entering.. deleteThing: ${id}`)
+      this.clearError()
       this.areWeReady = false
       try {
         const resp = await myAxios.delete("thing/" + id)
@@ -270,6 +281,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async getTypes(): Promise<netThing> {
       log.t(`> Entering getTypes:`)
+      this.clearError()
       this.areWeReady = false
       try {
         const resp = await myAxios.get("types")
@@ -304,6 +316,7 @@ export const useThingStore = defineStore("Thing", {
     },
     async init(searchParams: ISearchThingParameters) {
       log.t(`> Entering ThingStore init`)
+      this.clearError()
       this.areWeReady = false
       this.searchParameters = Object.assign({}, searchParams)
       myAxios = axios.create({
@@ -321,6 +334,10 @@ export const useThingStore = defineStore("Thing", {
       this.dicoTypeThing = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.name]))
       this.areWeReady = true
       this.isInitDone = true
+    },
+    clearError(): void {
+      this.isThereAnError = false
+      this.lastErrorMessage = ""
     },
   },
 })

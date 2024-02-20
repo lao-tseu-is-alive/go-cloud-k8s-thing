@@ -13,4 +13,4 @@ export const BACKEND_URL = DEV ? "http://localhost:9191" : url.origin
 export const getLog = (ModuleName: string, verbosityDev: levelLog, verbosityProd: levelLog) =>
   DEV ? new Log(ModuleName, verbosityDev) : new Log(ModuleName, verbosityProd)
 
-export const defaultAxiosTimeout = 1000
+export const defaultAxiosTimeout = 10000 // 10 sec
