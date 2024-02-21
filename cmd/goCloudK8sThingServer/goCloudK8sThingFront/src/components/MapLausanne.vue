@@ -243,6 +243,8 @@ watch(
         if (myOlMap.value !== null) {
           addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, val)
         }
+      } else {
+        log.l(`in watch myProps.geodata 😴 😴 NOTHING TO DO old is same as new val: ${val}`)
       }
     }
   }

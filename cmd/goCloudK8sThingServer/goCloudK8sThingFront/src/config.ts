@@ -3,7 +3,7 @@ import { levelLog, Log } from "@/log"
 export const APP = "goCloudK8sThing"
 export const APP_TITLE = "Goéland-Thing"
 export const VERSION = "0.0.7"
-export const BUILD_DATE = "2024-02-15"
+export const BUILD_DATE = "2024-02-22"
 // eslint-disable-next-line no-undef
 export const DEV = process.env.NODE_ENV === "development"
 export const HOME = DEV ? "http://localhost:3000/" : "/"

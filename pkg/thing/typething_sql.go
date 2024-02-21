@@ -7,6 +7,7 @@ SELECT id,
     name,
     external_id,
     _created_at as created_at,
+	icon_path,
     table_name,
     geometry_type,
     inactivated

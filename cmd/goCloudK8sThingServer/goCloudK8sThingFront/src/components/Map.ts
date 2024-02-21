@@ -298,7 +298,7 @@ export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonD
     if (!isNullOrUndefined(geoJsonData)) {
       const olLayer = getLayerByName(olMap, layerName)
       if (olLayer == null) {
-        // layer was not yet created so let's create it with the brand new marker icon feature
+        // layer was not yet created so let's create it
         const vectorSource = getVectorSourceGeoJson(geoJsonData)
         const vectorLayer = new OlLayerVector({
           // @ts-expect-error it's ok
@@ -309,7 +309,7 @@ export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonD
         vectorLayer.setProperties({ title: layerName, name: layerName })
         olMap.addLayer(vectorLayer)
       } else {
-        log.t(`In addGeoJsonLayer setting geoJson source to existing ${layerName}`)
+        log.l(`In addGeoJsonLayer setting geoJson source to existing ${layerName}`)
         const oldVectorSource = olLayer.getSource() as OlSourceVector
         if (oldVectorSource !== null) {
           oldVectorSource.clear()
