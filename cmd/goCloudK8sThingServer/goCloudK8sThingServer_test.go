@@ -255,6 +255,7 @@ func TestMainExec(t *testing.T) {
 		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
 	var existingMaxTypeThingId = 112
+	var existingCountTypeThingId = 106
 	if existTableTypeThing {
 		sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
 		_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
@@ -832,10 +833,10 @@ func TestMainExec(t *testing.T) {
 			body:                         "",
 		},
 		{
-			name:                         "GET /types/count should return the max id",
+			name:                         "GET /types/count should return the number of type thing id",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     strconv.Itoa(existingMaxTypeThingId),
+			wantBody:                     strconv.Itoa(existingCountTypeThingId),
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/types/count",
