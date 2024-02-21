@@ -54,3 +54,37 @@ export const truncateText = (text: string, maxSize = 40): string => {
   if (text.length < maxSize) return text
   return `${text.substring(0, maxSize)}…`
 }
+
+export const parseJsonWithDetailedError = (jsonString: string, context: number = 50): any => {
+  log.t(">parseJsonWithDetailedError ")
+  try {
+    // Attempt to parse the JSON string
+    const result = JSON.parse(jsonString)
+    log.l("Parsing successful", result)
+    return result
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // Extracting approximate position information from the error message
+      const match = error.message.match(/position (\d+)/)
+      if (match) {
+        const position = parseInt(match[1], 10)
+        // Calculating line and column based on the position
+        const lines = jsonString.substring(0, position).split("\n")
+        const line = lines.length
+        const column = lines[lines.length - 1].length + 1
+        // Extracting a 30-character excerpt around the error position
+        const start = Math.max(0, position - context)
+        const end = Math.min(jsonString.length, position + context)
+        const excerpt = `...${jsonString.slice(start, position)}«${jsonString.charAt(position)}»${jsonString.substring(position + 1, end)}...`
+
+        log.w(`Error parsing JSON at [${line}:${column}] ${error.message}: "${excerpt}"`)
+        log.l(jsonString)
+      } else {
+        log.w("Error parsing JSON:", error.message)
+      }
+    } else {
+      // Non-syntax errors (unlikely in this context, but good practice to handle)
+      log.w("Unexpected error:", error)
+    }
+  }
+}

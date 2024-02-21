@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { isNullOrUndefined } from "@/tools/utils"
+import { isNullOrUndefined, parseJsonWithDetailedError } from "@/tools/utils";
 import { Thing, ThingList, TypeThing } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
@@ -93,6 +93,49 @@ export const useThingStore = defineStore("Thing", {
     numRecords: (state) => state.records.length,
     numTypeThings: (state) => state.arrListTypeThing.length,
     busyDoingNetWork: (state) => !state.areWeReady,
+    getGeoJson: (state) => {
+      log.t(`> Entering getGeoJson.. records.length : ${state.records.length}`)
+      // const startTime = performance.now()
+      if (state.records.length > 0) {
+        let myGeoJson = null
+        let result = '{"type": "FeatureCollection", "features": ['
+        state.records.forEach((r: ThingList) => {
+          const feature = `
+           {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "crs": {
+                "type": "name",
+                "properties": {
+                  "name": "EPSG:2056"
+                }
+              },
+              "coordinates": [${r.pos_x}, ${r.pos_y}]
+              },
+              "properties": {
+                "id": "${r.id}",
+                "type_id": ${r.type_id},
+                "name": "${r.name}",
+                "external_id": ${r.external_id},
+                "icon_path": "/img/gomarker_star_blue.png"
+              }},`
+          // log.l(feature)
+          result += feature
+        })
+        if (result.endsWith(",")) {
+          result = result.slice(0, -1)
+        }
+        result += "]}"
+        try {
+          myGeoJson = parseJsonWithDetailedError(result)
+        } catch (e) {
+          log.w(`> Error in getGeoJson.. JSON.parse(result) : ${e}`, result)
+        }
+        return myGeoJson
+      }
+      return { type: "FeatureCollection", features: [] }
+    },
   },
   actions: {
     async get(id: string): Promise<netThing> {

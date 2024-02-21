@@ -292,27 +292,35 @@ const getVectorSourceGeoJson = (geoJsonData: object) => {
     features: new OlFormatGeoJSON().readFeatures(geoJsonData),
   })
 }
-export const addGeoJsonLayer = (olMap: OlMap, layerName: string, geoJsonData: object) => {
-  log.t(`adding ${layerName}...`)
-  const olLayer = getLayerByName(olMap, layerName)
-  if (olLayer == null) {
-    // layer was not yet created so let's create it with the brand new marker icon feature
-    const vectorSource = getVectorSourceGeoJson(geoJsonData)
-    const vectorLayer = new OlLayerVector({
-      // @ts-expect-error it's ok
-      source: vectorSource,
-      // @ts-expect-error it's what is in ol doc
-      style: getPointStyle,
-    })
-    vectorLayer.setProperties({ title: layerName, name: layerName })
-    olMap.addLayer(vectorLayer)
-  } else {
-    log.t(`In addGeoJsonLayer setting geoJson source to existing ${layerName}`)
-    const oldVectorSource = olLayer.getSource() as OlSourceVector
-    if (oldVectorSource !== null) {
-      oldVectorSource.clear()
+export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonData: object) => {
+  log.t(`> will trying creating/updating features in layer : ${layerName}...`)
+  if (!isNullOrUndefined(olMap)) {
+    if (!isNullOrUndefined(geoJsonData)) {
+      const olLayer = getLayerByName(olMap, layerName)
+      if (olLayer == null) {
+        // layer was not yet created so let's create it with the brand new marker icon feature
+        const vectorSource = getVectorSourceGeoJson(geoJsonData)
+        const vectorLayer = new OlLayerVector({
+          // @ts-expect-error it's ok
+          source: vectorSource,
+          // @ts-expect-error it's what is in ol doc
+          style: getPointStyle,
+        })
+        vectorLayer.setProperties({ title: layerName, name: layerName })
+        olMap.addLayer(vectorLayer)
+      } else {
+        log.t(`In addGeoJsonLayer setting geoJson source to existing ${layerName}`)
+        const oldVectorSource = olLayer.getSource() as OlSourceVector
+        if (oldVectorSource !== null) {
+          oldVectorSource.clear()
+        }
+        olLayer.setSource(getVectorSourceGeoJson(geoJsonData))
+      }
+    } else {
+      log.w("addGeoJsonLayer will do nothing because geoJsonData isNullOrUndefined")
     }
-    olLayer.setSource(getVectorSourceGeoJson(geoJsonData))
+  } else {
+    log.w("addGeoJsonLayer will do nothing because olMap isNullOrUndefined")
   }
 }
 

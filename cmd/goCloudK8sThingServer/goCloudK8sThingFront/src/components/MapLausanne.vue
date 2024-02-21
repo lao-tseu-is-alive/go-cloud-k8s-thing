@@ -179,7 +179,7 @@ $button_size_20px: 2.1em; // = 42px (body font size = 20px)
     ></v-btn>
     <v-footer class="text-center bottom--1 mouse-coordinates">
       <div>x,y: {{ posMouseX }}, {{ posMouseY }}</div>
-      <div>Trouvé {{ store.numRecords }} Thing(s) avec ces filtres:{{ searchParameters }} </div>
+      <div>Trouvé {{ numRecords }} Thing(s) avec ces filtres:{{ searchParameters }}</div>
       &nbsp;
     </v-footer>
     <div class="map" id="map" ref="myMap">
@@ -196,24 +196,24 @@ import { addGeoJsonLayer, createLausanneMap, mapClickInfo, mapFeatureInfo } from
 import OlMap from "ol/Map"
 import OlOverlay from "ol/Overlay"
 import LayerSwitcher from "ol-layerswitcher"
-import { geoData } from "@/components/geodata"
+// import { geoData } from "@/components/geodata"
 import { isNullOrUndefined } from "@/tools/utils"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
 
 const store = useThingStore()
-const { searchParameters } = storeToRefs(store)
-
+const { numRecords, searchParameters } = storeToRefs(store)
 const log = getLog("MapLausanneVue", 4, 2)
 const myLayerName = "GoelandThingLayer"
 const posMouseX = ref(0)
 const posMouseY = ref(0)
 const layerSwitcherVisible = ref(false)
-let myOlMap: null | OlMap
+const myOlMap = ref<OlMap | null>(null)
 let myMapOverlay: null | OlOverlay
 const mapTooltip = ref<HTMLDivElement | null>(null)
 const myProps = defineProps<{
   zoom?: number | undefined
+  geodata: object | undefined
 }>()
 
 //// EVENT SECTION
@@ -233,6 +233,21 @@ watch(
   }
   //  { immediate: true }
 )
+watch(
+  () => myProps.geodata,
+  (val, oldValue) => {
+    log.t(` watch myProps.geodata old: ${oldValue}, new val: ${val}`)
+    if (!isNullOrUndefined(val)) {
+      if (val !== oldValue) {
+        // do something
+        if (myOlMap.value !== null) {
+          addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, val)
+        }
+      }
+    }
+  }
+  //  { immediate: true }
+)
 //// COMPUTED SECTION
 
 //// FUNCTIONS SECTION
@@ -246,14 +261,14 @@ const toggleLayerSwitcher = () => {
 }
 const initialize = async (center) => {
   log.t(" #> entering initialize...")
-  myOlMap = await createLausanneMap("map", center, 8, "fonds_geo_osm_bdcad_couleur")
-  if (myOlMap !== null) {
-    myOlMap.on("pointermove", (evt) => {
+  myOlMap.value = await createLausanneMap("map", center, 8, "fonds_geo_osm_bdcad_couleur")
+  if (myOlMap.value !== null) {
+    myOlMap.value.on("pointermove", (evt) => {
       posMouseX.value = +Number(evt.coordinate[0]).toFixed(2)
       posMouseY.value = +Number(evt.coordinate[1]).toFixed(2)
       const features = []
-      if (myOlMap instanceof OlMap) {
-        myOlMap.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+      if (myOlMap.value instanceof OlMap) {
+        myOlMap.value.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
           let layerName = ""
           if (!isNullOrUndefined(layer)) {
             layerName = layer.get("name")
@@ -316,12 +331,12 @@ const initialize = async (center) => {
         }
       }
     })
-    myOlMap.on("click", (evt) => {
+    myOlMap.value.on("click", (evt) => {
       const x = +Number(evt.coordinate[0]).toFixed(2)
       const y = +Number(evt.coordinate[1]).toFixed(2)
       const features: mapFeatureInfo[] = []
-      if (myOlMap instanceof OlMap) {
-        myOlMap.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+      if (myOlMap.value instanceof OlMap) {
+        myOlMap.value.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
           let layerName = ""
           if (!isNullOrUndefined(layer)) {
             layerName = layer.get("name")
@@ -357,16 +372,16 @@ const initialize = async (center) => {
       emit("map-click", { x, y, features } as mapClickInfo)
     })
     const divToc = document.getElementById("divLayerSwitcher")
-    LayerSwitcher.renderPanel(myOlMap, divToc, {})
-    addGeoJsonLayer(myOlMap, myLayerName, geoData)
+    LayerSwitcher.renderPanel(myOlMap.value as OlMap, divToc, {})
     if (mapTooltip.value !== null) {
       myMapOverlay = new OlOverlay({
         element: mapTooltip.value as HTMLDivElement,
         offset: [0, -40],
         positioning: "top-center",
       })
-      myOlMap.addOverlay(myMapOverlay)
+      myOlMap.value.addOverlay(myMapOverlay)
     }
+    addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, store.getGeoJson)
   }
 }
 

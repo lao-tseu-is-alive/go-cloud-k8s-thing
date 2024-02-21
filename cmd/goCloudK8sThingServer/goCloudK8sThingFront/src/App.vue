@@ -155,7 +155,7 @@
           </v-row>
           <v-row class="fill-height h-100">
             <v-col cols="12" v-show="showMap" class="fill-height">
-              <MapLausanne :zoom="3" @map-click="mapClickHandler"></MapLausanne>
+              <MapLausanne :zoom="3" :geodata="getGeoJson" @map-click="mapClickHandler"></MapLausanne>
             </v-col>
           </v-row>
         </v-container>
@@ -207,7 +207,7 @@ const searchValidated = ref(undefined)
 const searchLimit = ref(defaultQueryLimit)
 const searchOffset = ref(0)
 const store = useThingStore()
-const { areWeReady, busyDoingNetWork, numRecords, numTypeThings, isThereAnError } = storeToRefs(store)
+const { areWeReady, busyDoingNetWork, numRecords, numTypeThings, isThereAnError, getGeoJson } = storeToRefs(store)
 const tabs = ref(null)
 const rules = {
   required: (value) => !!value || "Obligatoire.",
