@@ -99,7 +99,7 @@ export const geoData = {
       geometry: {
         type: "Point",
         crs: { type: "name", properties: { name: "EPSG:2056" } },
-        coordinates: [2537609, 1152611],
+        coordinates: [2538133.3, 1152361.3],
       },
       properties: {
         id: "9999971f-53d7-4eb6-8898-97f257ea5f27",
@@ -112,6 +112,7 @@ export const geoData = {
         status: null,
         created_by: 999999,
         created_at: "2023-07-26T10:18:34.760072",
+        icon_path: "/img/gomarker_star_red.png",
         pos_x: 2537609,
         pos_y: 1152611,
       },

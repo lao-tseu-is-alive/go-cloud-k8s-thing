@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS go_thing.type_thing
     _deleted           boolean   default false,
     _deleted_at        timestamp,
     _deleted_by        integer,
-    more_data_schema   jsonb
+    more_data_schema   jsonb,
+    text_search        tsvector
 );
 
 alter table go_thing.thing
@@ -121,9 +122,9 @@ VALUES (4, 'Lieu-dit', 'Lieu-dit', null, 4, null, false, null, null, null, 6, '1
 INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
                                  inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
                                  _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
+                                 more_data_schema, geometry_type, icon_path)
 VALUES (5, 'Bâtiment', 'Bâtiments', null, 5, 'ThiBuilding', false, null, null, null, 6, '1999-02-23 14:54:27.060000', 6,
-        null, null, false, null, null, null, 'bbox');
+        null, null, false, null, null, null, 'bbox', '"/img/gomarker_building.png"');
 INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
                                  inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
                                  _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
@@ -512,9 +513,9 @@ VALUES (73, 'Panneau d''affichage', 'Panneau d''affichage (OSU)', null, 73, 'Thi
 INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
                                  inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
                                  _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
-                                 more_data_schema, geometry_type)
+                                 more_data_schema, geometry_type, icon_path)
 VALUES (74, 'Arbre', 'Arbre (SPP)', null, 74, 'ThiArbre', false, null, null, null, 10958, '2009-04-06 09:49:13.000000',
-        10958, null, null, false, null, null, null, 'point');
+        10958, null, null, false, null, null, null, 'point', '/img/gomarker_tree.png');
 INSERT INTO go_thing.type_thing (id, name, description, comment, external_id, table_name, inactivated, inactivated_time,
                                  inactivated_by, inactivated_reason, managed_by, _created_at, _created_by,
                                  _last_modified_at, _last_modified_by, _deleted, _deleted_at, _deleted_by,
@@ -736,7 +737,6 @@ VALUES (112, 'SPADOM - Ouvrages - Oeuvre d''art', 'Ouvrage SPADOM QGIS Oeuvre d'
 
 
 
-ALTER TABLE go_thing.type_thing ADD COLUMN text_search tsvector;
 
 UPDATE go_thing.type_thing
 SET text_search = to_tsvector('french',
