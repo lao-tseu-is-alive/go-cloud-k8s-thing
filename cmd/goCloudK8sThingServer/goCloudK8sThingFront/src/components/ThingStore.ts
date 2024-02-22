@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
-import { isNullOrUndefined, parseJsonWithDetailedError } from "@/tools/utils";
-import { Thing, ThingList, TypeThing } from "@/openapi-generator-cli_thing_typescript-axios"
+import { isNullOrUndefined, parseJsonWithDetailedError } from "@/tools/utils"
+import { Thing, ThingList, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
 import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 
@@ -68,10 +68,6 @@ export const defaultItem: Thing = {
 
 type netThing = { data: Thing | null; err: Error | null }
 
-interface typeThingSelect {
-  id: number
-  name: string
-}
 interface IDictionary {
   [key: number]: string
 }
@@ -80,8 +76,9 @@ export const useThingStore = defineStore("Thing", {
   state: () => {
     return {
       records: [] as ThingList[],
-      arrListTypeThing: [] as typeThingSelect[],
+      arrListTypeThing: [] as TypeThingList[],
       dicoTypeThing: {} as IDictionary,
+      dicoTypeThingIconPath: {} as IDictionary,
       searchParameters: { inactivated: false, limit: defaultQueryLimit, offset: 0 } as ISearchThingParameters,
       areWeReady: false,
       isThereAnError: false,
@@ -118,7 +115,7 @@ export const useThingStore = defineStore("Thing", {
                 "type_id": ${r.type_id},
                 "name": "${r.name}",
                 "external_id": ${r.external_id},
-                "icon_path": "/img/gomarker_star_blue.png"
+                "icon_path": "${state.dicoTypeThingIconPath[r.type_id]}"
               }},`
           // log.l(feature)
           result += feature
@@ -330,7 +327,7 @@ export const useThingStore = defineStore("Thing", {
         const resp = await myAxios.get("types")
         log.l(`SUCCESS myAPi.getTypes`)
         if (resp.status == 200) {
-          resp.data.forEach((r: TypeThing) => {
+          resp.data.forEach((r: TypeThingList) => {
             this.arrListTypeThing.push(r)
           })
           this.areWeReady = true
@@ -357,6 +354,12 @@ export const useThingStore = defineStore("Thing", {
         }
       }
     },
+    getIconPath(idType: number): string {
+      this.arrListTypeThing.forEach((e) => {
+        if (e.id == idType) return e.icon_path
+      })
+      return "/img/gomarker_star_blue.png"
+    },
     async init(searchParams: ISearchThingParameters) {
       log.t(`> Entering ThingStore init`)
       this.clearError()
@@ -375,6 +378,7 @@ export const useThingStore = defineStore("Thing", {
         log.w(msg)
       }
       this.dicoTypeThing = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.name]))
+      this.dicoTypeThingIconPath = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.icon_path]))
       this.areWeReady = true
       this.isInitDone = true
     },

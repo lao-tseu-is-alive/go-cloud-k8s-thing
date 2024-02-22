@@ -504,6 +504,12 @@ export interface TypeThingList {
      * @type {string}
      * @memberof TypeThingList
      */
+    'icon_path': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TypeThingList
+     */
     'geometry_type'?: string;
     /**
      *
