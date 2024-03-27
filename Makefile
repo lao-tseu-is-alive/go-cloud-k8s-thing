@@ -77,7 +77,7 @@ exec-bin: build
  # go test -race -coverprofile coverage.out -coverpkg=$(go list github.com/lao-tseu-is-alive/go-cloud-k8s-thing/...|tr "\n" ",") ./...
 
 .PHONY: test
-test: clean mod-download
+test: clean mod-download env-test
 	@echo "  >  Running all tests code..."
 	go test -race -coverprofile coverage.out -coverpkg=./... ./...
 
