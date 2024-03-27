@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/cristalhq/jwt/v4"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/pgx"
+	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/echoprometheus"
@@ -237,7 +237,8 @@ func main() {
 	if err != nil {
 		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx", 1))
+	dsn := strings.Replace(dbDsn, "postgres", "pgx5", 1)
+	m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
 	if err != nil {
 		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
 	}
