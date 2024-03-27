@@ -184,6 +184,7 @@ spec:
                                  # of the supplementary group ID 100 (users).
         supplementalGroups:
           - 100
+      automountServiceAccountToken: false
       containers:
       - name: go-cloud-k8s-thing
         image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.0.7
