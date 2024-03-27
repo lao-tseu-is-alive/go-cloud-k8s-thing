@@ -38,11 +38,8 @@ const (
 	defaultSecuredApi          = "/goapi/v1"
 	defaultThingAdminUsername  = "bill"
 	charsetUTF8                = "charset=UTF-8"
-	MIMEAppJSON                = "application/json"
 	MIMEHtml                   = "text/html"
-	MIMEAppJSONCharsetUTF8     = MIMEAppJSON + "; " + charsetUTF8
 	MIMEHtmlCharsetUTF8        = MIMEHtml + "; " + charsetUTF8
-	HeaderContentType          = "Content-Type"
 )
 
 // content holds our static web server content.
