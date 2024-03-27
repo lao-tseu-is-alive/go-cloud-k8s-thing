@@ -184,6 +184,7 @@ spec:
                                  # of the supplementary group ID 100 (users).
         supplementalGroups:
           - 100
+      automountServiceAccountToken: false
       containers:
       - name: APP_NAME
         image: GO_CONTAINER_REGISTRY_PREFIX/APP_NAME:APP_VERSION
