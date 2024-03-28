@@ -64,7 +64,7 @@ build: check-env clean mod-download test openapi-codegen
 
 .PHONY: exec-bin
 ## exec-bin:	will execute app binary with .env variables in current directory
-exec-bin: build
+exec-bin: build check-env
 	@echo "  >  executing your app binary ..."
 	eval $(egrep -v '^#' .env | xargs -0) bin/$(APP_EXECUTABLE)
 
@@ -77,21 +77,27 @@ exec-bin: build
  # go test -race -coverprofile coverage.out -coverpkg=$(go list github.com/lao-tseu-is-alive/go-cloud-k8s-thing/...|tr "\n" ",") ./...
 
 .PHONY: test
-test: clean mod-download env-test
+test: clean mod-download env-test-export
 	@echo "  >  Running all tests code..."
-	go test -race -coverprofile coverage.out -coverpkg=./... ./...
+	. .env-testing-export && go test -race -coverprofile coverage.out -coverpkg=./... ./...
 
-
-.PHONY: env-test
-env-test:
-	export $(shell sed 's/=.*//' .env_testing )
+# Check if .env_testing exists and include it if it does
+ifneq ("$(wildcard .env_testing)","")
+include .env_testing
+env-test-export:
+	@echo "Exporting environment variables from .env_testing..."
+	sed -ne '/^export / {p;d}; /.*=/ s/^/export / p' .env_testing > .env-testing-export
+else
+env-test-export:
+	@echo ".env_testing file does not exist, skipping export..."
+endif
 
 .PHONY: test-all
-test-all: clean mod-download env-test
+test-all: clean mod-download env-test-export
 	@echo "  >  Running all tests code..."
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg,$(PACKAGES), \
-		go test -race -p=1 -cover -covermode=atomic -coverprofile=coverage.out ${pkg}; \
+		. .env-testing-export && go test -race -p=1 -cover -covermode=atomic -coverprofile=coverage.out ${pkg}; \
 		tail -n +2 coverage.out >> coverage-all.out;)
 
 
@@ -127,10 +133,12 @@ dependencies-xo:
 
 .PHONY: check-env
 check-env:
+	@echo "  >  checking if env APP_NAME exist..."
 ifndef APP_NAME
 	# if this variable is not defined via ./scripts/getAppInfo.sh
 	$(error APP_NAME is undefined)
 endif
+	@echo "  >  checking if env DB_PASSWORD exist..."
 ifndef DB_PASSWORD
 	# if this variable is not defined you cannot initialise the postgres db correctly
 	$(error DB_PASSWORD is undefined)

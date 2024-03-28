@@ -35,3 +35,4 @@ ___goCloudK8sThingServer_test_go.test
 /deployments/go-testing/myLocalConfigMap.yaml
 /deployments/go-testing/soiConfigMap.yaml
 /bin/goCloudK8sThingServer
+/.env-testing-export
