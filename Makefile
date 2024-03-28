@@ -76,10 +76,6 @@ exec-bin: build check-env
     #	go tool test2json -t ./___goCloudK8sThingServer_test_go.test -test.v -test.paniconexit0 -test.run ^\QTestMainExec\E$$ -test.coverprofile ./coverage.out
  # go test -race -coverprofile coverage.out -coverpkg=$(go list github.com/lao-tseu-is-alive/go-cloud-k8s-thing/...|tr "\n" ",") ./...
 
-.PHONY: test
-test: clean mod-download env-test-export
-	@echo "  >  Running all tests code..."
-	. .env-testing-export && go test -race -coverprofile coverage.out -coverpkg=./... ./...
 
 # Check if .env_testing exists and include it if it does
 ifneq ("$(wildcard .env_testing)","")
@@ -87,10 +83,11 @@ include .env_testing
 env-test-export:
 	@echo "Exporting environment variables from .env_testing..."
 	sed -ne '/^export / {p;d}; /.*=/ s/^/export / p' .env_testing > .env-testing-export
-else
-env-test-export:
-	@echo ".env_testing file does not exist, skipping export..."
-endif
+
+.PHONY: test
+test: clean mod-download env-test-export
+	@echo "  >  Running all tests code..."
+	. .env-testing-export && go test -race -coverprofile coverage.out -coverpkg=./... ./...
 
 .PHONY: test-all
 test-all: clean mod-download env-test-export
@@ -99,6 +96,28 @@ test-all: clean mod-download env-test-export
 	@$(foreach pkg,$(PACKAGES), \
 		. .env-testing-export && go test -race -p=1 -cover -covermode=atomic -coverprofile=coverage.out ${pkg}; \
 		tail -n +2 coverage.out >> coverage-all.out;)
+
+
+else
+env-test-export:
+	@echo ".env_testing file does not exist, skipping export..."
+
+.PHONY: test
+test: clean mod-download env-test-export
+	@echo "  >  Running all tests code..."
+	go test -race -coverprofile coverage.out -coverpkg=./... ./...
+
+.PHONY: test-all
+test-all: clean mod-download env-test-export
+	@echo "  >  Running all tests code..."
+	@echo "mode: count" > coverage-all.out
+	@$(foreach pkg,$(PACKAGES), \
+		go test -race -p=1 -cover -covermode=atomic -coverprofile=coverage.out ${pkg}; \
+		tail -n +2 coverage.out >> coverage-all.out;)
+
+
+
+endif
 
 
 .PHONY: clean
