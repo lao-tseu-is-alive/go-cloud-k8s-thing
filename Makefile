@@ -56,7 +56,6 @@ mod-download:
 	@echo "  >  Downloading go modules dependencies..."
 	go mod download
 
-.PHONY: build
 ## build:	will compile your server app binary and place it in the bin sub-folder
 build: check-env clean mod-download test openapi-codegen
 	@echo "  >  Building your app binary inside bin directory..."
@@ -64,7 +63,7 @@ build: check-env clean mod-download test openapi-codegen
 
 .PHONY: exec-bin
 ## exec-bin:	will execute app binary with .env variables in current directory
-exec-bin: build check-env
+exec-bin: bin/$(APP_EXECUTABLE)
 	@echo "  >  executing your app binary ..."
 	eval $(egrep -v '^#' .env | xargs -0) bin/$(APP_EXECUTABLE)
 
