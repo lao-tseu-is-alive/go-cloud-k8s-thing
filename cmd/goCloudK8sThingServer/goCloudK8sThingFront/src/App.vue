@@ -176,7 +176,7 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from "vue"
 import { useDisplay } from "vuetify"
-import { isNullOrUndefined } from "@/tools/utils"
+import { isNullOrUndefined } from "cgil-html-utils"
 import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
 import { useAppStore } from "@/appStore"
 import Login from "@/components/Login.vue"

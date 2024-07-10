@@ -358,6 +358,7 @@ import { getUserId } from "@/components/Login"
 import { Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
+import { createArcGISRestLoader } from "ol/source"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())

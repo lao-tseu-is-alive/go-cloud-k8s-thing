@@ -1,5 +1,8 @@
 # Start from the latest golang base image
-FROM golang:1-alpine3.19 AS builder
+FROM golang:1.22.5-alpine3.20 as builder
+
+ENV PATH /usr/local/go/bin:$PATH
+ENV GOLANG_VERSION 1.22.5
 
 # Add Maintainer Info
 LABEL maintainer="cgil"

@@ -197,7 +197,7 @@ import OlMap from "ol/Map"
 import OlOverlay from "ol/Overlay"
 import LayerSwitcher from "ol-layerswitcher"
 // import { geoData } from "@/components/geodata"
-import { isNullOrUndefined } from "@/tools/utils"
+import { isNullOrUndefined } from "cgil-html-utils"
 import { useThingStore } from "@/components/ThingStore"
 import { storeToRefs } from "pinia"
 

@@ -26,7 +26,7 @@ import OlFill from "ol/style/Fill"
 import { register } from "ol/proj/proj4"
 // import LayerSwitcher from "ol-layerswitcher"
 import { getLog } from "@/config"
-import { isNullOrUndefined } from "@/tools/utils"
+import { isNullOrUndefined } from "cgil-html-utils"
 import { Coordinate } from "ol/coordinate"
 
 const log = getLog("Map", 4, 2)
@@ -301,7 +301,6 @@ export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonD
         // layer was not yet created so let's create it
         const vectorSource = getVectorSourceGeoJson(geoJsonData)
         const vectorLayer = new OlLayerVector({
-          // @ts-expect-error it's ok
           source: vectorSource,
           // @ts-expect-error it's what is in ol doc
           style: getPointStyle,
