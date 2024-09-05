@@ -7,7 +7,7 @@ toolchain go1.22.5
 require (
 	github.com/cristalhq/jwt/v4 v4.0.2
 	github.com/georgysavva/scany/v2 v2.1.3
-	github.com/golang-migrate/migrate/v4 v4.17.0
+	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/labstack/echo-contrib v0.16.0

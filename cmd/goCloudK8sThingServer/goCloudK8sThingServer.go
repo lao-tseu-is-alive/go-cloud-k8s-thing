@@ -218,7 +218,7 @@ func main() {
 
 	found, ver, err := metadataService.GetServiceVersion(version.APP)
 	if err != nil {
-		l.Fatal("💥💥 error doing metadataService.CreateMetadataTableIfNeeded  error: %v\n", err)
+		l.Fatal("💥💥 error doing metadataService.GetServiceVersion  error: %v\n", err)
 	}
 	if found {
 		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
