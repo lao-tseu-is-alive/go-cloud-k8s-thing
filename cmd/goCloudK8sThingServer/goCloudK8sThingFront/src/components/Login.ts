@@ -41,12 +41,12 @@ export const getToken = async (baseServerUrl: string, username: string, password
     if (typeof Storage !== "undefined") {
       // Code for localStorage/sessionStorage.
       sessionStorage.setItem(`${APP}_goapi_jwt_session_token`, response.data.token)
-      sessionStorage.setItem(`${APP}_goapi_idgouser`, jwtValues.id)
+      sessionStorage.setItem(`${APP}_goapi_idgouser`, jwtValues.User.user_id)
+      sessionStorage.setItem(`${APP}_goapi_user_external_id`, jwtValues.User.external_id);
       sessionStorage.setItem(`${APP}_goapi_name`, jwtValues.name)
-      sessionStorage.setItem(`${APP}_goapi_username`, username)
-      sessionStorage.setItem(`${APP}_goapi_email`, jwtValues.email)
-      sessionStorage.setItem(`${APP}_goapi_isadmin`, jwtValues.is_admin)
-      sessionStorage.setItem(`${APP}_goapi_groups`, jwtValues.groups)
+      sessionStorage.setItem(`${APP}_goapi_username`, jwtValues.User.login)
+      sessionStorage.setItem(`${APP}_goapi_email`, jwtValues.User.email)
+      sessionStorage.setItem(`${APP}_goapi_isadmin`, jwtValues.User.is_admin)
       sessionStorage.setItem(`${APP}_goapi_date_expiration`, jwtValues.exp)
     }
     return {
@@ -127,11 +127,11 @@ export const clearSessionStorage = (): void => {
   // Code for localStorage/sessionStorage.
   sessionStorage.removeItem(`${APP}_goapi_jwt_session_token`)
   sessionStorage.removeItem(`${APP}_goapi_idgouser`)
+  sessionStorage.removeItem(`${APP}_goapi_user_external_id`);
   sessionStorage.removeItem(`${APP}_goapi_name`)
   sessionStorage.removeItem(`${APP}_goapi_username`)
   sessionStorage.removeItem(`${APP}_goapi_email`)
   sessionStorage.removeItem(`${APP}_goapi_isadmin`)
-  sessionStorage.removeItem(`${APP}_goapi_groups`)
   sessionStorage.removeItem(`${APP}_goapi_date_expiration`)
 }
 

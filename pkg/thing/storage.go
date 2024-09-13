@@ -1,8 +1,6 @@
 package thing
 
 import (
-	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
@@ -48,18 +46,18 @@ type Storage interface {
 	CountTypeThing(params TypeThingCountParams) (int32, error)
 }
 
-func GetStorageInstance(dbDriver string, db database.DB, l golog.MyLogger) (Storage, error) {
+func GetStorageInstanceOrPanic(dbDriver string, db database.DB, l golog.MyLogger) Storage {
 	var store Storage
 	var err error
 	switch dbDriver {
 	case "pgx":
 		store, err = NewPgxDB(db, l)
 		if err != nil {
-			return nil, fmt.Errorf("error doing NewPgxDB(pgConn : %w", err)
+			l.Fatal("error doing NewPgxDB(pgConn : %w", err)
 		}
 
 	default:
-		return nil, errors.New("unsupported DB driver type")
+		panic("unsupported DB driver type")
 	}
-	return store, nil
+	return store
 }

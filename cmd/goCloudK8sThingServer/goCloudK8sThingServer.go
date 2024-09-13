@@ -1,22 +1,18 @@
 package main
 
 import (
-	"crypto/sha256"
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cristalhq/jwt/v4"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goserver"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/metadata"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
@@ -25,7 +21,6 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
-	"time"
 )
 
 const (
@@ -36,10 +31,14 @@ const (
 	defaultWebRootDir          = "goCloudK8sThingFront/dist/"
 	defaultSqlDbMigrationsPath = "db/migrations"
 	defaultSecuredApi          = "/goapi/v1"
-	defaultThingAdminUsername  = "bill"
+	defaultAdminUser           = "goadmin"
+	defaultAdminEmail          = "goadmin@yourdomain.org"
+	defaultAdminId             = 960901
 	charsetUTF8                = "charset=UTF-8"
+	MIMEAppJSON                = "application/json"
 	MIMEHtml                   = "text/html"
 	MIMEHtmlCharsetUTF8        = MIMEHtml + "; " + charsetUTF8
+	MIMEAppJSONCharsetUTF8     = MIMEAppJSON + "; " + charsetUTF8
 )
 
 // content holds our static web server content.
@@ -53,101 +52,76 @@ var content embed.FS
 //go:embed db/migrations/*.sql
 var sqlMigrations embed.FS
 
-type ServiceThing struct {
-	Log         golog.MyLogger
-	dbConn      database.DB
-	JwtSecret   []byte
-	JwtDuration int
-	adminUser   string
-	adminHash   string
-}
-
 // UserLogin defines model for UserLogin.
 type UserLogin struct {
 	PasswordHash string `json:"password_hash"`
 	Username     string `json:"username"`
 }
 
+type Service struct {
+	Logger golog.MyLogger
+	dbConn database.DB
+	server *goHttpEcho.Server
+}
+
 // login is just a trivial example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
-func (s ServiceThing) login(ctx echo.Context) error {
-	s.Log.Debug("++ entering %v login()", ctx.Request().Method)
+func (s Service) login(ctx echo.Context) error {
+	goHttpEcho.TraceRequest("login", ctx.Request(), s.Logger)
 	uLogin := new(UserLogin)
-	username := ctx.FormValue("login")
-	fakePassword := ctx.FormValue("pass")
-	s.Log.Debug("username: %s , password: %s", username, fakePassword)
+	login := ctx.FormValue("login")
+	passwordHash := ctx.FormValue("hashed")
+	s.Logger.Debug("login: %s, hash: %s ", login, passwordHash)
 	// maybe it was not a form but a fetch data post
-	if len(strings.Trim(username, " ")) < 1 {
+	if len(strings.Trim(login, " ")) < 1 {
 		if err := ctx.Bind(uLogin); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid user login or json format in request body")
 		}
 	} else {
-		uLogin.Username = username
-		uLogin.PasswordHash = fakePassword
+		uLogin.Username = login
+		uLogin.PasswordHash = passwordHash
 	}
-	s.Log.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
-	// Throws unauthorized error
-	if uLogin.Username != s.adminUser || uLogin.PasswordHash != s.adminHash {
-		s.Log.Warn("unauthorized request: username not found or invalid password")
-		return ctx.JSON(http.StatusUnauthorized, "{\"message\":\"unauthorized request: username not found or invalid password.\"}")
-	}
+	s.Logger.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 
-	// Set custom claims
-	claims := &goserver.JwtCustomClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        "",
-			Audience:  nil,
-			Issuer:    "",
-			Subject:   "",
-			ExpiresAt: &jwt.NumericDate{Time: time.Now().Add(time.Minute * time.Duration(s.JwtDuration))},
-			IssuedAt:  &jwt.NumericDate{Time: time.Now()},
-			NotBefore: nil,
-		},
-		Id:       999999,
-		Name:     "Bill Whatever",
-		Email:    "bill@whatever.com",
-		Username: s.adminUser,
-		IsAdmin:  true,
+	if s.server.Authenticator.AuthenticateUser(uLogin.Username, uLogin.PasswordHash) {
+		userInfo, err := s.server.Authenticator.GetUserInfoFromLogin(login)
+		if err != nil {
+			errGetUInfFromLogin := fmt.Sprintf("Error getting user info from login: %v", err)
+			s.Logger.Error(errGetUInfFromLogin)
+			return ctx.JSON(http.StatusInternalServerError, errGetUInfFromLogin)
+		}
+		token, err := s.server.JwtCheck.GetTokenFromUserInfo(userInfo)
+		if err != nil {
+			errGetUInfFromLogin := fmt.Sprintf("Error getting jwt token from user info: %v", err)
+			s.Logger.Error(errGetUInfFromLogin)
+			return ctx.JSON(http.StatusInternalServerError, errGetUInfFromLogin)
+		}
+		// Prepare the response
+		response := map[string]string{
+			"token": token.String(),
+		}
+		s.Logger.Info("LoginUser(%s) successful login", login)
+		return ctx.JSON(http.StatusOK, response)
+	} else {
+		return ctx.JSON(http.StatusUnauthorized, "username not found or password invalid")
 	}
-	// create a uuid session id (a good place to store it in db if needed)
-	sessionId, _ := uuid.NewUUID()
-
-	// Create token with claims
-	signer, _ := jwt.NewSignerHS(jwt.HS512, s.JwtSecret)
-	builder := jwt.NewBuilder(signer)
-	token, err := builder.Build(claims)
-	if err != nil {
-		return err
-	}
-	msg := fmt.Sprintf("LoginUser(%s) succesfull login for user id (%d)", claims.Username, claims.Id)
-	s.Log.Info(msg)
-	return ctx.JSON(http.StatusOK, echo.Map{
-		"token":   token.String(),
-		"session": sessionId,
-	})
 }
 
-func (s ServiceThing) GetStatus(ctx echo.Context) error {
-	s.Log.Debug("trace: entering GetStatus()")
+func (s Service) GetStatus(ctx echo.Context) error {
+	goHttpEcho.TraceRequest("restricted", ctx.Request(), s.Logger)
 	// get the current user from JWT TOKEN
-	u := ctx.Get("jwtdata").(*jwt.Token)
-	claims := goserver.JwtCustomClaims{}
-	err := u.DecodeClaims(&claims)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
-	}
-	username := claims.Username
-	idUser := claims.Id
-	res, err := json.Marshal(claims)
-	if err != nil {
-		echo.NewHTTPError(http.StatusInternalServerError, "JWT User Data Could Not Be Marshaled To Json")
-	}
-	s.Log.Info("info: GetStatus(user:%s, id:%d)", username, idUser)
-	return ctx.JSONBlob(http.StatusOK, res)
+	claims := s.server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
+	currentUserId := claims.User.UserId
+	s.Logger.Info("in restricted : currentUserId: %d", currentUserId)
+	// you can check if the user is not active anymore and RETURN 401 Unauthorized
+	//if !s.Store.IsUserActive(currentUserId) {
+	//	return echo.NewHTTPError(http.StatusUnauthorized, "current calling user is not active anymore")
+	//}
+	return ctx.JSON(http.StatusOK, claims)
 }
 
-func (s ServiceThing) IsDBAlive() bool {
+func (s Service) IsDBAlive() bool {
 	dbVer, err := s.dbConn.GetVersion()
 	if err != nil {
 		return false
@@ -158,7 +132,7 @@ func (s ServiceThing) IsDBAlive() bool {
 	return true
 }
 
-func (s ServiceThing) checkReady(string) bool {
+func (s Service) checkReady(string) bool {
 	// we decide what makes us ready, is a valid  connection to the database
 	if !s.IsDBAlive() {
 		return false
@@ -166,7 +140,7 @@ func (s ServiceThing) checkReady(string) bool {
 	return true
 }
 
-func (s ServiceThing) checkHealthy(string) bool {
+func checkHealthy(string) bool {
 	// you decide what makes you ready, may be it is the connection to the database
 	//if !IsDBAlive() {
 	//	return false
@@ -175,70 +149,43 @@ func (s ServiceThing) checkHealthy(string) bool {
 }
 
 func main() {
-	prefix := fmt.Sprintf("%s ", version.APP)
-	//l := log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
-	l, err := golog.NewLogger("zap", golog.DebugLevel, prefix)
-	l.Info("Starting %s v:%s  rev:%s  build: %s", version.APP, version.VERSION, version.REVISION, version.BuildStamp)
-	l.Info("Repository url: https://%s", version.REPOSITORY)
-	secret, err := config.GetJwtSecretFromEnv()
+	l, err := golog.NewLogger("zap", golog.DebugLevel, version.APP)
 	if err != nil {
-		l.Fatal("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtSecretFromEnv() got error: %v'\n", err)
+		panic(fmt.Sprintf("💥💥 error log.NewLogger error: %v'\n", err))
 	}
-	tokenDuration, err := config.GetJwtDurationFromEnv(60)
-	if err != nil {
-		l.Fatal("💥💥 ERROR: 'in NewGoHttpServer config.GetJwtDurationFromEnv() got error: %v'\n", err)
-	}
-	dbDsn, err := config.GetPgDbDsnUrlFromEnv(defaultDBIp, defaultDBPort,
-		tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
-	if err != nil {
-		l.Fatal("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
-	}
+	l.Info("🚀🚀 Starting App:'%s', ver:%s, from: %s", version.APP, version.VERSION, version.REPOSITORY)
+
+	dbDsn := config.GetPgDbDsnUrlFromEnvOrPanic(defaultDBIp, defaultDBPort, tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
 	db, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
-		l.Fatal("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
+		l.Fatal("💥💥 error doing database.GetInstance(pgx ...) error: %v", err)
 	}
 	defer db.Close()
 
-	// checking database connection
 	dbVersion, err := db.GetVersion()
 	if err != nil {
 		l.Fatal("💥💥 error doing dbConn.GetVersion() error: %v", err)
 	}
 	l.Info("connected to db version : %s", dbVersion)
+
 	// checking metadata information
-	metadataService := metadata.Service{
-		Log: l,
-		Db:  db,
-	}
-
-	err = metadataService.CreateMetadataTableIfNeeded()
-	if err != nil {
-		l.Fatal("💥💥 error doing metadataService.CreateMetadataTableIfNeeded  error: %v", err)
-	}
-
-	found, ver, err := metadataService.GetServiceVersion(version.APP)
-	if err != nil {
-		l.Fatal("💥💥 error doing metadataService.GetServiceVersion  error: %v\n", err)
-	}
+	metadataService := metadata.Service{Log: l, Db: db}
+	metadataService.CreateMetadataTableOrFail()
+	found, ver := metadataService.GetServiceVersionOrFail(version.APP)
 	if found {
 		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
 	} else {
 		l.Info("service %s was not found in metadata", version.APP)
 	}
-	err = metadataService.SetServiceVersion(version.APP, version.VERSION)
-	if err != nil {
-		l.Fatal("💥💥 error doing metadataService.SetServiceVersion  error: %v\n", err)
-	}
+	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
 
-	// example of go-migrate db migration with embed files in go program
+	// begin section go-migrate db migration with embed files in go program
 	// https://github.com/golang-migrate/migrate
-	// https://github.com/golang-migrate/migrate/blob/master/database/postgres/TUTORIAL.md
 	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
 	if err != nil {
 		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
 	}
-	dsn := strings.Replace(dbDsn, "postgres", "pgx5", 1)
-	m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
+	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx5", 1))
 	if err != nil {
 		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
 	}
@@ -250,34 +197,47 @@ func main() {
 			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
 		}
 	}
+	// end section go-migrate db migration with embed files in go program
 
-	// set local admin user for test
-	adminUsername := config.GetAdminUserFromFromEnv(defaultThingAdminUsername)
-	adminPassword, err := config.GetAdminPasswordFromFromEnv()
-	if err != nil {
-		l.Fatal("💥💥 error GetAdminPasswordFromFromEnv unable to retrieve a valid admin password  error : %v'", err)
-	}
-	h := sha256.New()
-	h.Write([]byte(adminPassword))
-	adminPasswordHash := fmt.Sprintf("%x", h.Sum(nil))
+	myVersionReader := goHttpEcho.NewSimpleVersionReader(version.APP, version.VERSION, version.REPOSITORY)
+	// Create a new JWT checker
+	myJwt := goHttpEcho.NewJwtChecker(
+		config.GetJwtSecretFromEnvOrPanic(),
+		config.GetJwtIssuerFromEnvOrPanic(),
+		version.APP,
+		config.GetJwtContextKeyFromEnvOrPanic(),
+		config.GetJwtDurationFromEnvOrPanic(60),
+		l)
+	// Create a new Authenticator with a simple admin user
+	myAuthenticator := goHttpEcho.NewSimpleAdminAuthenticator(&goHttpEcho.UserInfo{
+		UserId:     config.GetAdminIdFromEnvOrPanic(defaultAdminId),
+		ExternalId: config.GetAdminExternalIdFromEnvOrPanic(9999999),
+		Name:       "NewSimpleAdminAuthenticator_Admin",
+		Email:      config.GetAdminEmailFromEnvOrPanic(defaultAdminEmail),
+		Login:      config.GetAdminUserFromEnvOrPanic(defaultAdminUser),
+		IsAdmin:    false,
+	},
+		config.GetAdminPasswordFromEnvOrPanic(),
+		myJwt)
 
-	yourService := ServiceThing{
-		Log:         l,
-		dbConn:      db,
-		JwtSecret:   []byte(secret),
-		JwtDuration: tokenDuration,
-		adminUser:   adminUsername,
-		adminHash:   adminPasswordHash,
-	}
+	server := goHttpEcho.CreateNewServerFromEnvOrFail(
+		defaultPort,
+		"0.0.0.0", // defaultServerIp,
+		&goHttpEcho.Config{
+			ListenAddress: "",
+			Authenticator: myAuthenticator,
+			JwtCheck:      myJwt,
+			VersionReader: myVersionReader,
+			Logger:        l,
+			WebRootDir:    defaultWebRootDir,
+			Content:       content,
+			RestrictedUrl: "/goapi/v1",
+		},
+	)
 
-	listenAddr, err := config.GetPortFromEnv(defaultPort)
-	if err != nil {
-		l.Fatal("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
-	}
-	l.Info("Will start HTTP server listening on port %s", listenAddr)
-	server := goserver.NewGoHttpServer(listenAddr, l, defaultWebRootDir, content, defaultSecuredApi)
 	e := server.GetEcho()
 
+	// begin prometheus stuff tocreate a custom counter metric
 	customCounter := prometheus.NewCounter( // create new counter metric. This is replacement for `prometheus.Metric` struct
 		prometheus.CounterOpts{
 			Name: fmt.Sprintf("%s_custom_requests_total", version.APP),
@@ -287,7 +247,6 @@ func main() {
 	if err := prometheus.Register(customCounter); err != nil { // register your new counter metric with default metrics registry
 		l.Fatal("💥💥 ERROR: 'calling prometheus.Register got error: %v'\n", err)
 	}
-
 	// https://echo.labstack.com/docs/middleware/prometheus
 	mwConfig := echoprometheus.MiddlewareConfig{
 		AfterNext: func(c echo.Context, err error) {
@@ -300,32 +259,38 @@ func main() {
 		Subsystem: version.APP,
 	}
 	e.Use(echoprometheus.NewMiddlewareWithConfig(mwConfig)) // adds middleware to gather metrics
-	e.GET("/metrics", echoprometheus.NewHandler())          // adds route to serve gathered metrics
+	// end prometheus stuff tocreate a custom counter metric
+
+	yourService := Service{
+		Logger: l,
+		dbConn: db,
+		server: server,
+	}
+
+	e.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
 	e.GET("/readiness", server.GetReadinessHandler(yourService.checkReady, "Connection to DB"))
-	e.GET("/health", server.GetHealthHandler(yourService.checkHealthy, "Connection to DB"))
-	//TODO  Find a way to allow Login route to be available only in dev environment
+	e.GET("/health", server.GetHealthHandler(checkHealthy, "Connection to DB"))
+	// Find a way to allow Login route to be available only in dev environment
 	e.POST("/login", yourService.login)
 	r := server.GetRestrictedGroup()
 	r.GET("/status", yourService.GetStatus)
 
-	thingStore, err := thing.GetStorageInstance("pgx", db, l)
-	if err != nil {
-		l.Fatal("💥💥 ERROR: 'calling things.GetStorageInstance got error: %v'\n", err)
-	}
+	thingStore := thing.GetStorageInstanceOrPanic("pgx", db, l)
+
 	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
-	objService := thing.Service{
+	thingService := thing.Service{
 		Log:              l,
 		DbConn:           db,
 		Store:            thingStore,
-		JwtSecret:        []byte(secret),
-		JwtDuration:      tokenDuration,
+		Server:           server,
 		ListDefaultLimit: 50,
 	}
-	thing.RegisterHandlers(r, &objService)
+
+	thing.RegisterHandlers(r, &thingService) // register all openapi declared routes
 
 	err = server.StartServer()
 	if err != nil {
-		l.Fatal("💥💥 ERROR: 'calling echo.Start(%s) got error: %v'\n", listenAddr, err)
+		l.Fatal("💥💥 ERROR: 'calling echo.StartServer() got error: %v'\n", err)
 	}
 
 }
