@@ -146,12 +146,8 @@ func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l golog
 func TestMainExec(t *testing.T) {
 	prefix := fmt.Sprintf("%s_TESTING ", version.APP)
 	l, err := golog.NewLogger("zap", golog.DebugLevel, prefix)
-	listenPort, err := config.GetPortFromEnv(defaultPort)
-	if err != nil {
-		t.Errorf("💥💥 ERROR: 'calling GetPortFromEnv got error: %v'\n", err)
-		return
-	}
-	listenAddr := fmt.Sprintf("http://localhost%s", listenPort)
+	listenPort := config.GetPortFromEnvOrPanic(defaultPort)
+	listenAddr := fmt.Sprintf("http://localhost:%d", listenPort)
 	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
 	// common messages
 	nameCannotBeEmpty := fmt.Sprintf(thing.FieldCannotBeEmpty, "name")
@@ -170,18 +166,15 @@ func TestMainExec(t *testing.T) {
 		return r
 	}
 	// set local admin user for test
-	adminUsername := config.GetAdminUserFromFromEnv(defaultThingAdminUsername)
-	adminPassword, err := config.GetAdminPasswordFromFromEnv()
-	if err != nil {
-		l.Fatal("💥💥 error GetAdminPasswordFromFromEnv unable to retrieve a valid admin password  error : %v'", err)
-	}
+	adminUsername := config.GetAdminUserFromEnvOrPanic("goadmin")
+	adminPassword := config.GetAdminPasswordFromEnvOrPanic()
 	h := sha256.New()
 	h.Write([]byte(adminPassword))
 	adminPasswordHash := fmt.Sprintf("%x", h.Sum(nil))
 	// preparing for testing a pseudo-valid authentication
 	formLogin := make(url.Values)
 	formLogin.Set("login", adminUsername)
-	formLogin.Set("pass", adminPasswordHash)
+	formLogin.Set("hashed", adminPasswordHash)
 
 	getValidToken := func() string {
 		// let's get first a valid JWT TOKEN
@@ -216,11 +209,8 @@ func TestMainExec(t *testing.T) {
 	formLoginWrong.Set("login", adminUsername)
 	formLoginWrong.Set("pass", "anObviouslyWrongPass")
 
-	dbDsn, err := config.GetPgDbDsnUrlFromEnv(defaultDBIp, defaultDBPort,
+	dbDsn := config.GetPgDbDsnUrlFromEnvOrPanic(defaultDBIp, defaultDBPort,
 		tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
-	if err != nil {
-		t.Fatalf("💥💥 error doing config.GetPgDbDsnUrlFromEnv. error: %v\n", err)
-	}
 	db, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
 		t.Fatalf("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
@@ -330,7 +320,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /login with invalid credential should return an error ",
 			wantStatusCode:               http.StatusUnauthorized,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "unauthorized request: username not found or invalid password",
+			wantBody:                     "username not found or password invalid",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          urlLogin,
@@ -342,7 +332,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /thing without JWT token should return an error",
 			wantStatusCode:               http.StatusUnauthorized,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "missing or malformed jwt",
+			wantBody:                     "Authorization header missing",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + urlThing,
@@ -438,7 +428,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /status with valid JWT token should return JWT user data",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "999999",
+			wantBody:                     "SimpleAdminAuthenticator_goadmin",
 			paramKeyValues:               make(map[string]string),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/status",
@@ -692,7 +682,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /types without JWT token should return an error",
 			wantStatusCode:               http.StatusUnauthorized,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "missing or malformed jwt",
+			wantBody:                     "Authorization header missing",
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + urlTypeThing,
@@ -812,10 +802,10 @@ func TestMainExec(t *testing.T) {
 			name:                         "GET /types with existing keyword should return the valid typeThing",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "\"id\":" + strconv.Itoa(existingMaxTypeThingId),
+			wantBody:                     "\"id\":" + strconv.Itoa(6),
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodGet,
-			url:                          defaultSecuredApi + "/types?limit=1&offset=0&keywords=Dischidia",
+			url:                          defaultSecuredApi + "/types?limit=1&offset=0&keywords=quai",
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
 			body:                         "",

@@ -57,7 +57,7 @@ type Service struct {
 
 func (s Service) GeoJson(ctx echo.Context, params GeoJsonParams) error {
 	handlerName := "GeoJson"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -87,7 +87,7 @@ func (s Service) GeoJson(ctx echo.Context, params GeoJsonParams) error {
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing?limit=3&type=112' |jq
 func (s Service) List(ctx echo.Context, params ListParams) error {
 	handlerName := "List"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -116,7 +116,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 // curl -s -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": NULL,"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing'
 func (s Service) Create(ctx echo.Context) error {
 	handlerName := "Create"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -165,7 +165,7 @@ func (s Service) Create(ctx echo.Context) error {
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/count' |jq
 func (s Service) Count(ctx echo.Context, params CountParams) error {
 	handlerName := "Count"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -182,7 +182,7 @@ func (s Service) Count(ctx echo.Context, params CountParams) error {
 // curl -v -XDELETE -H "Content-Type: application/json"  -H "Authorization: Bearer $token" 'http://localhost:8888/users/93333' -> 400 Bad Request
 func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	handlerName := "GeoJson"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
@@ -215,7 +215,7 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/9999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	handlerName := "Get"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -247,7 +247,7 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 // curl -s -XPUT -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"id": "3999971f-53d7-4eb6-8898-97f257ea5f27","type_id": 3,"name": "Gil-Parcelle","description": "just a nice parcelle test by GIL","external_id": 345678912,"inactivated": false,"managed_by": 999, "more_data": {"info_value": 3230 },"pos_x":2537603.0 ,"pos_y":1152613.0   }' 'http://localhost:9090/goapi/v1/thing/3999971f-53d7-4eb6-8898-97f257ea5f27' |jq
 func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	handlerName := "GeoJson"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
@@ -300,7 +300,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/by-external-id/345678912?limit=3&ofset=0' |jq
 func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params ListByExternalIdParams) error {
 	handlerName := "ListByExternalId"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -330,7 +330,7 @@ func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params Lis
 // curl -s -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" 'http://localhost:9090/goapi/v1/thing/search?limit=3&type=112' |jq
 func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	handlerName := "Search"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -358,7 +358,7 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 // TypeThingList sends a list of TypeThing based on the given TypeThingListParams parameters filters
 func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) error {
 	handlerName := "TypeThingList"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -386,7 +386,7 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 // TypeThingCreate will insert a new TypeThing in the store
 func (s Service) TypeThingCreate(ctx echo.Context) error {
 	handlerName := "TypeThingCreate"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -445,7 +445,7 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 
 func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) error {
 	handlerName := "TypeThingCount"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -460,7 +460,7 @@ func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) e
 // TypeThingDelete will remove the given TypeThing entry from the store, and if not present will return 400 Bad Request
 func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 	handlerName := "TypeThingDelete"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
@@ -488,7 +488,7 @@ func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 // TypeThingGet will retrieve the Thing with the given id in the store and return it
 func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 	handlerName := "TypeThingGet"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -512,7 +512,7 @@ func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 
 func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	handlerName := "TypeThingUpdate"
-	goHttpEcho.TraceRequest(handlerName, ctx.Request(), s.Log)
+	s.Log.TraceHttpRequest(handlerName, ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)

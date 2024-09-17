@@ -486,15 +486,12 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 		err error
 	)
 	listTypeThings := typeThingListQuery
-
-	createdBy := int32(0)
-	if params.CreatedBy != nil {
-		createdBy = *params.CreatedBy
-	}
 	if params.Keywords != nil {
 		listTypeThings += listTypeThingsConditionsWithKeywords + typeThingListOrderBy
+		//db.log.Debug("params.Keywords is not nil %s", *params.Keywords)
+		//db.log.Debug("params.Keywords is not nil sql: %s", listTypeThings)
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
-			limit, offset, &params.Keywords, createdBy, &params.ExternalId, &params.Inactivated)
+			limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	} else {
 		listTypeThings += listTypeThingsConditionsWithoutKeywords + typeThingListOrderBy
 		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,

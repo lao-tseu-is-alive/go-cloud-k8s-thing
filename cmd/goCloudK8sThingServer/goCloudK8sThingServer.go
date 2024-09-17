@@ -68,7 +68,7 @@ type Service struct {
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
 func (s Service) login(ctx echo.Context) error {
-	goHttpEcho.TraceRequest("login", ctx.Request(), s.Logger)
+	s.Logger.TraceHttpRequest("login", ctx.Request())
 	uLogin := new(UserLogin)
 	login := ctx.FormValue("login")
 	passwordHash := ctx.FormValue("hashed")
@@ -109,7 +109,7 @@ func (s Service) login(ctx echo.Context) error {
 }
 
 func (s Service) GetStatus(ctx echo.Context) error {
-	goHttpEcho.TraceRequest("restricted", ctx.Request(), s.Logger)
+	s.Logger.TraceHttpRequest("restricted", ctx.Request())
 	// get the current user from JWT TOKEN
 	claims := s.server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -149,7 +149,7 @@ func checkHealthy(string) bool {
 }
 
 func main() {
-	l, err := golog.NewLogger("zap", golog.DebugLevel, version.APP)
+	l, err := golog.NewLogger("zap", golog.TraceLevel, version.APP)
 	if err != nil {
 		panic(fmt.Sprintf("💥💥 error log.NewLogger error: %v'\n", err))
 	}
