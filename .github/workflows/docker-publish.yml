@@ -63,9 +63,13 @@ jobs:
         env:
           PORT: 9090
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ISSUER_ID: ${{ secrets.JWT_ISSUER_ID }}
+          JWT_CONTEXT_KEY: ${{ secrets.JWT_CONTEXT_KEY }}
           JWT_DURATION_MINUTES: 240
           ADMIN_USER: ${{ secrets.ADMIN_USER }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_ID: ${{ secrets.ADMIN_ID }}
           APP_ENV: develop
           DB_DRIVER: postgres
           DB_HOST: 127.0.0.1
