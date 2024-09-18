@@ -11,7 +11,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/labstack/echo-contrib v0.16.0
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.3.8
+	github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs v0.3.9
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/stretchr/testify v1.9.0
