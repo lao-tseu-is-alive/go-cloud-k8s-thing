@@ -198,7 +198,7 @@ import OlOverlay from "ol/Overlay"
 import LayerSwitcher from "ol-layerswitcher"
 // import { geoData } from "@/components/geodata"
 import { isNullOrUndefined } from "cgil-html-utils"
-import { useThingStore } from "@/components/ThingStore"
+import { useThingStore } from "@/stores/ThingStore"
 import { storeToRefs } from "pinia"
 
 const store = useThingStore()

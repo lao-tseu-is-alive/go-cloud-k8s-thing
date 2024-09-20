@@ -38,14 +38,14 @@ const myCustomLightTheme = {
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
-  /* theme: {
+  theme: {
     defaultTheme: "myCustomLightTheme",
     themes: {
       myCustomLightTheme,
     },
   },
   blueprint: md3,
-  */
+
   components: {},
   date: {
     //adapter: VuetifyDateAdapter,

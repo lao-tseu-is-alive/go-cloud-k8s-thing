@@ -356,9 +356,8 @@ import { getLog } from "@/config"
 import { getDateFromTimeStamp } from "@/tools/utils"
 import { getUserId } from "@/components/Login"
 import { Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
-import { useThingStore } from "@/components/ThingStore"
+import { useThingStore } from "@/stores/ThingStore"
 import { storeToRefs } from "pinia"
-import { createArcGISRestLoader } from "ol/source"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
@@ -415,7 +414,7 @@ const defaultItem: Ref<Thing> = ref({
   pos_x: 0,
   pos_y: 0,
 })
-const editedItem: Ref<Thing> = ref(defaultItem)
+const editedItem: Ref<Thing> = ref(JSON.parse(JSON.stringify(defaultItem.value)))
 const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
 
 const myProps = defineProps<{
@@ -514,7 +513,7 @@ watch(
         if (val > maxLimit) {
           searchParameters.value.limit = maxLimit
         }
-          store.search(searchParameters.value)
+        store.search(searchParameters.value)
       }
     }
   }
@@ -738,12 +737,6 @@ const save = async () => {
   close()
 }
 
-const getTypeThingName = (type_id: number): string => {
-  if (type_id in store.dicoTypeThing) {
-    return store.dicoTypeThing[type_id]
-  }
-  return "# type inconnu #"
-}
 const initialize = async () => {
   /* this section is already present in App.vue initialize called by loginSuccess
   if (!store.isInitDone) {
