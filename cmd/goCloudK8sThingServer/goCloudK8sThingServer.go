@@ -148,6 +148,41 @@ func checkHealthy(string) bool {
 	return true
 }
 
+func initMetadataOrFail(db database.DB, l golog.MyLogger) {
+	// checking metadata information
+	metadataService := metadata.Service{Log: l, Db: db}
+	metadataService.CreateMetadataTableOrFail()
+	found, ver := metadataService.GetServiceVersionOrFail(version.APP)
+	if found {
+		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
+	} else {
+		l.Info("service %s was not found in metadata", version.APP)
+	}
+	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
+}
+
+func runMigrationsOrFail(dbDsn string, l golog.MyLogger) {
+	// begin section go-migrate db migration with embed files in go program
+	// https://github.com/golang-migrate/migrate
+	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
+	if err != nil {
+		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
+	}
+	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx5", 1))
+	if err != nil {
+		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
+	}
+
+	err = m.Up()
+	if err != nil {
+		//if err == m.
+		if !errors.Is(err, migrate.ErrNoChange) {
+			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
+		}
+	}
+	// end section go-migrate db migration with embed files in go program
+}
+
 func main() {
 	l, err := golog.NewLogger("zap", golog.TraceLevel, version.APP)
 	if err != nil {
@@ -168,36 +203,8 @@ func main() {
 	}
 	l.Info("connected to db version : %s", dbVersion)
 
-	// checking metadata information
-	metadataService := metadata.Service{Log: l, Db: db}
-	metadataService.CreateMetadataTableOrFail()
-	found, ver := metadataService.GetServiceVersionOrFail(version.APP)
-	if found {
-		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
-	} else {
-		l.Info("service %s was not found in metadata", version.APP)
-	}
-	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
-
-	// begin section go-migrate db migration with embed files in go program
-	// https://github.com/golang-migrate/migrate
-	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
-	if err != nil {
-		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
-	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx5", 1))
-	if err != nil {
-		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
-	}
-
-	err = m.Up()
-	if err != nil {
-		//if err == m.
-		if !errors.Is(err, migrate.ErrNoChange) {
-			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
-		}
-	}
-	// end section go-migrate db migration with embed files in go program
+	initMetadataOrFail(db, l)
+	runMigrationsOrFail(dbDsn, l)
 
 	myVersionReader := goHttpEcho.NewSimpleVersionReader(version.APP, version.VERSION, version.REPOSITORY)
 	// Create a new JWT checker
@@ -237,7 +244,7 @@ func main() {
 
 	e := server.GetEcho()
 
-	// begin prometheus stuff tocreate a custom counter metric
+	// begin prometheus stuff to create a custom counter metric
 	customCounter := prometheus.NewCounter( // create new counter metric. This is replacement for `prometheus.Metric` struct
 		prometheus.CounterOpts{
 			Name: fmt.Sprintf("%s_custom_requests_total", version.APP),
@@ -259,7 +266,7 @@ func main() {
 		Subsystem: version.APP,
 	}
 	e.Use(echoprometheus.NewMiddlewareWithConfig(mwConfig)) // adds middleware to gather metrics
-	// end prometheus stuff tocreate a custom counter metric
+	// end prometheus stuff to create a custom counter metric
 
 	yourService := Service{
 		Logger: l,
