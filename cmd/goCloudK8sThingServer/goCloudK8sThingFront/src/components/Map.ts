@@ -153,12 +153,14 @@ export const getLayerByName = (olMap: OlMap, layerName: string): null | OlLayer 
     log.w("NO WAY : olMap is NULL")
     return null
   }
-  olMap.getLayers().forEach((layer) => {
+  const allLayers = olMap.getAllLayers();
+  for (const layer of allLayers) {
+    log.l(`## in getLayerByName layer.get("name") : ${layer.get("name")}`);
     if (layer.get("name") !== undefined && layer.get("name") === layerName) {
-      return layer
+      return layer; // This now returns from getLayerByName
     }
-  })
-  log.l(`## in getLayerByName : the layer [${layerName}] was not found returning NULL `)
+  }
+  log.w(`## in getLayerByName : the layer [${layerName}] was not found returning NULL `)
   return null
 }
 
@@ -292,13 +294,13 @@ const getVectorSourceGeoJson = (geoJsonData: object) => {
     features: new OlFormatGeoJSON().readFeatures(geoJsonData),
   })
 }
-export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonData: object) => {
-  log.t(`> will trying creating/updating features in layer : ${layerName}...`)
+export const addGeoJsonLayer = (olMap: OlMap, layerName: string, geoJsonData: object) => {
+  log.t(`> will try creating/updating features in layer : ${layerName}...`)
   if (!isNullOrUndefined(olMap)) {
     if (!isNullOrUndefined(geoJsonData)) {
       const olLayer = getLayerByName(olMap, layerName)
       if (olLayer == null) {
-        // layer was not yet created so let's create it
+        log.l(`In addGeoJsonLayer layer was not yet created so let's create it : ${layerName}`)
         const vectorSource = getVectorSourceGeoJson(geoJsonData)
         const vectorLayer = new OlLayerVector({
           source: vectorSource,
@@ -306,6 +308,7 @@ export const addGeoJsonLayer = (olMap: OlMap | null, layerName: string, geoJsonD
           style: getPointStyle,
         })
         vectorLayer.setProperties({ title: layerName, name: layerName })
+        log.l(`In addGeoJsonLayer adding layer ${layerName} to olMap`, vectorLayer)
         olMap.addLayer(vectorLayer)
       } else {
         log.l(`In addGeoJsonLayer setting geoJson source to existing ${layerName}`)

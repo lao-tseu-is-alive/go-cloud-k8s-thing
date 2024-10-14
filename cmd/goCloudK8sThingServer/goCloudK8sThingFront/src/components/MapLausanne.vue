@@ -213,7 +213,8 @@ let myMapOverlay: null | OlOverlay
 const mapTooltip = ref<HTMLDivElement | null>(null)
 const myProps = defineProps<{
   zoom?: number | undefined
-  geodata: object | undefined
+  center?: number[] | undefined
+  geodata?: object | undefined
 }>()
 
 //// EVENT SECTION
@@ -227,7 +228,26 @@ watch(
     log.t(` watch myProps.zoom old: ${oldValue}, new val: ${val}`)
     if (val !== undefined) {
       if (val !== oldValue) {
+        // set new zoom
+        if (myOlMap.value !== null) {
+          myOlMap.value.getView().setZoom(val);
+        }
+      }
+    }
+  }
+  //  { immediate: true }
+)
+watch(
+  () => myProps.center,
+  (val, oldValue) => {
+    log.t(` watch myProps.center old: ${oldValue}, new val: ${val}`)
+    if (val !== undefined) {
+      if (val !== oldValue) {
         // do something
+        if (myOlMap.value !== null) {
+          // recenter map
+          myOlMap.value.getView().setCenter(val);
+        }
       }
     }
   }
@@ -241,7 +261,7 @@ watch(
       if (val !== oldValue) {
         // do something
         if (myOlMap.value !== null) {
-          addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, val)
+          addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, val as object)
         }
       } else {
         log.l(`in watch myProps.geodata 😴 😴 NOTHING TO DO old is same as new val: ${val}`)
@@ -251,24 +271,27 @@ watch(
   //  { immediate: true }
 )
 //// COMPUTED SECTION
+const getNumRecords = (): number => {
+  if (isNullOrUndefined(numRecords.value)) {
+    return 0
+  }
+  return numRecords.value
+}
 
 //// FUNCTIONS SECTION
 const toggleLayerSwitcher = () => {
   log.t(`# toggleLayerSwitcher layerSwitcherVisible : ${layerSwitcherVisible.value}`)
-  if (layerSwitcherVisible.value) {
-    layerSwitcherVisible.value = false
-  } else {
-    layerSwitcherVisible.value = true
-  }
+  layerSwitcherVisible.value = !layerSwitcherVisible.value;
 }
-const initialize = async (center) => {
+const initialize = async (center: number[]) => {
   log.t(" #> entering initialize...")
   myOlMap.value = await createLausanneMap("map", center, 8, "fonds_geo_osm_bdcad_couleur")
   if (myOlMap.value !== null) {
+    log.l("initialize() myOlMap is not null : ", myOlMap.value)
     myOlMap.value.on("pointermove", (evt) => {
-      posMouseX.value = +Number(evt.coordinate[0]).toFixed(2)
-      posMouseY.value = +Number(evt.coordinate[1]).toFixed(2)
-      const features = []
+      posMouseX.value = +Number(evt.coordinate[0]).toFixed(0)
+      posMouseY.value = +Number(evt.coordinate[1]).toFixed(0)
+      const features = <any[]>[]
       if (myOlMap.value instanceof OlMap) {
         myOlMap.value.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
           let layerName = ""
@@ -373,8 +396,9 @@ const initialize = async (center) => {
       }
       emit("map-click", { x, y, features } as mapClickInfo)
     })
+
     const divToc = document.getElementById("divLayerSwitcher")
-    LayerSwitcher.renderPanel(myOlMap.value as OlMap, divToc, {})
+    LayerSwitcher.renderPanel(myOlMap.value as OlMap, divToc as HTMLElement, {})
     if (mapTooltip.value !== null) {
       myMapOverlay = new OlOverlay({
         element: mapTooltip.value as HTMLDivElement,
@@ -383,7 +407,11 @@ const initialize = async (center) => {
       })
       myOlMap.value.addOverlay(myMapOverlay)
     }
-    addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, store.getGeoJson)
+    if (getNumRecords() > 0) {
+      log.l("initialize() numRecords > 0")
+      addGeoJsonLayer(myOlMap.value as OlMap, myLayerName, store.getGeoJson)
+    }
+
   }
 }
 
