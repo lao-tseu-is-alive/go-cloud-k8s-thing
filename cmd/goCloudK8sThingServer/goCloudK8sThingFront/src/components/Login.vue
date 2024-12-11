@@ -43,7 +43,6 @@
                   :type="showPassword ? 'text' : 'password'"
                 >
                 </v-text-field>
-                <v-text-field id="password_hash" name="password_hash" ref="password_hash" v-show="sha256Visible" v-model="password_hash" prepend-icon="lock" label="sha256" type="text"> </v-text-field>
                 <template v-if="feedbackVisible">
                   <v-icon color="red" icon="mdi-alert-circle"></v-icon>
                   <v-label class="pl-1" :value="feedbackVisible" :color="feedbackType" :icon="feedbackType" outlined>
@@ -54,7 +53,9 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn dark color="primary" variant="flat" prepend-icon="mdi-location-enter" @click.prevent="getJwtToken">Connexion</v-btn>
+              <v-btn dark color="primary" variant="flat" prepend-icon="mdi-location-enter" @click.prevent="getJwtToken"
+                >Connexion</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-col>
@@ -66,9 +67,18 @@
 <script>
 import { isNullOrUndefined } from "@/tools/utils"
 import { APP_TITLE, BACKEND_URL, getLog } from "@/config"
-import { getPasswordHash, getToken } from "./Login"
+import { getToken } from "./Login"
 
-const log = getLog("Login-Vue", 2, 2)
+const log = getLog("Login-Vue", 4, 2)
+
+export const getPasswordHashSHA256 = async (password) => {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+
 export default {
   name: "LoginVue",
   data: () => ({
@@ -76,7 +86,6 @@ export default {
     username: null,
     password: null,
     showPassword: false,
-    sha256Visible: false,
     validLoginForm: false,
     feedbackVisible: false,
     feedbackText: "Veuillez vous authentifier SVP.",
@@ -94,11 +103,6 @@ export default {
     },
   },
 
-  computed: {
-    password_hash() {
-      return getPasswordHash(this.password)
-    },
-  },
   mounted() {
     log.t("# IN mounted()")
     this.$refs.username.focus()
@@ -128,12 +132,14 @@ export default {
       this.feedbackType = "info"
       this.feedbackVisible = false
     },
-    getJwtToken() {
+    getJwtToken: async function () {
       log.t("# IN getJwtToken()")
       this.resetFeedBack()
-      if (this.$refs["login-form"].validate()) {
+      if (await this.$refs["login-form"].validate()) {
         try {
-          const res = getToken(this.base_server_url, this.username, this.password_hash)
+          const hash = await getPasswordHashSHA256(this.password)
+          log.l(`password hash: ${hash}`) // Await the hash
+          const res = getToken(this.base_server_url, this.username, hash)
             .then((val) => {
               if (val.data == null) {
                 if (!isNullOrUndefined(val.err)) {

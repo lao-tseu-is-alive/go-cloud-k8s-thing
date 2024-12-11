@@ -13,7 +13,6 @@
     "@mdi/font": "7.4.47",
     "axios": "^1.7.2",
     "cgil-html-utils": "^2.0.4",
-    "crypto-es": "^2.1.0",
     "ol": "^9.2.4",
     "ol-layerswitcher": "^4.1.2",
     "pinia": "^2.1.7",
