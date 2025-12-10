@@ -31,7 +31,7 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 	var numberOfTypeThings int
 	errTypeThingTable := pgConn.QueryRow(context.Background(), typeThingCount).Scan(&numberOfTypeThings)
 	if errTypeThingTable != nil {
-		log.Error("Unable to retrieve the number of users error: %v", err)
+		log.Error("Unable to retrieve the number of typeThing error: %v", err)
 		return nil, err
 	}
 

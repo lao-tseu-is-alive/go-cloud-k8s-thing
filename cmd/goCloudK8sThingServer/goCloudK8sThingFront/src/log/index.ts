@@ -15,13 +15,13 @@ export enum levelLog {
 const getLogColor = function (level: levelLog): string {
   switch (level) {
     case levelLog.info:
-      return "background: #1b1b1b; color: #b3e5fc"
+      return "color: #1976d2"
     case levelLog.trace:
-      return "background: #1b1b1b; color: #2392ee"
+      return "color: #3D873FFF"
     case levelLog.warn:
-      return "background: #ff9800; color: #020202"
+      return "color: #ff9800"
     case levelLog.err:
-      return "background: #ff2325; color: #bfff1a"
+      return "color: #f44336"
   }
   return "background: #dddddd; color: #000"
 }

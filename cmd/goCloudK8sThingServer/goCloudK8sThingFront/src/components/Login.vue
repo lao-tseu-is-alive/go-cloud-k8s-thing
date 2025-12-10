@@ -3,9 +3,9 @@
     <v-responsive class="d-flex align-center text-center fill-height">
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
-          <v-card class="mx-auto elevation-12" min-width="345">
+          <v-card class="mx-auto elevation-12" min-width="385">
             <v-toolbar density="compact" dark color="primary">
-              <v-toolbar-title>{{ title }}</v-toolbar-title>
+              <v-toolbar-title>{{ app }}</v-toolbar-title>
             </v-toolbar>
             <v-card-text>
               <v-form ref="login-form" v-model="validLoginForm" lazy-validation>
@@ -66,18 +66,11 @@
 
 <script>
 import { isNullOrUndefined } from "@/tools/utils"
-import { APP_TITLE, BACKEND_URL, getLog } from "@/config"
-import { getToken } from "./Login"
+import { BACKEND_URL, getLog } from "@/config"
+import {getToken, getPasswordHashSHA256} from "@/components/AuthService";
 
 const log = getLog("Login-Vue", 4, 2)
 
-export const getPasswordHashSHA256 = async (password) => {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
 
 export default {
   name: "LoginVue",
@@ -97,9 +90,12 @@ export default {
       type: String,
       default: BACKEND_URL,
     },
-    title: {
+    app: {
       type: String,
-      default: `Authentification ${APP_TITLE}`,
+      default: "APP",
+    },
+    jwt_auth_url: {
+      type: String,
     },
   },
 
@@ -139,7 +135,7 @@ export default {
         try {
           const hash = await getPasswordHashSHA256(this.password)
           log.l(`password hash: ${hash}`) // Await the hash
-          const res = getToken(this.base_server_url, this.username, hash)
+          const res = await getToken(this.app, this.base_server_url, this.jwt_auth_url, this.username, hash)
             .then((val) => {
               if (val.data == null) {
                 if (!isNullOrUndefined(val.err)) {

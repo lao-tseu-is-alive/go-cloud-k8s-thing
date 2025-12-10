@@ -1,8 +1,8 @@
 import axios from "axios"
-import { getLog, APP, BACKEND_URL, defaultAxiosTimeout } from "../config"
+import { getLog, BACKEND_URL, defaultAxiosTimeout } from "../config"
 
 const log = getLog("Login", 1, 1)
-
+const APP = "goAPP"
 
 export const parseJwt = (token: string) => {
   const base64Url = token.split(".")[1]

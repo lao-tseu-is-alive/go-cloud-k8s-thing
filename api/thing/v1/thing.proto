@@ -1,0 +1,225 @@
+syntax = "proto3";
+
+package thing.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1;thingv1";
+
+// The Service Definition
+service ThingService {
+  // List returns a list of things based on filters
+  rpc List(ListRequest) returns (ListResponse) {
+    option (google.api.http) = {
+      get: "/thing"
+    };
+  }
+
+  // Create creates a new thing
+  rpc Create(CreateRequest) returns (CreateResponse) {
+    option (google.api.http) = {
+      post: "/thing"
+      body: "thing"
+    };
+  }
+
+  // Get retrieves a thing by ID
+  rpc Get(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/thing/{id}"
+    };
+  }
+
+  // Update modifies a thing
+  rpc Update(UpdateRequest) returns (UpdateResponse) {
+    option (google.api.http) = {
+      put: "/thing/{id}"
+      body: "thing"
+    };
+  }
+
+  // Delete removes a thing
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {
+    option (google.api.http) = {
+      delete: "/thing/{id}"
+    };
+  }
+
+  // Search returns a list based on keywords
+  rpc Search(SearchRequest) returns (SearchResponse) {
+    option (google.api.http) = {
+      get: "/thing/search"
+    };
+  }
+
+  // Count returns the number of things matching filters
+  rpc Count(CountRequest) returns (CountResponse) {
+    option (google.api.http) = {
+      get: "/thing/count"
+    };
+  }
+
+  // GeoJson returns things as a GeoJSON string
+  rpc GeoJson(GeoJsonRequest) returns (GeoJsonResponse) {
+    option (google.api.http) = {
+      get: "/thing/geojson"
+    };
+  }
+
+  // ListByExternalId returns things filtered by external ID
+  rpc ListByExternalId(ListByExternalIdRequest) returns (ListByExternalIdResponse) {
+    option (google.api.http) = {
+      get: "/thing/by-external-id/{external_id}"
+    };
+  }
+}
+
+// ---------------------------------------------------------
+// Message Definitions (Models)
+// ---------------------------------------------------------
+
+message Thing {
+  string id = 1; // UUID
+  int32 type_id = 2;
+  string name = 3;
+  string description = 4;
+  string comment = 5;
+  int32 external_id = 6;
+  string external_ref = 7;
+  google.protobuf.Timestamp build_at = 8;
+  string status = 9; // Enum: "Planifié", "En Construction", etc.
+  string contained_by = 10; // UUID
+  int32 contained_by_old = 11;
+  bool inactivated = 12;
+  google.protobuf.Timestamp inactivated_time = 13;
+  int32 inactivated_by = 14;
+  string inactivated_reason = 15;
+  bool validated = 16;
+  google.protobuf.Timestamp validated_time = 17;
+  int32 validated_by = 18;
+  int32 managed_by = 19;
+  google.protobuf.Timestamp created_at = 20;
+  int32 created_by = 21;
+  google.protobuf.Timestamp last_modified_at = 22;
+  int32 last_modified_by = 23;
+  bool deleted = 24;
+  google.protobuf.Timestamp deleted_at = 25;
+  int32 deleted_by = 26;
+  google.protobuf.Struct more_data = 27; // JSON Object
+  double pos_x = 28;
+  double pos_y = 29;
+}
+
+message ThingList {
+  string id = 1;
+  int32 type_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 external_id = 5;
+  bool inactivated = 6;
+  bool validated = 7;
+  string status = 8;
+  int32 created_by = 9;
+  google.protobuf.Timestamp created_at = 10;
+  double pos_x = 11;
+  double pos_y = 12;
+}
+
+// Request/Response Objects
+
+message ListRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  int32 type = 3;
+  int32 created_by = 4;
+  bool inactivated = 5;
+  bool validated = 6;
+}
+
+message ListResponse {
+  repeated ThingList things = 1;
+}
+
+message CreateRequest {
+  Thing thing = 1;
+}
+
+message CreateResponse {
+  Thing thing = 1;
+}
+
+message GetRequest {
+  string id = 1;
+}
+
+message GetResponse {
+  Thing thing = 1;
+}
+
+message UpdateRequest {
+  string id = 1;
+  Thing thing = 2;
+}
+
+message UpdateResponse {
+  Thing thing = 1;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteResponse {
+  // Empty, maps to 204 No Content typically
+}
+
+message SearchRequest {
+  string keywords = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+  int32 type = 4;
+  int32 created_by = 5;
+  bool inactivated = 6;
+  bool validated = 7;
+}
+
+message SearchResponse {
+  repeated ThingList things = 1;
+}
+
+message CountRequest {
+  string keywords = 1;
+  int32 type = 2;
+  int32 created_by = 3;
+  bool inactivated = 4;
+  bool validated = 5;
+}
+
+message CountResponse {
+  int32 count = 1;
+}
+
+message GeoJsonRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  int32 type = 3;
+  int32 created_by = 4;
+  bool inactivated = 5;
+  bool validated = 6;
+}
+
+message GeoJsonResponse {
+  string result = 1; // Raw JSON string
+}
+
+message ListByExternalIdRequest {
+  int32 external_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListByExternalIdResponse {
+  repeated ThingList things = 1;
+}

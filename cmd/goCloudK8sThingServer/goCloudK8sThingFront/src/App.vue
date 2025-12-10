@@ -2,12 +2,13 @@
   <v-app>
     <v-app-bar color="primary" density="compact">
       <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>{{ `${APP_TITLE} v${VERSION}` }}</v-toolbar-title>
+      <v-toolbar-title>{{ `${appStore.getAppName} v${appStore.getAppVersion}` }}</v-toolbar-title>
       <template v-if="DEV">
         <span class="left-0">{{ displaySize.name }}. TypeThings[{{ numTypeThings }}] areWeReady:{{ areWeReady }}</span>
       </template>
       <v-spacer></v-spacer>
       <template v-if="isUserAuthenticated">
+        {{ getLoginName }}
         <v-btn variant="text" :icon="getMapIcon()" :title="getMapTitle()" @click="showMap = !showMap"></v-btn>
         <v-btn
           variant="text"
@@ -162,8 +163,9 @@
       </template>
       <template v-else>
         <Login
-          :msg="`Authentification ${APP_TITLE}:`"
-          :backend="APP_TITLE"
+          :app="`Authentification ${appStore.getAppName}`"
+          :base_server_url="BACKEND_URL"
+          :jwt_auth_url="appStore.getAppAuthUrl"
           :disabled="!isNetworkOk"
           @login-ok="loginSuccess"
           @login-error="loginFailure"
@@ -174,10 +176,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, reactive } from "vue"
+import { onMounted, ref, reactive, computed } from "vue"
 import { useDisplay } from "vuetify"
 import { isNullOrUndefined } from "cgil-html-utils"
-import { APP, APP_TITLE, DEV, HOME, getLog, BUILD_DATE, VERSION } from "@/config"
+import { DEV, HOME, getLog, BACKEND_URL } from "@/config"
 import { useAppStore } from "@/stores/appStore"
 import Login from "@/components/Login.vue"
 import { useThingStore, ISearchThingParameters, maxSearchLimit, defaultQueryLimit } from "@/stores/ThingStore"
@@ -186,15 +188,17 @@ import MapLausanne from "@/components/MapLausanne.vue"
 import {
   getUserIsAdmin,
   getTokenStatus,
-  clearSessionStorage,
+  clearSession,
   doesCurrentSessionExist,
   getUserId,
-} from "@/components/Login"
+  getLocalJwtTokenAuth,
+} from "@/components/AuthService"
 import { mapClickInfo } from "@/components/Map"
 import { storeToRefs } from "pinia"
 
-const log = getLog(APP, 4, 2)
+const moduleName = "App.Vue"
 const appStore = useAppStore()
+const log = getLog(moduleName, 4, 2)
 const defaultFeedbackErrorTimeout = 5000 // default display time 5sec
 const displaySize = reactive(useDisplay())
 const showSearchCriteria = ref(true)
@@ -227,6 +231,9 @@ const isNetworkOk = ref(true)
 const drawer = ref(false)
 let autoLogoutTimer: number
 
+const getLoginName = computed(() => {
+  return appStore.getUsername
+})
 const getMapIcon = () => (showMap.value ? "mdi-earth-off" : "mdi-earth")
 const getMapTitle = () => (showMap.value ? "cacher la carte" : "afficher la carte")
 const getFilterIcon = () => (showSearchCriteria.value ? "mdi-filter-off" : "mdi-filter")
@@ -235,7 +242,7 @@ const getFilterTitle = () =>
 
 const logout = () => {
   log.t("# IN logout()")
-  clearSessionStorage()
+  clearSession(appStore.getAppName)
   isUserAuthenticated.value = false
   isUserAdmin.value = false
   appStore.displayFeedBack("Vous vous êtes déconnecté de l'application avec succès !", "success")
@@ -247,10 +254,10 @@ const logout = () => {
   }, 2000) // after 2 sec redirect to home page just in case
 }
 
-const checkIsSessionTokenValid = () => {
+const checkIsSessionTokenValid = async () => {
   log.t("# entering...  ")
-  if (doesCurrentSessionExist()) {
-    getTokenStatus()
+  if (doesCurrentSessionExist(appStore.getAppName)) {
+    await getTokenStatus(appStore.getAppName)
       .then((val) => {
         if (val.data == null) {
           log.e(`# getTokenStatus() ${val.msg}, ERROR is: `, val.err)
@@ -260,7 +267,7 @@ const checkIsSessionTokenValid = () => {
           if (isNullOrUndefined(val.err) && val.status === 200) {
             // everything is okay, session is still valid
             isUserAuthenticated.value = true
-            isUserAdmin.value = getUserIsAdmin()
+            isUserAdmin.value = getUserIsAdmin(appStore.getAppName)
             return
           }
           if (val.status === 401) {
@@ -294,14 +301,14 @@ const checkIsSessionTokenValid = () => {
 const loginSuccess = (v: string) => {
   log.t(`# entering... val:${v} `)
   isUserAuthenticated.value = true
-  isUserAdmin.value = getUserIsAdmin()
+  isUserAdmin.value = getUserIsAdmin(appStore.getAppName)
   appStore.hideFeedBack()
   appStore.displayFeedBack("Vous êtes authentifié sur l'application.", "success")
   if (isNullOrUndefined(autoLogoutTimer)) {
     // check every 600 seconds(600'000 milliseconds) if jwt is still valid
     autoLogoutTimer = window.setInterval(checkIsSessionTokenValid, 600000)
   }
-  initialize()
+  initialize(getLocalJwtTokenAuth(appStore.getAppName))
 }
 
 const loginFailure = (v: string) => {
@@ -319,7 +326,6 @@ const thingGotSuccess = (v: string) => {
   log.t(`# entering... val:${v} `)
   appStore.displayFeedBack(v, "success")
 }
-
 const mapClickHandler = (clickInfo: mapClickInfo) => {
   log.t(`## entering... pos:${clickInfo.x}, ${clickInfo.y}`)
   log.t(`##features length :${clickInfo.features.length}`, clickInfo.features)
@@ -335,9 +341,9 @@ const clearFilters = () => {
   searchLimit.value = defaultQueryLimit
 }
 
-const initialize = async () => {
+const initialize = async (token: string) => {
   log.t(`# App.vue entering initialize...  `)
-  searchCreatedBy.value = getUserId()
+  searchCreatedBy.value = getUserId(appStore.getAppName)
   const initialSearchParameters = Object.assign({}, {
     createdBy: searchCreatedBy.value,
     searchKeywords: searchKeywords.value,
@@ -348,37 +354,47 @@ const initialize = async () => {
     offset: searchOffset.value,
   } as ISearchThingParameters)
   if (!store.isInitDone) {
-    await store.init(initialSearchParameters)
+    await store.init(initialSearchParameters, token, appStore.isHttpOnlyCookieJwt)
     log.l(`## Initialize in ThingListVue Done, arrListTypeThing length : ${numTypeThings.value}`)
   }
 }
 
-onMounted(() => {
-  log.l(`Main App.vue ${APP}-${VERSION}, du ${BUILD_DATE}`)
+onMounted(async () => {
+  log.t(`onMounted Main App.vue ${BACKEND_URL}`)
+  try {
+    await appStore.fetchAppInfo()
+    log.l(`App.vue ${appStore.getAppName} v${appStore.getAppVersion}, from ${appStore.getAppRepository}`)
+    // clear old stuff
+    clearSession(appStore.getAppName)
+    const areWeUsingHttpOnlyCookieJwt = await appStore.checkStatusRoute(false)
+    log.l(`areWeUsingHttpOnlyCookieJwt: ${areWeUsingHttpOnlyCookieJwt}`)
 
-  store.$subscribe((mutation, state) => {
-    log.t(`## App.vue subscribe mutation of store ${mutation.storeId}, type: ${mutation.type}`)
-    //    mutation.type // 'direct' | 'patch object' | 'patch function'
-    // same as cartStore.$id  :    mutation.storeId // 'cart'
-    log.l(
-      `## areWeReady: ${areWeReady.value}, isThereAnError: ${isThereAnError.value}, numTypeThings:${numTypeThings.value}, numRecords:${numRecords.value}`
-    )
-    if (isThereAnError.value == true) {
-      const msgErr = `⚡⚡⚠ ERROR in store ${mutation.storeId} : ${state.lastErrorMessage}`
-      log.w(msgErr)
-      appStore.displayFeedBack(msgErr, "error", defaultFeedbackErrorTimeout)
-    }
-  })
+    store.$subscribe((mutation, state) => {
+      log.t(`## App.vue subscribe mutation of store ${mutation.storeId}, type: ${mutation.type}`)
+      //    mutation.type // 'direct' | 'patch object' | 'patch function'
+      // same as cartStore.$id  :    mutation.storeId // 'cart'
+      log.l(
+        `## areWeReady: ${areWeReady.value}, isThereAnError: ${isThereAnError.value}, numTypeThings:${numTypeThings.value}, numRecords:${numRecords.value}`
+      )
+      if (isThereAnError.value == true) {
+        const msgErr = `⚡⚡⚠ ERROR in store ${mutation.storeId} : ${state.lastErrorMessage}`
+        log.w(msgErr)
+        appStore.displayFeedBack(msgErr, "error", defaultFeedbackErrorTimeout)
+      }
+    })
 
-  window.addEventListener("online", () => {
-    log.w("ONLINE AGAIN :)")
-    appStore.networkOnLine()
-    appStore.displayFeedBack('⚡⚡🚀  LA CONNEXION RESEAU EST RÉTABLIE :  😊 vous êtes "ONLINE"  ', "success")
-  })
-  window.addEventListener("offline", () => {
-    log.w("OFFLINE :((")
-    appStore.networkOffLine()
-    appStore.displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error", defaultFeedbackErrorTimeout)
-  })
+    window.addEventListener("online", () => {
+      log.w("ONLINE AGAIN :)")
+      appStore.networkOnLine()
+      appStore.displayFeedBack('⚡⚡🚀  LA CONNEXION RESEAU EST RÉTABLIE :  😊 vous êtes "ONLINE"  ', "success")
+    })
+    window.addEventListener("offline", () => {
+      log.w("OFFLINE :((")
+      appStore.networkOffLine()
+      appStore.displayFeedBack('⚡⚡⚠ PAS DE RESEAU ! ☹ vous êtes "OFFLINE" ', "error", defaultFeedbackErrorTimeout)
+    })
+  } catch (error) {
+    log.e("Error fetching app info:", error)
+  }
 })
 </script>

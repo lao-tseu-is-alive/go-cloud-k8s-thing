@@ -1,15 +1,15 @@
 import { levelLog, Log } from "@/log"
 
-export const APP = "goCloudK8sThing"
-export const APP_TITLE = "Goéland-Thing"
-export const VERSION = "0.1.4"
-export const BUILD_DATE = "2024-12-11"
 // eslint-disable-next-line no-undef
 export const DEV = process.env.NODE_ENV === "development"
 export const HOME = DEV ? "http://localhost:3000/" : "/"
 // eslint-disable-next-line no-restricted-globals
-const url = new URL(location.toString())
-export const BACKEND_URL = DEV ? "http://localhost:9393" : url.origin
+const url = new URL(location.toString());
+const currentURL = url.href.endsWith("/") ? url.href.slice(0, -1) : url.href;
+export const GO_DEV_URL = "http://localhost:9393";
+export const BACKEND_URL = DEV ? GO_DEV_URL : currentURL;
+export const API_URL = "/goapi/v1";
+
 export const getLog = (ModuleName: string, verbosityDev: levelLog, verbosityProd: levelLog) =>
   DEV ? new Log(ModuleName, verbosityDev) : new Log(ModuleName, verbosityProd)
 

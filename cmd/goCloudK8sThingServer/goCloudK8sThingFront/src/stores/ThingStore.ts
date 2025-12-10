@@ -1,9 +1,8 @@
 import { defineStore } from "pinia"
-import { getLog, BACKEND_URL, defaultAxiosTimeout } from "@/config"
+import { getLog, BACKEND_URL, defaultAxiosTimeout, API_URL } from "@/config"
 import { isNullOrUndefined, parseJsonWithDetailedError } from "@/tools/utils"
 import { Thing, ThingList, TypeThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import axios, { AxiosInstance, CreateAxiosDefaults } from "axios"
-import { getLocalJwtTokenAuth, getSessionId } from "@/components/Login"
 
 export const defaultQueryLimit = 100
 const log = getLog("ThingStore", 4, 2)
@@ -135,6 +134,19 @@ export const useThingStore = defineStore("Thing", {
     },
   },
   actions: {
+    // Set JWT token for all requests
+    setAuthToken(token: string) {
+      log.t(`# entering setAuthToken... ${token}`);
+
+      if (token === null || token === undefined || token === "") {
+        log.w("cannot set Authorization Header with null or undefined token");
+      }
+      myAxios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    },
+    setAxiosWithCredentials(val: boolean) {
+      log.t(`# entering setAxiosWithCredentials(${val})`);
+      myAxios.defaults.withCredentials = val;
+    },
     async get(id: string): Promise<netThing> {
       log.t(`> Entering getThing: ${id}`)
       this.clearError()
@@ -360,16 +372,27 @@ export const useThingStore = defineStore("Thing", {
       })
       return "/img/gomarker_star_blue.png"
     },
-    async init(searchParams: ISearchThingParameters) {
-      log.t(`> Entering ThingStore init`)
+    async init(searchParams: ISearchThingParameters, token: string, isHttpOnlyCookieJwt: boolean) {
+      log.t(`> Entering ThingStore init token:${token}`)
       this.clearError()
       this.areWeReady = false
       this.searchParameters = Object.assign({}, searchParams)
+      const baseUrl = BACKEND_URL + API_URL
+      log.w(`init about to create myAxios baseUrl: ${baseUrl},  isHttpOnlyCookieJwt:${isHttpOnlyCookieJwt}`)
       myAxios = axios.create({
-        baseURL: BACKEND_URL + "/goapi/v1",
+        baseURL: baseUrl,
         timeout: defaultAxiosTimeout,
-        headers: { "X-Goeland-Token": getSessionId(), Authorization: `Bearer ${getLocalJwtTokenAuth()}` },
       } as CreateAxiosDefaults)
+      if (!isHttpOnlyCookieJwt) {
+        if (token === null || token === undefined || token === "") {
+          log.w("cannot set Authorization Header with null or undefined token");
+        }
+        myAxios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      } else {
+        //// Set the default for all future requests because we have an http only cookie
+        myAxios.defaults.withCredentials = true;
+      }
+
       const res = await this.getTypes()
       if (res.err === null) {
         log.l(`ok, doing getTypes() `)

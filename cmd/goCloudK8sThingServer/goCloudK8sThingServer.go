@@ -4,11 +4,16 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"net/http"
+	"runtime"
+	"strings"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
@@ -18,9 +23,6 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"github.com/prometheus/client_golang/prometheus"
-	"net/http"
-	"runtime"
-	"strings"
 )
 
 const (
@@ -28,6 +30,9 @@ const (
 	defaultDBPort              = 5432
 	defaultDBIp                = "127.0.0.1"
 	defaultDBSslMode           = "prefer"
+	defaultJwtStatusUrl        = "/status"
+	defaultJwtCookieName       = "goJWT_token"
+	defaultAppInfoUrl          = "/goAppInfo"
 	defaultWebRootDir          = "goCloudK8sThingFront/dist/"
 	defaultSqlDbMigrationsPath = "db/migrations"
 	defaultSecuredApi          = "/goapi/v1"
@@ -59,9 +64,10 @@ type UserLogin struct {
 }
 
 type Service struct {
-	Logger golog.MyLogger
-	dbConn database.DB
-	server *goHttpEcho.Server
+	Logger        golog.MyLogger
+	dbConn        database.DB
+	server        *goHttpEcho.Server
+	jwtCookieName string
 }
 
 // login is just a trivial example to test this server
@@ -206,7 +212,19 @@ func main() {
 	initMetadataOrFail(db, l)
 	runMigrationsOrFail(dbDsn, l)
 
-	myVersionReader := goHttpEcho.NewSimpleVersionReader(version.APP, version.VERSION, version.REPOSITORY)
+	// Get the ENV JWT_AUTH_URL value
+	jwtAuthUrl := config.GetJwtAuthUrlFromEnvOrPanic()
+	jwtStatusUrl := config.GetJwtStatusUrlFromEnv(defaultJwtStatusUrl)
+
+	myVersionReader := goHttpEcho.NewSimpleVersionReader(
+		version.APP,
+		version.VERSION,
+		version.REPOSITORY,
+		version.REVISION,
+		version.BuildStamp,
+		jwtAuthUrl,
+		jwtStatusUrl,
+	)
 	// Create a new JWT checker
 	myJwt := goHttpEcho.NewJwtChecker(
 		config.GetJwtSecretFromEnvOrPanic(),
@@ -238,11 +256,25 @@ func main() {
 			Logger:        l,
 			WebRootDir:    defaultWebRootDir,
 			Content:       content,
-			RestrictedUrl: "/goapi/v1",
+			RestrictedUrl: defaultSecuredApi,
 		},
 	)
 
+	cookieNameForJWT := config.GetJwtCookieNameFromEnv(defaultJwtCookieName)
+	yourService := Service{
+		Logger:        l,
+		dbConn:        db,
+		server:        server,
+		jwtCookieName: cookieNameForJWT,
+	}
+
 	e := server.GetEcho()
+	e.Use(goHttpEcho.CookieToHeaderMiddleware(yourService.jwtCookieName, l))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"https://golux.lausanne.ch", "http://localhost:3000"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowCredentials: true,
+	}))
 
 	// begin prometheus stuff to create a custom counter metric
 	customCounter := prometheus.NewCounter( // create new counter metric. This is replacement for `prometheus.Metric` struct
@@ -268,19 +300,22 @@ func main() {
 	e.Use(echoprometheus.NewMiddlewareWithConfig(mwConfig)) // adds middleware to gather metrics
 	// end prometheus stuff to create a custom counter metric
 
-	yourService := Service{
-		Logger: l,
-		dbConn: db,
-		server: server,
-	}
-
 	e.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
 	e.GET("/readiness", server.GetReadinessHandler(yourService.checkReady, "Connection to DB"))
 	e.GET("/health", server.GetHealthHandler(checkHealthy, "Connection to DB"))
+	e.GET(defaultAppInfoUrl, server.GetAppInfoHandler())
 	// Find a way to allow Login route to be available only in dev environment
-	e.POST("/login", yourService.login)
+	e.POST(jwtAuthUrl, yourService.login)
+	// Call the DevRoutes function conditionally
+	// This line will only compile if the 'dev' build tag is active.
+	// Conditional compilation of dev routes
+
+	if IsDevBuild {
+		l.Info("Attempting to register dev routes...")
+		DevRoutes(e, &yourService, jwtAuthUrl)
+	}
 	r := server.GetRestrictedGroup()
-	r.GET("/status", yourService.GetStatus)
+	r.GET(jwtStatusUrl, yourService.GetStatus)
 
 	thingStore := thing.GetStorageInstanceOrPanic("pgx", db, l)
 
