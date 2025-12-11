@@ -1,0 +1,20 @@
+version: v2
+managed:
+  enabled: true
+plugins:
+  # 1. Generate Go Code (gRPC + Models)
+  - remote: buf.build/protocolbuffers/go
+    out: gen
+    opt: paths=source_relative
+
+  # 2. Generate ConnectRPC Code (Interfaces for HTTP)
+  - remote: buf.build/connectrpc/go
+    out: gen
+    opt: paths=source_relative
+
+  # 3. Generate OpenAPI (The Verification Step)
+  - remote: buf.build/grpc-ecosystem/openapiv2
+    out: api/openapi
+    opt:
+      - json_names_for_fields=false
+      - output_format=yaml
