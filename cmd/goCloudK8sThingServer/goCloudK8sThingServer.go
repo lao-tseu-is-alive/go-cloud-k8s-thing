@@ -27,6 +27,7 @@ import (
 
 const (
 	defaultPort                = 9090
+	defaultLogName             = "stderr"
 	defaultDBPort              = 5432
 	defaultDBIp                = "127.0.0.1"
 	defaultDBSslMode           = "prefer"
@@ -73,8 +74,8 @@ type Service struct {
 // login is just a trivial example to test this server
 // you should use the jwt token returned from LoginUser  in github.com/lao-tseu-is-alive/go-cloud-k8s-user-group'
 // and share the same secret with the above component
-func (s Service) login(ctx echo.Context) error {
-	s.Logger.TraceHttpRequest("login", ctx.Request())
+func (s *Service) login(ctx echo.Context) error {
+	goHttpEcho.TraceHttpRequest("login", ctx.Request(), s.Logger)
 	uLogin := new(UserLogin)
 	login := ctx.FormValue("login")
 	passwordHash := ctx.FormValue("hashed")
@@ -117,8 +118,8 @@ func (s Service) login(ctx echo.Context) error {
 	}
 }
 
-func (s Service) GetStatus(ctx echo.Context) error {
-	s.Logger.TraceHttpRequest("restricted", ctx.Request())
+func (s *Service) GetStatus(ctx echo.Context) error {
+	goHttpEcho.TraceHttpRequest("GetStatus", ctx.Request(), s.Logger)
 	// get the current user from JWT TOKEN
 	claims := s.server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
@@ -130,7 +131,7 @@ func (s Service) GetStatus(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, claims)
 }
 
-func (s Service) IsDBAlive() bool {
+func (s *Service) IsDBAlive() bool {
 	dbVer, err := s.dbConn.GetVersion()
 	if err != nil {
 		return false
@@ -141,7 +142,7 @@ func (s Service) IsDBAlive() bool {
 	return true
 }
 
-func (s Service) checkReady(string) bool {
+func (s *Service) checkReady(string) bool {
 	// we decide what makes us ready, is a valid  connection to the database
 	if !s.IsDBAlive() {
 		return false
@@ -193,7 +194,12 @@ func runMigrationsOrFail(dbDsn string, l golog.MyLogger) {
 }
 
 func main() {
-	l, err := golog.NewLogger("zap", golog.TraceLevel, version.APP)
+	l, err := golog.NewLogger(
+		"simple", // can be "zap"
+		config.GetLogWriterFromEnvOrPanic(defaultLogName),
+		config.GetLogLevelFromEnvOrPanic(golog.InfoLevel),
+		version.APP,
+	)
 	if err != nil {
 		panic(fmt.Sprintf("💥💥 error log.NewLogger error: %v'\n", err))
 	}

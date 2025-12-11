@@ -6,6 +6,18 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
@@ -15,15 +27,6 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"net/http"
-	"net/url"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
 )
 
 const (
@@ -144,8 +147,10 @@ func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l golog
 
 // TestMainExec is instantiating the "real" main code using the env variable (in your .env files if you use the Makefile rule)
 func TestMainExec(t *testing.T) {
-	prefix := fmt.Sprintf("%s_TESTING ", version.APP)
-	l, err := golog.NewLogger("zap", golog.DebugLevel, prefix)
+	l, err := golog.NewLogger("simple", os.Stdout, golog.DebugLevel, "TestMainExec")
+	if err != nil {
+		log.Fatalf("💥💥 error log.NewLogger error: %v'\n", err)
+	}
 	listenPort := config.GetPortFromEnvOrPanic(defaultPort)
 	listenAddr := fmt.Sprintf("http://localhost:%d", listenPort)
 	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
@@ -867,7 +872,7 @@ func TestMainExec(t *testing.T) {
 		defer wg.Done()
 		main()
 	}()
-	gohttpclient.WaitForHttpServer(listenAddr, 1*time.Second, 10)
+	gohttpclient.WaitForHttpServer(listenAddr, 1*time.Second, 10, l)
 
 	// Create a Bearer string by appending JWT string access token
 	var bearer = "Bearer " + getValidToken()
