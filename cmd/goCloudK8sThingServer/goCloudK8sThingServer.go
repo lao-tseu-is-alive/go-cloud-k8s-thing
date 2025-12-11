@@ -328,16 +328,14 @@ func main() {
 
 	thingStore := thing.GetStorageInstanceOrPanic("pgx", db, l)
 
-	// now with restricted group reference you can register your secured handlers defined in OpenApi things.yaml
-	thingService := thing.Service{
-		Log:              l,
-		DbConn:           db,
-		Store:            thingStore,
-		Server:           server,
-		ListDefaultLimit: 50,
-	}
+	// Create business service (transport-agnostic)
+	thingBusinessService := thing.NewBusinessService(thingStore, db, l, 50)
 
-	thing.RegisterHandlers(r, &thingService) // register all openapi declared routes
+	// Create HTTP handler (Echo-specific adapter)
+	thingHTTPHandler := thing.NewHTTPHandler(thingBusinessService, server)
+
+	// Register HTTP handlers with OpenAPI routes
+	thing.RegisterHandlers(r, thingHTTPHandler)
 
 	err = server.StartServer()
 	if err != nil {
