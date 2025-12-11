@@ -93,24 +93,27 @@ func (s Service) login(ctx echo.Context) error {
 	if s.server.Authenticator.AuthenticateUser(uLogin.Username, uLogin.PasswordHash) {
 		userInfo, err := s.server.Authenticator.GetUserInfoFromLogin(login)
 		if err != nil {
-			errGetUInfFromLogin := fmt.Sprintf("Error getting user info from login: %v", err)
-			s.Logger.Error(errGetUInfFromLogin)
-			return ctx.JSON(http.StatusInternalServerError, errGetUInfFromLogin)
+			myErrMsg := fmt.Sprintf("Error getting user info from login: %v", err)
+			s.Logger.Error(myErrMsg)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"jwtStatus": myErrMsg, "token": ""})
 		}
 		token, err := s.server.JwtCheck.GetTokenFromUserInfo(userInfo)
 		if err != nil {
-			errGetUInfFromLogin := fmt.Sprintf("Error getting jwt token from user info: %v", err)
-			s.Logger.Error(errGetUInfFromLogin)
-			return ctx.JSON(http.StatusInternalServerError, errGetUInfFromLogin)
+			myErrMsg := fmt.Sprintf("Error getting jwt token from user info: %v", err)
+			s.Logger.Error(myErrMsg)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"jwtStatus": myErrMsg, "token": ""})
 		}
 		// Prepare the response
 		response := map[string]string{
-			"token": token.String(),
+			"jwtStatus": "success",
+			"token":     token.String(),
 		}
 		s.Logger.Info("LoginUser(%s) successful login", login)
 		return ctx.JSON(http.StatusOK, response)
 	} else {
-		return ctx.JSON(http.StatusUnauthorized, "username not found or password invalid")
+		myErrMsg := "username not found or password invalid"
+		s.Logger.Warn(myErrMsg)
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{"jwtStatus": myErrMsg, "token": ""})
 	}
 }
 
@@ -269,7 +272,7 @@ func main() {
 	}
 
 	e := server.GetEcho()
-	e.Use(goHttpEcho.CookieToHeaderMiddleware(yourService.jwtCookieName, l))
+	//e.Use(goHttpEcho.CookieToHeaderMiddleware(yourService.jwtCookieName, l))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://golux.lausanne.ch", "http://localhost:3000"},
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},

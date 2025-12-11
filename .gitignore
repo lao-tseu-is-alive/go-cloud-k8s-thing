@@ -37,3 +37,4 @@ ___goCloudK8sThingServer_test_go.test
 /bin/goCloudK8sThingServer
 /.env-testing-export
 /.env_for_github.txt
+/cmd/goCloudK8sThingServer/goCloudK8sThingFront/old/oldLogin_to_delete.ts

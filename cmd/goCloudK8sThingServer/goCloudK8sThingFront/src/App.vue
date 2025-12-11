@@ -163,7 +163,7 @@
       </template>
       <template v-else>
         <Login
-          :app="`Authentification ${appStore.getAppName}`"
+          :app="`${appStore.getAppName}`"
           :base_server_url="BACKEND_URL"
           :jwt_auth_url="appStore.getAppAuthUrl"
           :disabled="!isNetworkOk"
@@ -300,15 +300,21 @@ const checkIsSessionTokenValid = async () => {
 
 const loginSuccess = (v: string) => {
   log.t(`# entering... val:${v} `)
-  isUserAuthenticated.value = true
-  isUserAdmin.value = getUserIsAdmin(appStore.getAppName)
-  appStore.hideFeedBack()
-  appStore.displayFeedBack("Vous êtes authentifié sur l'application.", "success")
-  if (isNullOrUndefined(autoLogoutTimer)) {
-    // check every 600 seconds(600'000 milliseconds) if jwt is still valid
-    autoLogoutTimer = window.setInterval(checkIsSessionTokenValid, 600000)
+  const token = getLocalJwtTokenAuth(appStore.getAppName)
+  if (token === null || token === undefined || token === "") {
+    log.w("cannot set Authorization Header with null or undefined token")
+    appStore.displayFeedBack(`retrieving getLocalJwtTokenAuth("${appStore.getAppName}") your JWT token is empty !`, "error", defaultFeedbackErrorTimeout)
+  } else {
+    isUserAuthenticated.value = true
+    isUserAdmin.value = getUserIsAdmin(appStore.getAppName)
+    appStore.hideFeedBack()
+    appStore.displayFeedBack("Vous êtes authentifié sur l'application.", "success")
+    if (isNullOrUndefined(autoLogoutTimer)) {
+      // check every 600 seconds(600'000 milliseconds) if jwt is still valid
+      autoLogoutTimer = window.setInterval(checkIsSessionTokenValid, 600000)
+    }
+    initialize(token)
   }
-  initialize(getLocalJwtTokenAuth(appStore.getAppName))
 }
 
 const loginFailure = (v: string) => {
@@ -342,7 +348,7 @@ const clearFilters = () => {
 }
 
 const initialize = async (token: string) => {
-  log.t(`# App.vue entering initialize...  `)
+  log.t(`# App.vue entering initialize...  token:${token}`)
   searchCreatedBy.value = getUserId(appStore.getAppName)
   const initialSearchParameters = Object.assign({}, {
     createdBy: searchCreatedBy.value,
@@ -354,7 +360,7 @@ const initialize = async (token: string) => {
     offset: searchOffset.value,
   } as ISearchThingParameters)
   if (!store.isInitDone) {
-    await store.init(initialSearchParameters, token, appStore.isHttpOnlyCookieJwt)
+    await store.init(initialSearchParameters, token)
     log.l(`## Initialize in ThingListVue Done, arrListTypeThing length : ${numTypeThings.value}`)
   }
 }
@@ -364,10 +370,6 @@ onMounted(async () => {
   try {
     await appStore.fetchAppInfo()
     log.l(`App.vue ${appStore.getAppName} v${appStore.getAppVersion}, from ${appStore.getAppRepository}`)
-    // clear old stuff
-    clearSession(appStore.getAppName)
-    const areWeUsingHttpOnlyCookieJwt = await appStore.checkStatusRoute(false)
-    log.l(`areWeUsingHttpOnlyCookieJwt: ${areWeUsingHttpOnlyCookieJwt}`)
 
     store.$subscribe((mutation, state) => {
       log.t(`## App.vue subscribe mutation of store ${mutation.storeId}, type: ${mutation.type}`)

@@ -372,26 +372,22 @@ export const useThingStore = defineStore("Thing", {
       })
       return "/img/gomarker_star_blue.png"
     },
-    async init(searchParams: ISearchThingParameters, token: string, isHttpOnlyCookieJwt: boolean) {
+    async init(searchParams: ISearchThingParameters, token: string) {
       log.t(`> Entering ThingStore init token:${token}`)
       this.clearError()
       this.areWeReady = false
       this.searchParameters = Object.assign({}, searchParams)
       const baseUrl = BACKEND_URL + API_URL
-      log.w(`init about to create myAxios baseUrl: ${baseUrl},  isHttpOnlyCookieJwt:${isHttpOnlyCookieJwt}`)
+      log.w(`init about to create myAxios baseUrl: ${baseUrl}`)
       myAxios = axios.create({
         baseURL: baseUrl,
         timeout: defaultAxiosTimeout,
+
       } as CreateAxiosDefaults)
-      if (!isHttpOnlyCookieJwt) {
         if (token === null || token === undefined || token === "") {
           log.w("cannot set Authorization Header with null or undefined token");
         }
         myAxios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } else {
-        //// Set the default for all future requests because we have an http only cookie
-        myAxios.defaults.withCredentials = true;
-      }
 
       const res = await this.getTypes()
       if (res.err === null) {
