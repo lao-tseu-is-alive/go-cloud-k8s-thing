@@ -12,7 +12,9 @@ produces:
 paths:
   /thing:
     get:
-      summary: List returns a list of things based on filters
+      summary: |-
+        List returns a list of things.
+        Returns the thing in an array.
       operationId: List
       responses:
         "200":
@@ -25,37 +27,45 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: limit
+          description: maximum number of results to return
           in: query
           required: false
           type: integer
           format: int32
         - name: offset
+          description: offset rows to skip before returning rows
           in: query
           required: false
           type: integer
           format: int32
         - name: type
+          description: TypeThing id to filter by the things to return
           in: query
           required: false
           type: integer
           format: int32
         - name: createdBy
+          description: id of the creator to filter by the things to return
           in: query
           required: false
           type: integer
           format: int32
         - name: inactivated
+          description: inactivated flag to filter the things to return
           in: query
           required: false
           type: boolean
         - name: validated
+          description: validation flag to filter the things to return
           in: query
           required: false
           type: boolean
       tags:
         - ThingService
     post:
-      summary: Create creates a new thing
+      summary: |-
+        Create creates a new thing.
+        Creates a new thing.
       operationId: Create
       responses:
         "200":
@@ -68,6 +78,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: thing
+          description: Thing to add
           in: body
           required: true
           schema:
@@ -76,7 +87,9 @@ paths:
         - ThingService
   /thing/by-external-id/{externalId}:
     get:
-      summary: ListByExternalId returns things filtered by external ID
+      summary: |-
+        ListByExternalId returns a list of thing filtered by externalId.
+        Returns the things in an array.
       operationId: ListByExternalId
       responses:
         "200":
@@ -89,6 +102,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: externalId
+          description: externalId of the things needed
           in: path
           required: true
           type: integer
@@ -107,7 +121,9 @@ paths:
         - ThingService
   /thing/count:
     get:
-      summary: Count returns the number of things matching filters
+      summary: |-
+        Count returns the number of thing based on search criterias.
+        Returns the number of things found after filtering with passed criterias.
       operationId: Count
       responses:
         "200":
@@ -145,7 +161,9 @@ paths:
         - ThingService
   /thing/geojson:
     get:
-      summary: GeoJson returns things as a GeoJSON string
+      summary: |-
+        List returns a geoJson of things found.
+        Returns the geoJson of the thing selected by the given parameters.
       operationId: GeoJson
       responses:
         "200":
@@ -189,7 +207,9 @@ paths:
         - ThingService
   /thing/search:
     get:
-      summary: Search returns a list based on keywords
+      summary: |-
+        Search returns a list of thing based on search criterias.
+        Returns the thing in an array.
       operationId: Search
       responses:
         "200":
@@ -202,6 +222,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: keywords
+          description: text keywords to filter the things to return
           in: query
           required: false
           type: string
@@ -237,7 +258,9 @@ paths:
         - ThingService
   /thing/{id}:
     get:
-      summary: Get retrieves a thing by ID
+      summary: |-
+        Get retrieves in backend all information about a specific thingId.
+        Retrieve a specific thing.
       operationId: Get
       responses:
         "200":
@@ -250,13 +273,16 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
+          description: Id of the thing
           in: path
           required: true
           type: string
       tags:
         - ThingService
     delete:
-      summary: Delete removes a thing
+      summary: |-
+        Delete allows to delete a specific thingId.
+        delete a thing.
       operationId: Delete
       responses:
         "200":
@@ -269,13 +295,16 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
+          description: Id of the thing
           in: path
           required: true
           type: string
       tags:
         - ThingService
     put:
-      summary: Update modifies a thing
+      summary: |-
+        Update allows to modify information about a specific thingId.
+        Updates the status of a thing.
       operationId: Update
       responses:
         "200":
@@ -288,10 +317,12 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
+          description: Id of the thing
           in: path
           required: true
           type: string
         - name: thing
+          description: informations related to the thing
           in: body
           required: true
           schema:
@@ -300,6 +331,9 @@ paths:
         - ThingService
   /types:
     get:
+      summary: |-
+        TypeThingList returns a list of types.
+        Returns the types in an array.
       operationId: List
       responses:
         "200":
@@ -342,6 +376,9 @@ paths:
       tags:
         - TypeThingService
     post:
+      summary: |-
+        TypeThingCreate will create a new group.
+        Creates a new group.
       operationId: Create
       responses:
         "200":
@@ -362,6 +399,9 @@ paths:
         - TypeThingService
   /types/count:
     get:
+      summary: |-
+        Count returns the number of TypeThing based on search criterias.
+        Returns the number of TypeThings found after filtering with passed criterias.
       operationId: Count
       responses:
         "200":
@@ -390,6 +430,9 @@ paths:
         - TypeThingService
   /types/{id}:
     get:
+      summary: |-
+        TypeThingGet will retrieve in backend all information about a specific typeThingId.
+        Retrieve a specific typeThing.
       operationId: Get
       responses:
         "200":
@@ -409,6 +452,9 @@ paths:
       tags:
         - TypeThingService
     delete:
+      summary: |-
+        TypeThingDelete allows to delete a specific typeThingId.
+        delete a typeThing.
       operationId: Delete
       responses:
         "200":
@@ -428,6 +474,9 @@ paths:
       tags:
         - TypeThingService
     put:
+      summary: |-
+        TypeThingUpdate allows to modify information about a specific typeThingId.
+        Updates the information related to a typeThing.
       operationId: Update
       responses:
         "200":
@@ -502,7 +551,7 @@ definitions:
     properties:
       result:
         type: string
-        title: Raw JSON string
+        title: Returns the geoJson of the thing selected by the givven parameters
   v1GetResponse:
     type: object
     properties:
@@ -537,83 +586,138 @@ definitions:
     properties:
       id:
         type: string
-        title: UUID
+        title: |-
+          identifiant uuid v4
+          cet Universally unique identifier (UUID) sera généré automatiquement pour vous
       typeId:
         type: integer
         format: int32
+        title: |-
+          identifiant du type d'objet
+          FK sur la clé primaire du TypeThing de cet objet
       name:
         type: string
+        title: nom de cet objet
       description:
         type: string
+        title: description
       comment:
         type: string
+        title: commentaire
       externalId:
         type: integer
         format: int32
+        title: identifiant numérique externe
       externalRef:
         type: string
+        title: référence externe
       buildAt:
         type: string
         format: date-time
+        title: date de construction
       status:
         type: string
-        description: 'Enum: "Planifié", "En Construction", etc.'
+        title: Status (e.g. "Planifié", "En Construction", "Utilisé", "Abandonné", "Démoli")
       containedBy:
         type: string
-        title: UUID
+        title: contenu par (UUID)
       containedByOld:
         type: integer
         format: int32
       inactivated:
         type: boolean
+        title: inactivé?
       inactivatedTime:
         type: string
         format: date-time
+        title: date d'inactivation
       inactivatedBy:
         type: integer
         format: int32
+        title: utilisateur ayant désactivé
       inactivatedReason:
         type: string
+        title: raison de'inactivation
       validated:
         type: boolean
+        title: validé?
       validatedTime:
         type: string
         format: date-time
+        title: date de validation
       validatedBy:
         type: integer
         format: int32
+        title: utiliateur ayant validé
       managedBy:
         type: integer
         format: int32
+        title: utilisateur/groupe manager
       createdAt:
         type: string
         format: date-time
+        title: |-
+          date création
+          date de création de cet enregistrement dans la base
+        readOnly: true
       createdBy:
         type: integer
         format: int32
+        title: |-
+          utilisateur ayant créé cet enregistrement
+          identifiant de l'utilisateur ayant créé cet enregistrement
       lastModifiedAt:
         type: string
         format: date-time
+        title: |-
+          date modification
+          date de la dernière modication de cet enregistrement
+        readOnly: true
       lastModifiedBy:
         type: integer
         format: int32
+        title: |-
+          utilisateur ayant effectué la modification
+          utilisateur ayant effectué la dernière modication de cet enregistrement
       deleted:
         type: boolean
+        title: |-
+          effacé?
+          cet enregisrement a été marqué comme effacé
       deletedAt:
         type: string
         format: date-time
+        title: |-
+          date effacé
+          date à laquelle cet enregisrement a été marqué comme effacé
       deletedBy:
         type: integer
         format: int32
+        title: |-
+          utilisateur ayant effacé
+          utilisateur ayant demandé de marquer cet enregisrement comme effacé
       moreData:
         type: object
-        title: JSON Object
+        title: |-
+          Informations complémentaires
+          permet de stocker des attributs complémentaires au format json
       posX:
         type: number
         format: double
+        title: Coordonnées X de cet objet
       posY:
         type: number
         format: double
+        title: Coordonnées Y de cet objet
+    required:
+      - id
+      - typeId
+      - name
+      - inactivated
+      - createdBy
+      - deleted
+      - posX
+      - posY
   v1ThingList:
     type: object
     properties:
@@ -647,6 +751,7 @@ definitions:
       posY:
         type: number
         format: double
+    title: A light version of Thing for lists
   v1TypeThing:
     type: object
     properties:
@@ -703,6 +808,13 @@ definitions:
         format: int32
       moreDataSchema:
         type: object
+    required:
+      - id
+      - name
+      - inactivated
+      - iconPath
+      - createdBy
+      - deleted
   v1TypeThingCountResponse:
     type: object
     properties:
@@ -743,6 +855,7 @@ definitions:
         type: string
       inactivated:
         type: boolean
+    title: A light version of TypeThing for lists
   v1TypeThingListResponse:
     type: object
     properties:

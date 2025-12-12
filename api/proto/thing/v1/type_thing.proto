@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package thing.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1;thingv1";
+
+
+// =========================================================
+// Service: TypeThing
+// =========================================================
+service TypeThingService {
+  // TypeThingList returns a list of types.
+  // Returns the types in an array.
+  rpc List(TypeThingListRequest) returns (TypeThingListResponse) {
+    option (google.api.http) = {
+      get: "/types"
+    };
+  }
+
+  // TypeThingCreate will create a new group.
+  // Creates a new group.
+  rpc Create(TypeThingCreateRequest) returns (TypeThingCreateResponse) {
+    option (google.api.http) = {
+      post: "/types"
+      body: "type_thing"
+    };
+  }
+
+  // TypeThingGet will retrieve in backend all information about a specific typeThingId.
+  // Retrieve a specific typeThing.
+  rpc Get(TypeThingGetRequest) returns (TypeThingGetResponse) {
+    option (google.api.http) = {
+      get: "/types/{id}"
+    };
+  }
+
+  // TypeThingUpdate allows to modify information about a specific typeThingId.
+  // Updates the information related to a typeThing.
+  rpc Update(TypeThingUpdateRequest) returns (TypeThingUpdateResponse) {
+    option (google.api.http) = {
+      put: "/types/{id}"
+      body: "type_thing"
+    };
+  }
+
+  // TypeThingDelete allows to delete a specific typeThingId.
+  // delete a typeThing.
+  rpc Delete(TypeThingDeleteRequest) returns (TypeThingDeleteResponse) {
+    option (google.api.http) = {
+      delete: "/types/{id}"
+    };
+  }
+
+  // Count returns the number of TypeThing based on search criterias.
+  // Returns the number of TypeThings found after filtering with passed criterias.
+  rpc Count(TypeThingCountRequest) returns (TypeThingCountResponse) {
+    option (google.api.http) = {
+      get: "/types/count"
+    };
+  }
+}
+
+// =========================================================
+// Messages: TypeThing
+// =========================================================
+
+message TypeThing {
+  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  string description = 3;
+  string comment = 4;
+  int32 external_id = 5;
+  string table_name = 6;
+  string geometry_type = 7;
+  bool inactivated = 8 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Timestamp inactivated_time = 9;
+  int32 inactivated_by = 10;
+  string inactivated_reason = 11;
+  int32 managed_by = 12;
+  string icon_path = 13 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Timestamp created_at = 14;
+  int32 created_by = 15 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Timestamp last_modified_at = 16;
+  int32 last_modified_by = 17;
+  bool deleted = 18 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Timestamp deleted_at = 19;
+  int32 deleted_by = 20;
+  google.protobuf.Struct more_data_schema = 21;
+}
+
+// A light version of TypeThing for lists
+message TypeThingList {
+  int32 id = 1;
+  string name = 2;
+  int32 external_id = 3;
+  string icon_path = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string table_name = 6;
+  string geometry_type = 7;
+  bool inactivated = 8;
+}
+
+// =========================================================
+// Requests & Responses
+// =========================================================
+
+
+
+// TypeThing Requests
+
+message TypeThingListRequest {
+  string keywords = 1;
+  int32 created_by = 2;
+  int32 external_id = 3;
+  bool inactivated = 4;
+  int32 limit = 5;
+  int32 offset = 6;
+}
+
+message TypeThingListResponse {
+  repeated TypeThingList type_things = 1;
+}
+
+message TypeThingCreateRequest {
+  TypeThing type_thing = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TypeThingCreateResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingGetRequest {
+  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TypeThingGetResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingUpdateRequest {
+  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+  TypeThing type_thing = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TypeThingUpdateResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingDeleteRequest {
+  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TypeThingDeleteResponse {}
+
+message TypeThingCountRequest {
+  string keywords = 1;
+  int32 created_by = 2;
+  bool inactivated = 3;
+}
+
+message TypeThingCountResponse {
+  int32 count = 1;
+}

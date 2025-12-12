@@ -3,6 +3,7 @@ module github.com/lao-tseu-is-alive/go-cloud-k8s-thing
 go 1.25.5
 
 require (
+	connectrpc.com/connect v1.19.1
 	github.com/georgysavva/scany/v2 v2.1.4
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
@@ -13,6 +14,8 @@ require (
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
+	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
+	google.golang.org/protobuf v1.36.9
 )
 
 require (
@@ -46,6 +49,5 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

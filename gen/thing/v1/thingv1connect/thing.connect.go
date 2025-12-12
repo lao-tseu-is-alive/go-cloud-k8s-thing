@@ -23,8 +23,6 @@ const _ = connect.IsAtLeastVersion1_13_0
 const (
 	// ThingServiceName is the fully-qualified name of the ThingService service.
 	ThingServiceName = "thing.v1.ThingService"
-	// TypeThingServiceName is the fully-qualified name of the TypeThingService service.
-	TypeThingServiceName = "thing.v1.TypeThingService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -54,39 +52,36 @@ const (
 	// ThingServiceListByExternalIdProcedure is the fully-qualified name of the ThingService's
 	// ListByExternalId RPC.
 	ThingServiceListByExternalIdProcedure = "/thing.v1.ThingService/ListByExternalId"
-	// TypeThingServiceListProcedure is the fully-qualified name of the TypeThingService's List RPC.
-	TypeThingServiceListProcedure = "/thing.v1.TypeThingService/List"
-	// TypeThingServiceCreateProcedure is the fully-qualified name of the TypeThingService's Create RPC.
-	TypeThingServiceCreateProcedure = "/thing.v1.TypeThingService/Create"
-	// TypeThingServiceGetProcedure is the fully-qualified name of the TypeThingService's Get RPC.
-	TypeThingServiceGetProcedure = "/thing.v1.TypeThingService/Get"
-	// TypeThingServiceUpdateProcedure is the fully-qualified name of the TypeThingService's Update RPC.
-	TypeThingServiceUpdateProcedure = "/thing.v1.TypeThingService/Update"
-	// TypeThingServiceDeleteProcedure is the fully-qualified name of the TypeThingService's Delete RPC.
-	TypeThingServiceDeleteProcedure = "/thing.v1.TypeThingService/Delete"
-	// TypeThingServiceCountProcedure is the fully-qualified name of the TypeThingService's Count RPC.
-	TypeThingServiceCountProcedure = "/thing.v1.TypeThingService/Count"
 )
 
 // ThingServiceClient is a client for the thing.v1.ThingService service.
 type ThingServiceClient interface {
-	// List returns a list of things based on filters
+	// List returns a list of things.
+	// Returns the thing in an array.
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
-	// Create creates a new thing
+	// Create creates a new thing.
+	// Creates a new thing.
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
-	// Get retrieves a thing by ID
+	// Get retrieves in backend all information about a specific thingId.
+	// Retrieve a specific thing.
 	Get(context.Context, *connect.Request[v1.GetRequest]) (*connect.Response[v1.GetResponse], error)
-	// Update modifies a thing
+	// Update allows to modify information about a specific thingId.
+	// Updates the status of a thing.
 	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
-	// Delete removes a thing
+	// Delete allows to delete a specific thingId.
+	// delete a thing.
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
-	// Search returns a list based on keywords
+	// Search returns a list of thing based on search criterias.
+	// Returns the thing in an array.
 	Search(context.Context, *connect.Request[v1.SearchRequest]) (*connect.Response[v1.SearchResponse], error)
-	// Count returns the number of things matching filters
+	// Count returns the number of thing based on search criterias.
+	// Returns the number of things found after filtering with passed criterias.
 	Count(context.Context, *connect.Request[v1.CountRequest]) (*connect.Response[v1.CountResponse], error)
-	// GeoJson returns things as a GeoJSON string
+	// List returns a geoJson of things found.
+	// Returns the geoJson of the thing selected by the given parameters.
 	GeoJson(context.Context, *connect.Request[v1.GeoJsonRequest]) (*connect.Response[v1.GeoJsonResponse], error)
-	// ListByExternalId returns things filtered by external ID
+	// ListByExternalId returns a list of thing filtered by externalId.
+	// Returns the things in an array.
 	ListByExternalId(context.Context, *connect.Request[v1.ListByExternalIdRequest]) (*connect.Response[v1.ListByExternalIdResponse], error)
 }
 
@@ -218,23 +213,32 @@ func (c *thingServiceClient) ListByExternalId(ctx context.Context, req *connect.
 
 // ThingServiceHandler is an implementation of the thing.v1.ThingService service.
 type ThingServiceHandler interface {
-	// List returns a list of things based on filters
+	// List returns a list of things.
+	// Returns the thing in an array.
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
-	// Create creates a new thing
+	// Create creates a new thing.
+	// Creates a new thing.
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
-	// Get retrieves a thing by ID
+	// Get retrieves in backend all information about a specific thingId.
+	// Retrieve a specific thing.
 	Get(context.Context, *connect.Request[v1.GetRequest]) (*connect.Response[v1.GetResponse], error)
-	// Update modifies a thing
+	// Update allows to modify information about a specific thingId.
+	// Updates the status of a thing.
 	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
-	// Delete removes a thing
+	// Delete allows to delete a specific thingId.
+	// delete a thing.
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
-	// Search returns a list based on keywords
+	// Search returns a list of thing based on search criterias.
+	// Returns the thing in an array.
 	Search(context.Context, *connect.Request[v1.SearchRequest]) (*connect.Response[v1.SearchResponse], error)
-	// Count returns the number of things matching filters
+	// Count returns the number of thing based on search criterias.
+	// Returns the number of things found after filtering with passed criterias.
 	Count(context.Context, *connect.Request[v1.CountRequest]) (*connect.Response[v1.CountResponse], error)
-	// GeoJson returns things as a GeoJSON string
+	// List returns a geoJson of things found.
+	// Returns the geoJson of the thing selected by the given parameters.
 	GeoJson(context.Context, *connect.Request[v1.GeoJsonRequest]) (*connect.Response[v1.GeoJsonResponse], error)
-	// ListByExternalId returns things filtered by external ID
+	// ListByExternalId returns a list of thing filtered by externalId.
+	// Returns the things in an array.
 	ListByExternalId(context.Context, *connect.Request[v1.ListByExternalIdRequest]) (*connect.Response[v1.ListByExternalIdResponse], error)
 }
 
@@ -362,204 +366,4 @@ func (UnimplementedThingServiceHandler) GeoJson(context.Context, *connect.Reques
 
 func (UnimplementedThingServiceHandler) ListByExternalId(context.Context, *connect.Request[v1.ListByExternalIdRequest]) (*connect.Response[v1.ListByExternalIdResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.ThingService.ListByExternalId is not implemented"))
-}
-
-// TypeThingServiceClient is a client for the thing.v1.TypeThingService service.
-type TypeThingServiceClient interface {
-	List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error)
-	Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error)
-	Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error)
-	Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error)
-	Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error)
-	Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error)
-}
-
-// NewTypeThingServiceClient constructs a client for the thing.v1.TypeThingService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewTypeThingServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TypeThingServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	typeThingServiceMethods := v1.File_thing_v1_thing_proto.Services().ByName("TypeThingService").Methods()
-	return &typeThingServiceClient{
-		list: connect.NewClient[v1.TypeThingListRequest, v1.TypeThingListResponse](
-			httpClient,
-			baseURL+TypeThingServiceListProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("List")),
-			connect.WithClientOptions(opts...),
-		),
-		create: connect.NewClient[v1.TypeThingCreateRequest, v1.TypeThingCreateResponse](
-			httpClient,
-			baseURL+TypeThingServiceCreateProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("Create")),
-			connect.WithClientOptions(opts...),
-		),
-		get: connect.NewClient[v1.TypeThingGetRequest, v1.TypeThingGetResponse](
-			httpClient,
-			baseURL+TypeThingServiceGetProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("Get")),
-			connect.WithClientOptions(opts...),
-		),
-		update: connect.NewClient[v1.TypeThingUpdateRequest, v1.TypeThingUpdateResponse](
-			httpClient,
-			baseURL+TypeThingServiceUpdateProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("Update")),
-			connect.WithClientOptions(opts...),
-		),
-		delete: connect.NewClient[v1.TypeThingDeleteRequest, v1.TypeThingDeleteResponse](
-			httpClient,
-			baseURL+TypeThingServiceDeleteProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("Delete")),
-			connect.WithClientOptions(opts...),
-		),
-		count: connect.NewClient[v1.TypeThingCountRequest, v1.TypeThingCountResponse](
-			httpClient,
-			baseURL+TypeThingServiceCountProcedure,
-			connect.WithSchema(typeThingServiceMethods.ByName("Count")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// typeThingServiceClient implements TypeThingServiceClient.
-type typeThingServiceClient struct {
-	list   *connect.Client[v1.TypeThingListRequest, v1.TypeThingListResponse]
-	create *connect.Client[v1.TypeThingCreateRequest, v1.TypeThingCreateResponse]
-	get    *connect.Client[v1.TypeThingGetRequest, v1.TypeThingGetResponse]
-	update *connect.Client[v1.TypeThingUpdateRequest, v1.TypeThingUpdateResponse]
-	delete *connect.Client[v1.TypeThingDeleteRequest, v1.TypeThingDeleteResponse]
-	count  *connect.Client[v1.TypeThingCountRequest, v1.TypeThingCountResponse]
-}
-
-// List calls thing.v1.TypeThingService.List.
-func (c *typeThingServiceClient) List(ctx context.Context, req *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error) {
-	return c.list.CallUnary(ctx, req)
-}
-
-// Create calls thing.v1.TypeThingService.Create.
-func (c *typeThingServiceClient) Create(ctx context.Context, req *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error) {
-	return c.create.CallUnary(ctx, req)
-}
-
-// Get calls thing.v1.TypeThingService.Get.
-func (c *typeThingServiceClient) Get(ctx context.Context, req *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error) {
-	return c.get.CallUnary(ctx, req)
-}
-
-// Update calls thing.v1.TypeThingService.Update.
-func (c *typeThingServiceClient) Update(ctx context.Context, req *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error) {
-	return c.update.CallUnary(ctx, req)
-}
-
-// Delete calls thing.v1.TypeThingService.Delete.
-func (c *typeThingServiceClient) Delete(ctx context.Context, req *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error) {
-	return c.delete.CallUnary(ctx, req)
-}
-
-// Count calls thing.v1.TypeThingService.Count.
-func (c *typeThingServiceClient) Count(ctx context.Context, req *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error) {
-	return c.count.CallUnary(ctx, req)
-}
-
-// TypeThingServiceHandler is an implementation of the thing.v1.TypeThingService service.
-type TypeThingServiceHandler interface {
-	List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error)
-	Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error)
-	Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error)
-	Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error)
-	Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error)
-	Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error)
-}
-
-// NewTypeThingServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewTypeThingServiceHandler(svc TypeThingServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	typeThingServiceMethods := v1.File_thing_v1_thing_proto.Services().ByName("TypeThingService").Methods()
-	typeThingServiceListHandler := connect.NewUnaryHandler(
-		TypeThingServiceListProcedure,
-		svc.List,
-		connect.WithSchema(typeThingServiceMethods.ByName("List")),
-		connect.WithHandlerOptions(opts...),
-	)
-	typeThingServiceCreateHandler := connect.NewUnaryHandler(
-		TypeThingServiceCreateProcedure,
-		svc.Create,
-		connect.WithSchema(typeThingServiceMethods.ByName("Create")),
-		connect.WithHandlerOptions(opts...),
-	)
-	typeThingServiceGetHandler := connect.NewUnaryHandler(
-		TypeThingServiceGetProcedure,
-		svc.Get,
-		connect.WithSchema(typeThingServiceMethods.ByName("Get")),
-		connect.WithHandlerOptions(opts...),
-	)
-	typeThingServiceUpdateHandler := connect.NewUnaryHandler(
-		TypeThingServiceUpdateProcedure,
-		svc.Update,
-		connect.WithSchema(typeThingServiceMethods.ByName("Update")),
-		connect.WithHandlerOptions(opts...),
-	)
-	typeThingServiceDeleteHandler := connect.NewUnaryHandler(
-		TypeThingServiceDeleteProcedure,
-		svc.Delete,
-		connect.WithSchema(typeThingServiceMethods.ByName("Delete")),
-		connect.WithHandlerOptions(opts...),
-	)
-	typeThingServiceCountHandler := connect.NewUnaryHandler(
-		TypeThingServiceCountProcedure,
-		svc.Count,
-		connect.WithSchema(typeThingServiceMethods.ByName("Count")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/thing.v1.TypeThingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case TypeThingServiceListProcedure:
-			typeThingServiceListHandler.ServeHTTP(w, r)
-		case TypeThingServiceCreateProcedure:
-			typeThingServiceCreateHandler.ServeHTTP(w, r)
-		case TypeThingServiceGetProcedure:
-			typeThingServiceGetHandler.ServeHTTP(w, r)
-		case TypeThingServiceUpdateProcedure:
-			typeThingServiceUpdateHandler.ServeHTTP(w, r)
-		case TypeThingServiceDeleteProcedure:
-			typeThingServiceDeleteHandler.ServeHTTP(w, r)
-		case TypeThingServiceCountProcedure:
-			typeThingServiceCountHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
-}
-
-// UnimplementedTypeThingServiceHandler returns CodeUnimplemented from all methods.
-type UnimplementedTypeThingServiceHandler struct{}
-
-func (UnimplementedTypeThingServiceHandler) List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.List is not implemented"))
-}
-
-func (UnimplementedTypeThingServiceHandler) Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Create is not implemented"))
-}
-
-func (UnimplementedTypeThingServiceHandler) Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Get is not implemented"))
-}
-
-func (UnimplementedTypeThingServiceHandler) Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Update is not implemented"))
-}
-
-func (UnimplementedTypeThingServiceHandler) Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Delete is not implemented"))
-}
-
-func (UnimplementedTypeThingServiceHandler) Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Count is not implemented"))
 }

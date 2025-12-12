@@ -18,6 +18,25 @@ paths:
       summary: List returns a list of thing
       description: Returns the thing in an array
       operationId: List
+      responses:
+        "200":
+          description: get List of thing response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThingList'
+        "401":
+          description: Access token is missing or invalid
+        default:
+          description: unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - JWTAuth: [ ]
       parameters:
         - name: type
           in: query
@@ -71,25 +90,7 @@ paths:
           schema:
             type: integer
             format: int32
-      responses:
-        "200":
-          description: get List of thing response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ThingList'
-        "401":
-          description: Access token is missing or invalid
-        default:
-          description: unexpected Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-        - JWTAuth: []
+
     post:
       summary: Create will create a new thing
       description: Creates a new thing

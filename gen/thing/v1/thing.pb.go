@@ -25,38 +25,76 @@ const (
 )
 
 type Thing struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
-	TypeId            int32                  `protobuf:"varint,2,opt,name=type_id,json=typeId,proto3" json:"type_id,omitempty"`
-	Name              string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Description       string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Comment           string                 `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
-	ExternalId        int32                  `protobuf:"varint,6,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	ExternalRef       string                 `protobuf:"bytes,7,opt,name=external_ref,json=externalRef,proto3" json:"external_ref,omitempty"`
-	BuildAt           *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=build_at,json=buildAt,proto3" json:"build_at,omitempty"`
-	Status            string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`                               // Enum: "Planifié", "En Construction", etc.
-	ContainedBy       string                 `protobuf:"bytes,10,opt,name=contained_by,json=containedBy,proto3" json:"contained_by,omitempty"` // UUID
-	ContainedByOld    int32                  `protobuf:"varint,11,opt,name=contained_by_old,json=containedByOld,proto3" json:"contained_by_old,omitempty"`
-	Inactivated       bool                   `protobuf:"varint,12,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	InactivatedTime   *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=inactivated_time,json=inactivatedTime,proto3" json:"inactivated_time,omitempty"`
-	InactivatedBy     int32                  `protobuf:"varint,14,opt,name=inactivated_by,json=inactivatedBy,proto3" json:"inactivated_by,omitempty"`
-	InactivatedReason string                 `protobuf:"bytes,15,opt,name=inactivated_reason,json=inactivatedReason,proto3" json:"inactivated_reason,omitempty"`
-	Validated         bool                   `protobuf:"varint,16,opt,name=validated,proto3" json:"validated,omitempty"`
-	ValidatedTime     *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=validated_time,json=validatedTime,proto3" json:"validated_time,omitempty"`
-	ValidatedBy       int32                  `protobuf:"varint,18,opt,name=validated_by,json=validatedBy,proto3" json:"validated_by,omitempty"`
-	ManagedBy         int32                  `protobuf:"varint,19,opt,name=managed_by,json=managedBy,proto3" json:"managed_by,omitempty"`
-	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	CreatedBy         int32                  `protobuf:"varint,21,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	LastModifiedAt    *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=last_modified_at,json=lastModifiedAt,proto3" json:"last_modified_at,omitempty"`
-	LastModifiedBy    int32                  `protobuf:"varint,23,opt,name=last_modified_by,json=lastModifiedBy,proto3" json:"last_modified_by,omitempty"`
-	Deleted           bool                   `protobuf:"varint,24,opt,name=deleted,proto3" json:"deleted,omitempty"`
-	DeletedAt         *timestamppb.Timestamp `protobuf:"bytes,25,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
-	DeletedBy         int32                  `protobuf:"varint,26,opt,name=deleted_by,json=deletedBy,proto3" json:"deleted_by,omitempty"`
-	MoreData          *structpb.Struct       `protobuf:"bytes,27,opt,name=more_data,json=moreData,proto3" json:"more_data,omitempty"` // JSON Object
-	PosX              float64                `protobuf:"fixed64,28,opt,name=pos_x,json=posX,proto3" json:"pos_x,omitempty"`
-	PosY              float64                `protobuf:"fixed64,29,opt,name=pos_y,json=posY,proto3" json:"pos_y,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// identifiant uuid v4
+	// cet Universally unique identifier (UUID) sera généré automatiquement pour vous
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// identifiant du type d'objet
+	// FK sur la clé primaire du TypeThing de cet objet
+	TypeId int32 `protobuf:"varint,2,opt,name=type_id,json=typeId,proto3" json:"type_id,omitempty"`
+	// nom de cet objet
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// description
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// commentaire
+	Comment string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	// identifiant numérique externe
+	ExternalId int32 `protobuf:"varint,6,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	// référence externe
+	ExternalRef string `protobuf:"bytes,7,opt,name=external_ref,json=externalRef,proto3" json:"external_ref,omitempty"`
+	// date de construction
+	BuildAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=build_at,json=buildAt,proto3" json:"build_at,omitempty"`
+	// Status (e.g. "Planifié", "En Construction", "Utilisé", "Abandonné", "Démoli")
+	Status string `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	// contenu par (UUID)
+	ContainedBy    string `protobuf:"bytes,10,opt,name=contained_by,json=containedBy,proto3" json:"contained_by,omitempty"`
+	ContainedByOld int32  `protobuf:"varint,11,opt,name=contained_by_old,json=containedByOld,proto3" json:"contained_by_old,omitempty"`
+	// inactivé?
+	Inactivated bool `protobuf:"varint,12,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
+	// date d'inactivation
+	InactivatedTime *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=inactivated_time,json=inactivatedTime,proto3" json:"inactivated_time,omitempty"`
+	// utilisateur ayant désactivé
+	InactivatedBy int32 `protobuf:"varint,14,opt,name=inactivated_by,json=inactivatedBy,proto3" json:"inactivated_by,omitempty"`
+	// raison de'inactivation
+	InactivatedReason string `protobuf:"bytes,15,opt,name=inactivated_reason,json=inactivatedReason,proto3" json:"inactivated_reason,omitempty"`
+	// validé?
+	Validated bool `protobuf:"varint,16,opt,name=validated,proto3" json:"validated,omitempty"`
+	// date de validation
+	ValidatedTime *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=validated_time,json=validatedTime,proto3" json:"validated_time,omitempty"`
+	// utiliateur ayant validé
+	ValidatedBy int32 `protobuf:"varint,18,opt,name=validated_by,json=validatedBy,proto3" json:"validated_by,omitempty"`
+	// utilisateur/groupe manager
+	ManagedBy int32 `protobuf:"varint,19,opt,name=managed_by,json=managedBy,proto3" json:"managed_by,omitempty"`
+	// date création
+	// date de création de cet enregistrement dans la base
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// utilisateur ayant créé cet enregistrement
+	// identifiant de l'utilisateur ayant créé cet enregistrement
+	CreatedBy int32 `protobuf:"varint,21,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	// date modification
+	// date de la dernière modication de cet enregistrement
+	LastModifiedAt *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=last_modified_at,json=lastModifiedAt,proto3" json:"last_modified_at,omitempty"`
+	// utilisateur ayant effectué la modification
+	// utilisateur ayant effectué la dernière modication de cet enregistrement
+	LastModifiedBy int32 `protobuf:"varint,23,opt,name=last_modified_by,json=lastModifiedBy,proto3" json:"last_modified_by,omitempty"`
+	// effacé?
+	// cet enregisrement a été marqué comme effacé
+	Deleted bool `protobuf:"varint,24,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	// date effacé
+	// date à laquelle cet enregisrement a été marqué comme effacé
+	DeletedAt *timestamppb.Timestamp `protobuf:"bytes,25,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	// utilisateur ayant effacé
+	// utilisateur ayant demandé de marquer cet enregisrement comme effacé
+	DeletedBy int32 `protobuf:"varint,26,opt,name=deleted_by,json=deletedBy,proto3" json:"deleted_by,omitempty"`
+	// Informations complémentaires
+	// permet de stocker des attributs complémentaires au format json
+	MoreData *structpb.Struct `protobuf:"bytes,27,opt,name=more_data,json=moreData,proto3" json:"more_data,omitempty"`
+	// Coordonnées X de cet objet
+	PosX float64 `protobuf:"fixed64,28,opt,name=pos_x,json=posX,proto3" json:"pos_x,omitempty"`
+	// Coordonnées Y de cet objet
+	PosY          float64 `protobuf:"fixed64,29,opt,name=pos_y,json=posY,proto3" json:"pos_y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Thing) Reset() {
@@ -292,6 +330,7 @@ func (x *Thing) GetPosY() float64 {
 	return 0
 }
 
+// A light version of Thing for lists
 type ThingList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -425,13 +464,19 @@ func (x *ThingList) GetPosY() float64 {
 }
 
 type ListRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	Type          int32                  `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
-	CreatedBy     int32                  `protobuf:"varint,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,5,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Validated     bool                   `protobuf:"varint,6,opt,name=validated,proto3" json:"validated,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// maximum number of results to return
+	Limit int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// offset rows to skip before returning rows
+	Offset int32 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// TypeThing id to filter by the things to return
+	Type int32 `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
+	// id of the creator to filter by the things to return
+	CreatedBy int32 `protobuf:"varint,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	// inactivated flag to filter the things to return
+	Inactivated bool `protobuf:"varint,5,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
+	// validation flag to filter the things to return
+	Validated     bool `protobuf:"varint,6,opt,name=validated,proto3" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -553,8 +598,9 @@ func (x *ListResponse) GetThings() []*ThingList {
 }
 
 type CreateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Thing         *Thing                 `protobuf:"bytes,1,opt,name=thing,proto3" json:"thing,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Thing to add
+	Thing         *Thing `protobuf:"bytes,1,opt,name=thing,proto3" json:"thing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -641,8 +687,9 @@ func (x *CreateResponse) GetThing() *Thing {
 }
 
 type GetRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Id of the thing
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -729,9 +776,11 @@ func (x *GetResponse) GetThing() *Thing {
 }
 
 type UpdateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Thing         *Thing                 `protobuf:"bytes,2,opt,name=thing,proto3" json:"thing,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Id of the thing
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// informations related to the thing
+	Thing         *Thing `protobuf:"bytes,2,opt,name=thing,proto3" json:"thing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -825,8 +874,9 @@ func (x *UpdateResponse) GetThing() *Thing {
 }
 
 type DeleteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Id of the thing
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -905,14 +955,15 @@ func (*DeleteResponse) Descriptor() ([]byte, []int) {
 }
 
 type SearchRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keywords      string                 `protobuf:"bytes,1,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
-	Type          int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
-	CreatedBy     int32                  `protobuf:"varint,5,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,6,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Validated     bool                   `protobuf:"varint,7,opt,name=validated,proto3" json:"validated,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// text keywords to filter the things to return
+	Keywords      string `protobuf:"bytes,1,opt,name=keywords,proto3" json:"keywords,omitempty"`
+	Limit         int32  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	Type          int32  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
+	CreatedBy     int32  `protobuf:"varint,5,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	Inactivated   bool   `protobuf:"varint,6,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
+	Validated     bool   `protobuf:"varint,7,opt,name=validated,proto3" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1245,8 +1296,9 @@ func (x *GeoJsonRequest) GetValidated() bool {
 }
 
 type GeoJsonResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Result        string                 `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"` // Raw JSON string
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Returns the geoJson of the thing selected by the givven parameters
+	Result        string `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1289,10 +1341,11 @@ func (x *GeoJsonResponse) GetResult() string {
 }
 
 type ListByExternalIdRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ExternalId    int32                  `protobuf:"varint,1,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// externalId of the things needed
+	ExternalId    int32 `protobuf:"varint,1,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	Limit         int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1392,903 +1445,15 @@ func (x *ListByExternalIdResponse) GetThings() []*ThingList {
 	return nil
 }
 
-type TypeThing struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Id                int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description       string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Comment           string                 `protobuf:"bytes,4,opt,name=comment,proto3" json:"comment,omitempty"`
-	ExternalId        int32                  `protobuf:"varint,5,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	TableName         string                 `protobuf:"bytes,6,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	GeometryType      string                 `protobuf:"bytes,7,opt,name=geometry_type,json=geometryType,proto3" json:"geometry_type,omitempty"`
-	Inactivated       bool                   `protobuf:"varint,8,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	InactivatedTime   *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=inactivated_time,json=inactivatedTime,proto3" json:"inactivated_time,omitempty"`
-	InactivatedBy     int32                  `protobuf:"varint,10,opt,name=inactivated_by,json=inactivatedBy,proto3" json:"inactivated_by,omitempty"`
-	InactivatedReason string                 `protobuf:"bytes,11,opt,name=inactivated_reason,json=inactivatedReason,proto3" json:"inactivated_reason,omitempty"`
-	ManagedBy         int32                  `protobuf:"varint,12,opt,name=managed_by,json=managedBy,proto3" json:"managed_by,omitempty"`
-	IconPath          string                 `protobuf:"bytes,13,opt,name=icon_path,json=iconPath,proto3" json:"icon_path,omitempty"`
-	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	CreatedBy         int32                  `protobuf:"varint,15,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	LastModifiedAt    *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=last_modified_at,json=lastModifiedAt,proto3" json:"last_modified_at,omitempty"`
-	LastModifiedBy    int32                  `protobuf:"varint,17,opt,name=last_modified_by,json=lastModifiedBy,proto3" json:"last_modified_by,omitempty"`
-	Deleted           bool                   `protobuf:"varint,18,opt,name=deleted,proto3" json:"deleted,omitempty"`
-	DeletedAt         *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
-	DeletedBy         int32                  `protobuf:"varint,20,opt,name=deleted_by,json=deletedBy,proto3" json:"deleted_by,omitempty"`
-	MoreDataSchema    *structpb.Struct       `protobuf:"bytes,21,opt,name=more_data_schema,json=moreDataSchema,proto3" json:"more_data_schema,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *TypeThing) Reset() {
-	*x = TypeThing{}
-	mi := &file_thing_v1_thing_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThing) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThing) ProtoMessage() {}
-
-func (x *TypeThing) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThing.ProtoReflect.Descriptor instead.
-func (*TypeThing) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *TypeThing) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *TypeThing) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *TypeThing) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *TypeThing) GetComment() string {
-	if x != nil {
-		return x.Comment
-	}
-	return ""
-}
-
-func (x *TypeThing) GetExternalId() int32 {
-	if x != nil {
-		return x.ExternalId
-	}
-	return 0
-}
-
-func (x *TypeThing) GetTableName() string {
-	if x != nil {
-		return x.TableName
-	}
-	return ""
-}
-
-func (x *TypeThing) GetGeometryType() string {
-	if x != nil {
-		return x.GeometryType
-	}
-	return ""
-}
-
-func (x *TypeThing) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
-	}
-	return false
-}
-
-func (x *TypeThing) GetInactivatedTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.InactivatedTime
-	}
-	return nil
-}
-
-func (x *TypeThing) GetInactivatedBy() int32 {
-	if x != nil {
-		return x.InactivatedBy
-	}
-	return 0
-}
-
-func (x *TypeThing) GetInactivatedReason() string {
-	if x != nil {
-		return x.InactivatedReason
-	}
-	return ""
-}
-
-func (x *TypeThing) GetManagedBy() int32 {
-	if x != nil {
-		return x.ManagedBy
-	}
-	return 0
-}
-
-func (x *TypeThing) GetIconPath() string {
-	if x != nil {
-		return x.IconPath
-	}
-	return ""
-}
-
-func (x *TypeThing) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *TypeThing) GetCreatedBy() int32 {
-	if x != nil {
-		return x.CreatedBy
-	}
-	return 0
-}
-
-func (x *TypeThing) GetLastModifiedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.LastModifiedAt
-	}
-	return nil
-}
-
-func (x *TypeThing) GetLastModifiedBy() int32 {
-	if x != nil {
-		return x.LastModifiedBy
-	}
-	return 0
-}
-
-func (x *TypeThing) GetDeleted() bool {
-	if x != nil {
-		return x.Deleted
-	}
-	return false
-}
-
-func (x *TypeThing) GetDeletedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.DeletedAt
-	}
-	return nil
-}
-
-func (x *TypeThing) GetDeletedBy() int32 {
-	if x != nil {
-		return x.DeletedBy
-	}
-	return 0
-}
-
-func (x *TypeThing) GetMoreDataSchema() *structpb.Struct {
-	if x != nil {
-		return x.MoreDataSchema
-	}
-	return nil
-}
-
-type TypeThingList struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	ExternalId    int32                  `protobuf:"varint,3,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	IconPath      string                 `protobuf:"bytes,4,opt,name=icon_path,json=iconPath,proto3" json:"icon_path,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	TableName     string                 `protobuf:"bytes,6,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
-	GeometryType  string                 `protobuf:"bytes,7,opt,name=geometry_type,json=geometryType,proto3" json:"geometry_type,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,8,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingList) Reset() {
-	*x = TypeThingList{}
-	mi := &file_thing_v1_thing_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingList) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingList) ProtoMessage() {}
-
-func (x *TypeThingList) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingList.ProtoReflect.Descriptor instead.
-func (*TypeThingList) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *TypeThingList) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *TypeThingList) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *TypeThingList) GetExternalId() int32 {
-	if x != nil {
-		return x.ExternalId
-	}
-	return 0
-}
-
-func (x *TypeThingList) GetIconPath() string {
-	if x != nil {
-		return x.IconPath
-	}
-	return ""
-}
-
-func (x *TypeThingList) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *TypeThingList) GetTableName() string {
-	if x != nil {
-		return x.TableName
-	}
-	return ""
-}
-
-func (x *TypeThingList) GetGeometryType() string {
-	if x != nil {
-		return x.GeometryType
-	}
-	return ""
-}
-
-func (x *TypeThingList) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
-	}
-	return false
-}
-
-type TypeThingListRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keywords      string                 `protobuf:"bytes,1,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	CreatedBy     int32                  `protobuf:"varint,2,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	ExternalId    int32                  `protobuf:"varint,3,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,4,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Limit         int32                  `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32                  `protobuf:"varint,6,opt,name=offset,proto3" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingListRequest) Reset() {
-	*x = TypeThingListRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingListRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingListRequest) ProtoMessage() {}
-
-func (x *TypeThingListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingListRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingListRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *TypeThingListRequest) GetKeywords() string {
-	if x != nil {
-		return x.Keywords
-	}
-	return ""
-}
-
-func (x *TypeThingListRequest) GetCreatedBy() int32 {
-	if x != nil {
-		return x.CreatedBy
-	}
-	return 0
-}
-
-func (x *TypeThingListRequest) GetExternalId() int32 {
-	if x != nil {
-		return x.ExternalId
-	}
-	return 0
-}
-
-func (x *TypeThingListRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
-	}
-	return false
-}
-
-func (x *TypeThingListRequest) GetLimit() int32 {
-	if x != nil {
-		return x.Limit
-	}
-	return 0
-}
-
-func (x *TypeThingListRequest) GetOffset() int32 {
-	if x != nil {
-		return x.Offset
-	}
-	return 0
-}
-
-type TypeThingListResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TypeThings    []*TypeThingList       `protobuf:"bytes,1,rep,name=type_things,json=typeThings,proto3" json:"type_things,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingListResponse) Reset() {
-	*x = TypeThingListResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingListResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingListResponse) ProtoMessage() {}
-
-func (x *TypeThingListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingListResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingListResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *TypeThingListResponse) GetTypeThings() []*TypeThingList {
-	if x != nil {
-		return x.TypeThings
-	}
-	return nil
-}
-
-type TypeThingCreateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TypeThing     *TypeThing             `protobuf:"bytes,1,opt,name=type_thing,json=typeThing,proto3" json:"type_thing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingCreateRequest) Reset() {
-	*x = TypeThingCreateRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingCreateRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingCreateRequest) ProtoMessage() {}
-
-func (x *TypeThingCreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingCreateRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingCreateRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *TypeThingCreateRequest) GetTypeThing() *TypeThing {
-	if x != nil {
-		return x.TypeThing
-	}
-	return nil
-}
-
-type TypeThingCreateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TypeThing     *TypeThing             `protobuf:"bytes,1,opt,name=type_thing,json=typeThing,proto3" json:"type_thing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingCreateResponse) Reset() {
-	*x = TypeThingCreateResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingCreateResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingCreateResponse) ProtoMessage() {}
-
-func (x *TypeThingCreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingCreateResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingCreateResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *TypeThingCreateResponse) GetTypeThing() *TypeThing {
-	if x != nil {
-		return x.TypeThing
-	}
-	return nil
-}
-
-type TypeThingGetRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingGetRequest) Reset() {
-	*x = TypeThingGetRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingGetRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingGetRequest) ProtoMessage() {}
-
-func (x *TypeThingGetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingGetRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingGetRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *TypeThingGetRequest) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-type TypeThingGetResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TypeThing     *TypeThing             `protobuf:"bytes,1,opt,name=type_thing,json=typeThing,proto3" json:"type_thing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingGetResponse) Reset() {
-	*x = TypeThingGetResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingGetResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingGetResponse) ProtoMessage() {}
-
-func (x *TypeThingGetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingGetResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingGetResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *TypeThingGetResponse) GetTypeThing() *TypeThing {
-	if x != nil {
-		return x.TypeThing
-	}
-	return nil
-}
-
-type TypeThingUpdateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	TypeThing     *TypeThing             `protobuf:"bytes,2,opt,name=type_thing,json=typeThing,proto3" json:"type_thing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingUpdateRequest) Reset() {
-	*x = TypeThingUpdateRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingUpdateRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingUpdateRequest) ProtoMessage() {}
-
-func (x *TypeThingUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingUpdateRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *TypeThingUpdateRequest) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *TypeThingUpdateRequest) GetTypeThing() *TypeThing {
-	if x != nil {
-		return x.TypeThing
-	}
-	return nil
-}
-
-type TypeThingUpdateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TypeThing     *TypeThing             `protobuf:"bytes,1,opt,name=type_thing,json=typeThing,proto3" json:"type_thing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingUpdateResponse) Reset() {
-	*x = TypeThingUpdateResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingUpdateResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingUpdateResponse) ProtoMessage() {}
-
-func (x *TypeThingUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingUpdateResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *TypeThingUpdateResponse) GetTypeThing() *TypeThing {
-	if x != nil {
-		return x.TypeThing
-	}
-	return nil
-}
-
-type TypeThingDeleteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingDeleteRequest) Reset() {
-	*x = TypeThingDeleteRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[30]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingDeleteRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingDeleteRequest) ProtoMessage() {}
-
-func (x *TypeThingDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[30]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingDeleteRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{30}
-}
-
-func (x *TypeThingDeleteRequest) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-type TypeThingDeleteResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingDeleteResponse) Reset() {
-	*x = TypeThingDeleteResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[31]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingDeleteResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingDeleteResponse) ProtoMessage() {}
-
-func (x *TypeThingDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[31]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingDeleteResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{31}
-}
-
-type TypeThingCountRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keywords      string                 `protobuf:"bytes,1,opt,name=keywords,proto3" json:"keywords,omitempty"`
-	CreatedBy     int32                  `protobuf:"varint,2,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,3,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingCountRequest) Reset() {
-	*x = TypeThingCountRequest{}
-	mi := &file_thing_v1_thing_proto_msgTypes[32]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingCountRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingCountRequest) ProtoMessage() {}
-
-func (x *TypeThingCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[32]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingCountRequest.ProtoReflect.Descriptor instead.
-func (*TypeThingCountRequest) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{32}
-}
-
-func (x *TypeThingCountRequest) GetKeywords() string {
-	if x != nil {
-		return x.Keywords
-	}
-	return ""
-}
-
-func (x *TypeThingCountRequest) GetCreatedBy() int32 {
-	if x != nil {
-		return x.CreatedBy
-	}
-	return 0
-}
-
-func (x *TypeThingCountRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
-	}
-	return false
-}
-
-type TypeThingCountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Count         int32                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TypeThingCountResponse) Reset() {
-	*x = TypeThingCountResponse{}
-	mi := &file_thing_v1_thing_proto_msgTypes[33]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TypeThingCountResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TypeThingCountResponse) ProtoMessage() {}
-
-func (x *TypeThingCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_thing_v1_thing_proto_msgTypes[33]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TypeThingCountResponse.ProtoReflect.Descriptor instead.
-func (*TypeThingCountResponse) Descriptor() ([]byte, []int) {
-	return file_thing_v1_thing_proto_rawDescGZIP(), []int{33}
-}
-
-func (x *TypeThingCountResponse) GetCount() int32 {
-	if x != nil {
-		return x.Count
-	}
-	return 0
-}
-
 var File_thing_v1_thing_proto protoreflect.FileDescriptor
 
 const file_thing_v1_thing_proto_rawDesc = "" +
 	"\n" +
-	"\x14thing/v1/thing.proto\x12\bthing.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xe0\b\n" +
-	"\x05Thing\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\atype_id\x18\x02 \x01(\x05R\x06typeId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
+	"\x14thing/v1/thing.proto\x12\bthing.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x92\t\n" +
+	"\x05Thing\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1c\n" +
+	"\atype_id\x18\x02 \x01(\x05B\x03\xe0A\x02R\x06typeId\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12\x1f\n" +
 	"\vexternal_id\x18\x06 \x01(\x05R\n" +
@@ -2298,8 +1463,8 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\x06status\x18\t \x01(\tR\x06status\x12!\n" +
 	"\fcontained_by\x18\n" +
 	" \x01(\tR\vcontainedBy\x12(\n" +
-	"\x10contained_by_old\x18\v \x01(\x05R\x0econtainedByOld\x12 \n" +
-	"\vinactivated\x18\f \x01(\bR\vinactivated\x12E\n" +
+	"\x10contained_by_old\x18\v \x01(\x05R\x0econtainedByOld\x12%\n" +
+	"\vinactivated\x18\f \x01(\bB\x03\xe0A\x02R\vinactivated\x12E\n" +
 	"\x10inactivated_time\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x0finactivatedTime\x12%\n" +
 	"\x0einactivated_by\x18\x0e \x01(\x05R\rinactivatedBy\x12-\n" +
 	"\x12inactivated_reason\x18\x0f \x01(\tR\x11inactivatedReason\x12\x1c\n" +
@@ -2307,21 +1472,21 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\x0evalidated_time\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\rvalidatedTime\x12!\n" +
 	"\fvalidated_by\x18\x12 \x01(\x05R\vvalidatedBy\x12\x1d\n" +
 	"\n" +
-	"managed_by\x18\x13 \x01(\x05R\tmanagedBy\x129\n" +
+	"managed_by\x18\x13 \x01(\x05R\tmanagedBy\x12>\n" +
 	"\n" +
-	"created_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcreatedAt\x12\"\n" +
 	"\n" +
-	"created_by\x18\x15 \x01(\x05R\tcreatedBy\x12D\n" +
-	"\x10last_modified_at\x18\x16 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastModifiedAt\x12(\n" +
-	"\x10last_modified_by\x18\x17 \x01(\x05R\x0elastModifiedBy\x12\x18\n" +
-	"\adeleted\x18\x18 \x01(\bR\adeleted\x129\n" +
+	"created_by\x18\x15 \x01(\x05B\x03\xe0A\x02R\tcreatedBy\x12I\n" +
+	"\x10last_modified_at\x18\x16 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x0elastModifiedAt\x12(\n" +
+	"\x10last_modified_by\x18\x17 \x01(\x05R\x0elastModifiedBy\x12\x1d\n" +
+	"\adeleted\x18\x18 \x01(\bB\x03\xe0A\x02R\adeleted\x129\n" +
 	"\n" +
 	"deleted_at\x18\x19 \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x1d\n" +
 	"\n" +
 	"deleted_by\x18\x1a \x01(\x05R\tdeletedBy\x124\n" +
-	"\tmore_data\x18\x1b \x01(\v2\x17.google.protobuf.StructR\bmoreData\x12\x13\n" +
-	"\x05pos_x\x18\x1c \x01(\x01R\x04posX\x12\x13\n" +
-	"\x05pos_y\x18\x1d \x01(\x01R\x04posY\"\xe7\x02\n" +
+	"\tmore_data\x18\x1b \x01(\v2\x17.google.protobuf.StructR\bmoreData\x12\x18\n" +
+	"\x05pos_x\x18\x1c \x01(\x01B\x03\xe0A\x02R\x04posX\x12\x18\n" +
+	"\x05pos_y\x18\x1d \x01(\x01B\x03\xe0A\x02R\x04posY\"\xe7\x02\n" +
 	"\tThingList\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\atype_id\x18\x02 \x01(\x05R\x06typeId\x12\x12\n" +
@@ -2348,23 +1513,23 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
 	"\tvalidated\x18\x06 \x01(\bR\tvalidated\";\n" +
 	"\fListResponse\x12+\n" +
-	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\"6\n" +
-	"\rCreateRequest\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"7\n" +
+	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\";\n" +
+	"\rCreateRequest\x12*\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingB\x03\xe0A\x02R\x05thing\"7\n" +
 	"\x0eCreateResponse\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"\x1c\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"!\n" +
 	"\n" +
-	"GetRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"4\n" +
+	"GetRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"4\n" +
 	"\vGetResponse\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"F\n" +
-	"\rUpdateRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x05thing\x18\x02 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"7\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"P\n" +
+	"\rUpdateRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12*\n" +
+	"\x05thing\x18\x02 \x01(\v2\x0f.thing.v1.ThingB\x03\xe0A\x02R\x05thing\"7\n" +
 	"\x0eUpdateResponse\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"\x1f\n" +
-	"\rDeleteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x10\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"$\n" +
+	"\rDeleteRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x10\n" +
 	"\x0eDeleteResponse\"\xcc\x01\n" +
 	"\rSearchRequest\x12\x1a\n" +
 	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x14\n" +
@@ -2395,96 +1560,14 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
 	"\tvalidated\x18\x06 \x01(\bR\tvalidated\")\n" +
 	"\x0fGeoJsonResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\tR\x06result\"h\n" +
-	"\x17ListByExternalIdRequest\x12\x1f\n" +
-	"\vexternal_id\x18\x01 \x01(\x05R\n" +
+	"\x06result\x18\x01 \x01(\tR\x06result\"m\n" +
+	"\x17ListByExternalIdRequest\x12$\n" +
+	"\vexternal_id\x18\x01 \x01(\x05B\x03\xe0A\x02R\n" +
 	"externalId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x05R\x06offset\"G\n" +
 	"\x18ListByExternalIdResponse\x12+\n" +
-	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\"\xcc\x06\n" +
-	"\tTypeThing\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
-	"\acomment\x18\x04 \x01(\tR\acomment\x12\x1f\n" +
-	"\vexternal_id\x18\x05 \x01(\x05R\n" +
-	"externalId\x12\x1d\n" +
-	"\n" +
-	"table_name\x18\x06 \x01(\tR\ttableName\x12#\n" +
-	"\rgeometry_type\x18\a \x01(\tR\fgeometryType\x12 \n" +
-	"\vinactivated\x18\b \x01(\bR\vinactivated\x12E\n" +
-	"\x10inactivated_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x0finactivatedTime\x12%\n" +
-	"\x0einactivated_by\x18\n" +
-	" \x01(\x05R\rinactivatedBy\x12-\n" +
-	"\x12inactivated_reason\x18\v \x01(\tR\x11inactivatedReason\x12\x1d\n" +
-	"\n" +
-	"managed_by\x18\f \x01(\x05R\tmanagedBy\x12\x1b\n" +
-	"\ticon_path\x18\r \x01(\tR\biconPath\x129\n" +
-	"\n" +
-	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"created_by\x18\x0f \x01(\x05R\tcreatedBy\x12D\n" +
-	"\x10last_modified_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastModifiedAt\x12(\n" +
-	"\x10last_modified_by\x18\x11 \x01(\x05R\x0elastModifiedBy\x12\x18\n" +
-	"\adeleted\x18\x12 \x01(\bR\adeleted\x129\n" +
-	"\n" +
-	"deleted_at\x18\x13 \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x1d\n" +
-	"\n" +
-	"deleted_by\x18\x14 \x01(\x05R\tdeletedBy\x12A\n" +
-	"\x10more_data_schema\x18\x15 \x01(\v2\x17.google.protobuf.StructR\x0emoreDataSchema\"\x92\x02\n" +
-	"\rTypeThingList\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
-	"\vexternal_id\x18\x03 \x01(\x05R\n" +
-	"externalId\x12\x1b\n" +
-	"\ticon_path\x18\x04 \x01(\tR\biconPath\x129\n" +
-	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"table_name\x18\x06 \x01(\tR\ttableName\x12#\n" +
-	"\rgeometry_type\x18\a \x01(\tR\fgeometryType\x12 \n" +
-	"\vinactivated\x18\b \x01(\bR\vinactivated\"\xc2\x01\n" +
-	"\x14TypeThingListRequest\x12\x1a\n" +
-	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x1d\n" +
-	"\n" +
-	"created_by\x18\x02 \x01(\x05R\tcreatedBy\x12\x1f\n" +
-	"\vexternal_id\x18\x03 \x01(\x05R\n" +
-	"externalId\x12 \n" +
-	"\vinactivated\x18\x04 \x01(\bR\vinactivated\x12\x14\n" +
-	"\x05limit\x18\x05 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x06 \x01(\x05R\x06offset\"Q\n" +
-	"\x15TypeThingListResponse\x128\n" +
-	"\vtype_things\x18\x01 \x03(\v2\x17.thing.v1.TypeThingListR\n" +
-	"typeThings\"L\n" +
-	"\x16TypeThingCreateRequest\x122\n" +
-	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"M\n" +
-	"\x17TypeThingCreateResponse\x122\n" +
-	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"%\n" +
-	"\x13TypeThingGetRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"J\n" +
-	"\x14TypeThingGetResponse\x122\n" +
-	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"\\\n" +
-	"\x16TypeThingUpdateRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x122\n" +
-	"\n" +
-	"type_thing\x18\x02 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"M\n" +
-	"\x17TypeThingUpdateResponse\x122\n" +
-	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"(\n" +
-	"\x16TypeThingDeleteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\x19\n" +
-	"\x17TypeThingDeleteResponse\"t\n" +
-	"\x15TypeThingCountRequest\x12\x1a\n" +
-	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x1d\n" +
-	"\n" +
-	"created_by\x18\x02 \x01(\x05R\tcreatedBy\x12 \n" +
-	"\vinactivated\x18\x03 \x01(\bR\vinactivated\".\n" +
-	"\x16TypeThingCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x05R\x05count2\xa2\x06\n" +
+	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things2\xa2\x06\n" +
 	"\fThingService\x12E\n" +
 	"\x04List\x12\x15.thing.v1.ListRequest\x1a\x16.thing.v1.ListResponse\"\x0e\x82\xd3\xe4\x93\x02\b\x12\x06/thing\x12R\n" +
 	"\x06Create\x12\x17.thing.v1.CreateRequest\x1a\x18.thing.v1.CreateResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x05thing\"\x06/thing\x12G\n" +
@@ -2494,16 +1577,7 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\x06Search\x12\x17.thing.v1.SearchRequest\x1a\x18.thing.v1.SearchResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/thing/search\x12N\n" +
 	"\x05Count\x12\x16.thing.v1.CountRequest\x1a\x17.thing.v1.CountResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/thing/count\x12V\n" +
 	"\aGeoJson\x12\x18.thing.v1.GeoJsonRequest\x1a\x19.thing.v1.GeoJsonResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/thing/geojson\x12\x86\x01\n" +
-	"\x10ListByExternalId\x12!.thing.v1.ListByExternalIdRequest\x1a\".thing.v1.ListByExternalIdResponse\"+\x82\xd3\xe4\x93\x02%\x12#/thing/by-external-id/{external_id}2\xe7\x04\n" +
-	"\x10TypeThingService\x12W\n" +
-	"\x04List\x12\x1e.thing.v1.TypeThingListRequest\x1a\x1f.thing.v1.TypeThingListResponse\"\x0e\x82\xd3\xe4\x93\x02\b\x12\x06/types\x12i\n" +
-	"\x06Create\x12 .thing.v1.TypeThingCreateRequest\x1a!.thing.v1.TypeThingCreateResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\n" +
-	"type_thing\"\x06/types\x12Y\n" +
-	"\x03Get\x12\x1d.thing.v1.TypeThingGetRequest\x1a\x1e.thing.v1.TypeThingGetResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/types/{id}\x12n\n" +
-	"\x06Update\x12 .thing.v1.TypeThingUpdateRequest\x1a!.thing.v1.TypeThingUpdateResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\n" +
-	"type_thing\x1a\v/types/{id}\x12b\n" +
-	"\x06Delete\x12 .thing.v1.TypeThingDeleteRequest\x1a!.thing.v1.TypeThingDeleteResponse\"\x13\x82\xd3\xe4\x93\x02\r*\v/types/{id}\x12`\n" +
-	"\x05Count\x12\x1f.thing.v1.TypeThingCountRequest\x1a .thing.v1.TypeThingCountResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/types/countB\xa1\x01\n" +
+	"\x10ListByExternalId\x12!.thing.v1.ListByExternalIdRequest\x1a\".thing.v1.ListByExternalIdResponse\"+\x82\xd3\xe4\x93\x02%\x12#/thing/by-external-id/{external_id}B\xa1\x01\n" +
 	"\fcom.thing.v1B\n" +
 	"ThingProtoP\x01ZDgithub.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1;thingv1\xa2\x02\x03TXX\xaa\x02\bThing.V1\xca\x02\bThing\\V1\xe2\x02\x14Thing\\V1\\GPBMetadata\xea\x02\tThing::V1b\x06proto3"
 
@@ -2519,7 +1593,7 @@ func file_thing_v1_thing_proto_rawDescGZIP() []byte {
 	return file_thing_v1_thing_proto_rawDescData
 }
 
-var file_thing_v1_thing_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_thing_v1_thing_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_thing_v1_thing_proto_goTypes = []any{
 	(*Thing)(nil),                    // 0: thing.v1.Thing
 	(*ThingList)(nil),                // 1: thing.v1.ThingList
@@ -2541,32 +1615,18 @@ var file_thing_v1_thing_proto_goTypes = []any{
 	(*GeoJsonResponse)(nil),          // 17: thing.v1.GeoJsonResponse
 	(*ListByExternalIdRequest)(nil),  // 18: thing.v1.ListByExternalIdRequest
 	(*ListByExternalIdResponse)(nil), // 19: thing.v1.ListByExternalIdResponse
-	(*TypeThing)(nil),                // 20: thing.v1.TypeThing
-	(*TypeThingList)(nil),            // 21: thing.v1.TypeThingList
-	(*TypeThingListRequest)(nil),     // 22: thing.v1.TypeThingListRequest
-	(*TypeThingListResponse)(nil),    // 23: thing.v1.TypeThingListResponse
-	(*TypeThingCreateRequest)(nil),   // 24: thing.v1.TypeThingCreateRequest
-	(*TypeThingCreateResponse)(nil),  // 25: thing.v1.TypeThingCreateResponse
-	(*TypeThingGetRequest)(nil),      // 26: thing.v1.TypeThingGetRequest
-	(*TypeThingGetResponse)(nil),     // 27: thing.v1.TypeThingGetResponse
-	(*TypeThingUpdateRequest)(nil),   // 28: thing.v1.TypeThingUpdateRequest
-	(*TypeThingUpdateResponse)(nil),  // 29: thing.v1.TypeThingUpdateResponse
-	(*TypeThingDeleteRequest)(nil),   // 30: thing.v1.TypeThingDeleteRequest
-	(*TypeThingDeleteResponse)(nil),  // 31: thing.v1.TypeThingDeleteResponse
-	(*TypeThingCountRequest)(nil),    // 32: thing.v1.TypeThingCountRequest
-	(*TypeThingCountResponse)(nil),   // 33: thing.v1.TypeThingCountResponse
-	(*timestamppb.Timestamp)(nil),    // 34: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),          // 35: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),    // 20: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),          // 21: google.protobuf.Struct
 }
 var file_thing_v1_thing_proto_depIdxs = []int32{
-	34, // 0: thing.v1.Thing.build_at:type_name -> google.protobuf.Timestamp
-	34, // 1: thing.v1.Thing.inactivated_time:type_name -> google.protobuf.Timestamp
-	34, // 2: thing.v1.Thing.validated_time:type_name -> google.protobuf.Timestamp
-	34, // 3: thing.v1.Thing.created_at:type_name -> google.protobuf.Timestamp
-	34, // 4: thing.v1.Thing.last_modified_at:type_name -> google.protobuf.Timestamp
-	34, // 5: thing.v1.Thing.deleted_at:type_name -> google.protobuf.Timestamp
-	35, // 6: thing.v1.Thing.more_data:type_name -> google.protobuf.Struct
-	34, // 7: thing.v1.ThingList.created_at:type_name -> google.protobuf.Timestamp
+	20, // 0: thing.v1.Thing.build_at:type_name -> google.protobuf.Timestamp
+	20, // 1: thing.v1.Thing.inactivated_time:type_name -> google.protobuf.Timestamp
+	20, // 2: thing.v1.Thing.validated_time:type_name -> google.protobuf.Timestamp
+	20, // 3: thing.v1.Thing.created_at:type_name -> google.protobuf.Timestamp
+	20, // 4: thing.v1.Thing.last_modified_at:type_name -> google.protobuf.Timestamp
+	20, // 5: thing.v1.Thing.deleted_at:type_name -> google.protobuf.Timestamp
+	21, // 6: thing.v1.Thing.more_data:type_name -> google.protobuf.Struct
+	20, // 7: thing.v1.ThingList.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 8: thing.v1.ListResponse.things:type_name -> thing.v1.ThingList
 	0,  // 9: thing.v1.CreateRequest.thing:type_name -> thing.v1.Thing
 	0,  // 10: thing.v1.CreateResponse.thing:type_name -> thing.v1.Thing
@@ -2575,53 +1635,29 @@ var file_thing_v1_thing_proto_depIdxs = []int32{
 	0,  // 13: thing.v1.UpdateResponse.thing:type_name -> thing.v1.Thing
 	1,  // 14: thing.v1.SearchResponse.things:type_name -> thing.v1.ThingList
 	1,  // 15: thing.v1.ListByExternalIdResponse.things:type_name -> thing.v1.ThingList
-	34, // 16: thing.v1.TypeThing.inactivated_time:type_name -> google.protobuf.Timestamp
-	34, // 17: thing.v1.TypeThing.created_at:type_name -> google.protobuf.Timestamp
-	34, // 18: thing.v1.TypeThing.last_modified_at:type_name -> google.protobuf.Timestamp
-	34, // 19: thing.v1.TypeThing.deleted_at:type_name -> google.protobuf.Timestamp
-	35, // 20: thing.v1.TypeThing.more_data_schema:type_name -> google.protobuf.Struct
-	34, // 21: thing.v1.TypeThingList.created_at:type_name -> google.protobuf.Timestamp
-	21, // 22: thing.v1.TypeThingListResponse.type_things:type_name -> thing.v1.TypeThingList
-	20, // 23: thing.v1.TypeThingCreateRequest.type_thing:type_name -> thing.v1.TypeThing
-	20, // 24: thing.v1.TypeThingCreateResponse.type_thing:type_name -> thing.v1.TypeThing
-	20, // 25: thing.v1.TypeThingGetResponse.type_thing:type_name -> thing.v1.TypeThing
-	20, // 26: thing.v1.TypeThingUpdateRequest.type_thing:type_name -> thing.v1.TypeThing
-	20, // 27: thing.v1.TypeThingUpdateResponse.type_thing:type_name -> thing.v1.TypeThing
-	2,  // 28: thing.v1.ThingService.List:input_type -> thing.v1.ListRequest
-	4,  // 29: thing.v1.ThingService.Create:input_type -> thing.v1.CreateRequest
-	6,  // 30: thing.v1.ThingService.Get:input_type -> thing.v1.GetRequest
-	8,  // 31: thing.v1.ThingService.Update:input_type -> thing.v1.UpdateRequest
-	10, // 32: thing.v1.ThingService.Delete:input_type -> thing.v1.DeleteRequest
-	12, // 33: thing.v1.ThingService.Search:input_type -> thing.v1.SearchRequest
-	14, // 34: thing.v1.ThingService.Count:input_type -> thing.v1.CountRequest
-	16, // 35: thing.v1.ThingService.GeoJson:input_type -> thing.v1.GeoJsonRequest
-	18, // 36: thing.v1.ThingService.ListByExternalId:input_type -> thing.v1.ListByExternalIdRequest
-	22, // 37: thing.v1.TypeThingService.List:input_type -> thing.v1.TypeThingListRequest
-	24, // 38: thing.v1.TypeThingService.Create:input_type -> thing.v1.TypeThingCreateRequest
-	26, // 39: thing.v1.TypeThingService.Get:input_type -> thing.v1.TypeThingGetRequest
-	28, // 40: thing.v1.TypeThingService.Update:input_type -> thing.v1.TypeThingUpdateRequest
-	30, // 41: thing.v1.TypeThingService.Delete:input_type -> thing.v1.TypeThingDeleteRequest
-	32, // 42: thing.v1.TypeThingService.Count:input_type -> thing.v1.TypeThingCountRequest
-	3,  // 43: thing.v1.ThingService.List:output_type -> thing.v1.ListResponse
-	5,  // 44: thing.v1.ThingService.Create:output_type -> thing.v1.CreateResponse
-	7,  // 45: thing.v1.ThingService.Get:output_type -> thing.v1.GetResponse
-	9,  // 46: thing.v1.ThingService.Update:output_type -> thing.v1.UpdateResponse
-	11, // 47: thing.v1.ThingService.Delete:output_type -> thing.v1.DeleteResponse
-	13, // 48: thing.v1.ThingService.Search:output_type -> thing.v1.SearchResponse
-	15, // 49: thing.v1.ThingService.Count:output_type -> thing.v1.CountResponse
-	17, // 50: thing.v1.ThingService.GeoJson:output_type -> thing.v1.GeoJsonResponse
-	19, // 51: thing.v1.ThingService.ListByExternalId:output_type -> thing.v1.ListByExternalIdResponse
-	23, // 52: thing.v1.TypeThingService.List:output_type -> thing.v1.TypeThingListResponse
-	25, // 53: thing.v1.TypeThingService.Create:output_type -> thing.v1.TypeThingCreateResponse
-	27, // 54: thing.v1.TypeThingService.Get:output_type -> thing.v1.TypeThingGetResponse
-	29, // 55: thing.v1.TypeThingService.Update:output_type -> thing.v1.TypeThingUpdateResponse
-	31, // 56: thing.v1.TypeThingService.Delete:output_type -> thing.v1.TypeThingDeleteResponse
-	33, // 57: thing.v1.TypeThingService.Count:output_type -> thing.v1.TypeThingCountResponse
-	43, // [43:58] is the sub-list for method output_type
-	28, // [28:43] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	2,  // 16: thing.v1.ThingService.List:input_type -> thing.v1.ListRequest
+	4,  // 17: thing.v1.ThingService.Create:input_type -> thing.v1.CreateRequest
+	6,  // 18: thing.v1.ThingService.Get:input_type -> thing.v1.GetRequest
+	8,  // 19: thing.v1.ThingService.Update:input_type -> thing.v1.UpdateRequest
+	10, // 20: thing.v1.ThingService.Delete:input_type -> thing.v1.DeleteRequest
+	12, // 21: thing.v1.ThingService.Search:input_type -> thing.v1.SearchRequest
+	14, // 22: thing.v1.ThingService.Count:input_type -> thing.v1.CountRequest
+	16, // 23: thing.v1.ThingService.GeoJson:input_type -> thing.v1.GeoJsonRequest
+	18, // 24: thing.v1.ThingService.ListByExternalId:input_type -> thing.v1.ListByExternalIdRequest
+	3,  // 25: thing.v1.ThingService.List:output_type -> thing.v1.ListResponse
+	5,  // 26: thing.v1.ThingService.Create:output_type -> thing.v1.CreateResponse
+	7,  // 27: thing.v1.ThingService.Get:output_type -> thing.v1.GetResponse
+	9,  // 28: thing.v1.ThingService.Update:output_type -> thing.v1.UpdateResponse
+	11, // 29: thing.v1.ThingService.Delete:output_type -> thing.v1.DeleteResponse
+	13, // 30: thing.v1.ThingService.Search:output_type -> thing.v1.SearchResponse
+	15, // 31: thing.v1.ThingService.Count:output_type -> thing.v1.CountResponse
+	17, // 32: thing.v1.ThingService.GeoJson:output_type -> thing.v1.GeoJsonResponse
+	19, // 33: thing.v1.ThingService.ListByExternalId:output_type -> thing.v1.ListByExternalIdResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_thing_v1_thing_proto_init() }
@@ -2635,9 +1671,9 @@ func file_thing_v1_thing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_thing_v1_thing_proto_rawDesc), len(file_thing_v1_thing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   34,
+			NumMessages:   20,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_thing_v1_thing_proto_goTypes,
 		DependencyIndexes: file_thing_v1_thing_proto_depIdxs,
