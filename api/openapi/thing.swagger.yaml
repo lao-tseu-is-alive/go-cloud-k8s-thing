@@ -1,0 +1,763 @@
+swagger: "2.0"
+info:
+  title: thing/v1/thing.proto
+  version: version not set
+tags:
+  - name: ThingService
+  - name: TypeThingService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /thing:
+    get:
+      summary: List returns a list of things based on filters
+      operationId: List
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: type
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: validated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - ThingService
+    post:
+      summary: Create creates a new thing
+      operationId: Create
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1CreateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: thing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1Thing'
+      tags:
+        - ThingService
+  /thing/by-external-id/{externalId}:
+    get:
+      summary: ListByExternalId returns things filtered by external ID
+      operationId: ListByExternalId
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListByExternalIdResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          type: integer
+          format: int32
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+      tags:
+        - ThingService
+  /thing/count:
+    get:
+      summary: Count returns the number of things matching filters
+      operationId: Count
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1CountResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: type
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: validated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - ThingService
+  /thing/geojson:
+    get:
+      summary: GeoJson returns things as a GeoJSON string
+      operationId: GeoJson
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GeoJsonResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: type
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: validated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - ThingService
+  /thing/search:
+    get:
+      summary: Search returns a list based on keywords
+      operationId: Search
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1SearchResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: type
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: validated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - ThingService
+  /thing/{id}:
+    get:
+      summary: Get retrieves a thing by ID
+      operationId: Get
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - ThingService
+    delete:
+      summary: Delete removes a thing
+      operationId: Delete
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1DeleteResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - ThingService
+    put:
+      summary: Update modifies a thing
+      operationId: Update
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1UpdateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: thing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1Thing'
+      tags:
+        - ThingService
+  /types:
+    get:
+      operationId: List
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingListResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: externalId
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    post:
+      operationId: Create
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingCreateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: typeThing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1TypeThing'
+      tags:
+        - TypeThingService
+  /types/count:
+    get:
+      operationId: Count
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingCountResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - TypeThingService
+  /types/{id}:
+    get:
+      operationId: Get
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingGetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    delete:
+      operationId: Delete
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingDeleteResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    put:
+      operationId: Update
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingUpdateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+        - name: typeThing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1TypeThing'
+      tags:
+        - TypeThingService
+definitions:
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  protobufNullValue:
+    type: string
+    enum:
+      - NULL_VALUE
+    default: NULL_VALUE
+    description: |-
+      `NullValue` is a singleton enumeration to represent the null value for the
+      `Value` type union.
+
+      The JSON representation for `NullValue` is JSON `null`.
+
+       - NULL_VALUE: Null value.
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/protobufAny'
+  v1CountResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int32
+  v1CreateResponse:
+    type: object
+    properties:
+      thing:
+        $ref: '#/definitions/v1Thing'
+  v1DeleteResponse:
+    type: object
+    title: Empty, maps to 204 No Content typically
+  v1GeoJsonResponse:
+    type: object
+    properties:
+      result:
+        type: string
+        title: Raw JSON string
+  v1GetResponse:
+    type: object
+    properties:
+      thing:
+        $ref: '#/definitions/v1Thing'
+  v1ListByExternalIdResponse:
+    type: object
+    properties:
+      things:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1ThingList'
+  v1ListResponse:
+    type: object
+    properties:
+      things:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1ThingList'
+  v1SearchResponse:
+    type: object
+    properties:
+      things:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1ThingList'
+  v1Thing:
+    type: object
+    properties:
+      id:
+        type: string
+        title: UUID
+      typeId:
+        type: integer
+        format: int32
+      name:
+        type: string
+      description:
+        type: string
+      comment:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      externalRef:
+        type: string
+      buildAt:
+        type: string
+        format: date-time
+      status:
+        type: string
+        description: 'Enum: "Planifié", "En Construction", etc.'
+      containedBy:
+        type: string
+        title: UUID
+      containedByOld:
+        type: integer
+        format: int32
+      inactivated:
+        type: boolean
+      inactivatedTime:
+        type: string
+        format: date-time
+      inactivatedBy:
+        type: integer
+        format: int32
+      inactivatedReason:
+        type: string
+      validated:
+        type: boolean
+      validatedTime:
+        type: string
+        format: date-time
+      validatedBy:
+        type: integer
+        format: int32
+      managedBy:
+        type: integer
+        format: int32
+      createdAt:
+        type: string
+        format: date-time
+      createdBy:
+        type: integer
+        format: int32
+      lastModifiedAt:
+        type: string
+        format: date-time
+      lastModifiedBy:
+        type: integer
+        format: int32
+      deleted:
+        type: boolean
+      deletedAt:
+        type: string
+        format: date-time
+      deletedBy:
+        type: integer
+        format: int32
+      moreData:
+        type: object
+        title: JSON Object
+      posX:
+        type: number
+        format: double
+      posY:
+        type: number
+        format: double
+  v1ThingList:
+    type: object
+    properties:
+      id:
+        type: string
+      typeId:
+        type: integer
+        format: int32
+      name:
+        type: string
+      description:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      inactivated:
+        type: boolean
+      validated:
+        type: boolean
+      status:
+        type: string
+      createdBy:
+        type: integer
+        format: int32
+      createdAt:
+        type: string
+        format: date-time
+      posX:
+        type: number
+        format: double
+      posY:
+        type: number
+        format: double
+  v1TypeThing:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+      name:
+        type: string
+      description:
+        type: string
+      comment:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      tableName:
+        type: string
+      geometryType:
+        type: string
+      inactivated:
+        type: boolean
+      inactivatedTime:
+        type: string
+        format: date-time
+      inactivatedBy:
+        type: integer
+        format: int32
+      inactivatedReason:
+        type: string
+      managedBy:
+        type: integer
+        format: int32
+      iconPath:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      createdBy:
+        type: integer
+        format: int32
+      lastModifiedAt:
+        type: string
+        format: date-time
+      lastModifiedBy:
+        type: integer
+        format: int32
+      deleted:
+        type: boolean
+      deletedAt:
+        type: string
+        format: date-time
+      deletedBy:
+        type: integer
+        format: int32
+      moreDataSchema:
+        type: object
+  v1TypeThingCountResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int32
+  v1TypeThingCreateResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingDeleteResponse:
+    type: object
+  v1TypeThingGetResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingList:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+      name:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      iconPath:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      tableName:
+        type: string
+      geometryType:
+        type: string
+      inactivated:
+        type: boolean
+  v1TypeThingListResponse:
+    type: object
+    properties:
+      typeThings:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1TypeThingList'
+  v1TypeThingUpdateResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1UpdateResponse:
+    type: object
+    properties:
+      thing:
+        $ref: '#/definitions/v1Thing'

@@ -223,3 +223,138 @@ message ListByExternalIdRequest {
 message ListByExternalIdResponse {
   repeated ThingList things = 1;
 }
+
+service TypeThingService {
+  rpc List(TypeThingListRequest) returns (TypeThingListResponse) {
+    option (google.api.http) = {
+      get: "/types"
+    };
+  }
+
+  rpc Create(TypeThingCreateRequest) returns (TypeThingCreateResponse) {
+    option (google.api.http) = {
+      post: "/types"
+      body: "type_thing"
+    };
+  }
+
+  rpc Get(TypeThingGetRequest) returns (TypeThingGetResponse) {
+    option (google.api.http) = {
+      get: "/types/{id}"
+    };
+  }
+
+  rpc Update(TypeThingUpdateRequest) returns (TypeThingUpdateResponse) {
+    option (google.api.http) = {
+      put: "/types/{id}"
+      body: "type_thing"
+    };
+  }
+
+  rpc Delete(TypeThingDeleteRequest) returns (TypeThingDeleteResponse) {
+    option (google.api.http) = {
+      delete: "/types/{id}"
+    };
+  }
+
+  rpc Count(TypeThingCountRequest) returns (TypeThingCountResponse) {
+    option (google.api.http) = {
+      get: "/types/count"
+    };
+  }
+}
+
+// =========================================================
+// Messages for TypeThing
+// =========================================================
+
+message TypeThing {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string comment = 4;
+  int32 external_id = 5;
+  string table_name = 6;
+  string geometry_type = 7;
+  bool inactivated = 8;
+  google.protobuf.Timestamp inactivated_time = 9;
+  int32 inactivated_by = 10;
+  string inactivated_reason = 11;
+  int32 managed_by = 12;
+  string icon_path = 13;
+  google.protobuf.Timestamp created_at = 14;
+  int32 created_by = 15;
+  google.protobuf.Timestamp last_modified_at = 16;
+  int32 last_modified_by = 17;
+  bool deleted = 18;
+  google.protobuf.Timestamp deleted_at = 19;
+  int32 deleted_by = 20;
+  google.protobuf.Struct more_data_schema = 21;
+}
+
+message TypeThingList {
+  int32 id = 1;
+  string name = 2;
+  int32 external_id = 3;
+  string icon_path = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string table_name = 6;
+  string geometry_type = 7;
+  bool inactivated = 8;
+}
+
+// Request/Response DTOs
+
+message TypeThingListRequest {
+  string keywords = 1;
+  int32 created_by = 2;
+  int32 external_id = 3;
+  bool inactivated = 4;
+  int32 limit = 5;
+  int32 offset = 6;
+}
+
+message TypeThingListResponse {
+  repeated TypeThingList type_things = 1;
+}
+
+message TypeThingCreateRequest {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingCreateResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingGetRequest {
+  int32 id = 1;
+}
+
+message TypeThingGetResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingUpdateRequest {
+  int32 id = 1;
+  TypeThing type_thing = 2;
+}
+
+message TypeThingUpdateResponse {
+  TypeThing type_thing = 1;
+}
+
+message TypeThingDeleteRequest {
+  int32 id = 1;
+}
+
+message TypeThingDeleteResponse {}
+
+message TypeThingCountRequest {
+  string keywords = 1;
+  int32 created_by = 2;
+  bool inactivated = 3;
+}
+
+message TypeThingCountResponse {
+  int32 count = 1;
+}
