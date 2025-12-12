@@ -7,81 +7,42 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/cristalhq/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockJwtChecker implements goHttpEcho.JwtChecker for testing
-type MockJwtChecker struct {
-	mock.Mock
-}
-
-func (m *MockJwtChecker) ParseToken(jwtToken string) (*goHttpEcho.JwtCustomClaims, error) {
-	args := m.Called(jwtToken)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*goHttpEcho.JwtCustomClaims), args.Error(1)
-}
-
-func (m *MockJwtChecker) GetTokenFromUserInfo(userInfo *goHttpEcho.UserInfo) (*jwt.Token, error) {
-	args := m.Called(userInfo)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*jwt.Token), args.Error(1)
-}
-
-func (m *MockJwtChecker) JwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return nil
-}
-
-func (m *MockJwtChecker) GetLogger() golog.MyLogger {
-	return nil
-}
-
-func (m *MockJwtChecker) GetJwtDuration() int {
-	return 3600
-}
-
-func (m *MockJwtChecker) GetIssuerId() string {
-	return "test-issuer"
-}
-
-func (m *MockJwtChecker) GetJwtCustomClaimsFromContext(c echo.Context) *goHttpEcho.JwtCustomClaims {
-	return nil
-}
+// =============================================================================
+// Test Helpers
+// =============================================================================
 
 // Helper to create a test Connect server
-func createTestThingConnectServer(mockStore *MockStorage, mockDB *MockDB, mockJwt *MockJwtChecker) *ThingConnectServer {
+func createTestThingConnectServer(mockStore *MockStorage, mockDB *MockDB) *ThingConnectServer {
 	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
 	businessService := NewBusinessService(mockStore, mockDB, logger, 50)
-	return NewThingConnectServer(businessService, logger, mockJwt)
+	return NewThingConnectServer(businessService, logger)
 }
 
-// Helper to create a Connect request with Authorization header
-func createConnectRequest[T any](msg *T, token string) *connect.Request[T] {
-	req := connect.NewRequest(msg)
-	req.Header().Set("Authorization", "Bearer "+token)
-	return req
+// Helper to create a test TypeThing Connect server
+func createTestTypeThingConnectServer(mockStore *MockStorage, mockDB *MockDB) *TypeThingConnectServer {
+	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
+	businessService := NewBusinessService(mockStore, mockDB, logger, 50)
+	return NewTypeThingConnectServer(businessService, logger)
 }
 
-// Helper to create mock JWT claims
-func createMockClaims(userId int, isAdmin bool) *goHttpEcho.JwtCustomClaims {
-	return &goHttpEcho.JwtCustomClaims{
-		User: &goHttpEcho.UserInfo{
-			UserId:  userId,
-			IsAdmin: isAdmin,
-			Name:    "Test User",
-			Email:   "test@example.com",
-		},
-	}
+// Helper to create a context with user info (simulating what AuthInterceptor does)
+func contextWithUser(userId int32, isAdmin bool) context.Context {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, userIDKey, userId)
+	ctx = context.WithValue(ctx, isAdminKey, isAdmin)
+	return ctx
+}
+
+// Helper to create a Connect request (no auth header needed since we inject via context)
+func createConnectRequest[T any](msg *T) *connect.Request[T] {
+	return connect.NewRequest(msg)
 }
 
 // =============================================================================
@@ -92,11 +53,7 @@ func TestThingConnectServer_List(t *testing.T) {
 	t.Run("successful list", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
-
-		// Setup mock JWT validation
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		// Setup mock storage
 		now := time.Now()
@@ -106,11 +63,12 @@ func TestThingConnectServer_List(t *testing.T) {
 		}
 		mockStore.On("List", mock.Anything, 0, 50, ListParams{}).Return(expectedList, nil)
 
-		// Create request
-		req := createConnectRequest(&thingv1.ListRequest{Limit: 0, Offset: 0}, "valid-token")
+		// Create request and context with user
+		req := createConnectRequest(&thingv1.ListRequest{Limit: 0, Offset: 0})
+		ctx := contextWithUser(123, false)
 
 		// Call handler
-		resp, err := server.List(context.Background(), req)
+		resp, err := server.List(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
@@ -118,49 +76,28 @@ func TestThingConnectServer_List(t *testing.T) {
 		assert.Equal(t, "Thing 1", resp.Msg.Things[0].Name)
 		assert.Equal(t, "Thing 2", resp.Msg.Things[1].Name)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 
-	t.Run("unauthorized - missing token", func(t *testing.T) {
+	t.Run("list with pagination", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
-		// Create request without Authorization header
-		req := connect.NewRequest(&thingv1.ListRequest{})
+		now := time.Now()
+		expectedList := []*ThingList{
+			{Id: uuid.New(), Name: "Thing 3", CreatedAt: &now},
+		}
+		mockStore.On("List", mock.Anything, 10, 5, ListParams{}).Return(expectedList, nil)
 
-		// Call handler
-		resp, err := server.List(context.Background(), req)
+		req := createConnectRequest(&thingv1.ListRequest{Limit: 5, Offset: 10})
+		ctx := contextWithUser(123, false)
 
-		assert.Error(t, err)
-		assert.Nil(t, resp)
-		connectErr, ok := err.(*connect.Error)
-		assert.True(t, ok)
-		assert.Equal(t, connect.CodeUnauthenticated, connectErr.Code())
-	})
+		resp, err := server.List(ctx, req)
 
-	t.Run("unauthorized - invalid token", func(t *testing.T) {
-		mockStore := new(MockStorage)
-		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
-
-		// Setup mock JWT validation to fail
-		mockJwt.On("ParseToken", "invalid-token").Return(nil, assert.AnError)
-
-		// Create request with invalid token
-		req := createConnectRequest(&thingv1.ListRequest{}, "invalid-token")
-
-		// Call handler
-		resp, err := server.List(context.Background(), req)
-
-		assert.Error(t, err)
-		assert.Nil(t, resp)
-		connectErr, ok := err.(*connect.Error)
-		assert.True(t, ok)
-		assert.Equal(t, connect.CodeUnauthenticated, connectErr.Code())
-		mockJwt.AssertExpectations(t)
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Len(t, resp.Msg.Things, 1)
+		mockStore.AssertExpectations(t)
 	})
 }
 
@@ -168,8 +105,7 @@ func TestThingConnectServer_Get(t *testing.T) {
 	t.Run("successful get", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
 		expectedThing := &Thing{
@@ -177,36 +113,34 @@ func TestThingConnectServer_Get(t *testing.T) {
 			Name: "Test Thing",
 		}
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
 		mockStore.On("Exist", mock.Anything, thingID).Return(true)
 		mockStore.On("Get", mock.Anything, thingID).Return(expectedThing, nil)
 
-		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()}, "valid-token")
+		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
+		ctx := contextWithUser(123, false)
 
-		resp, err := server.Get(context.Background(), req)
+		resp, err := server.Get(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		assert.Equal(t, thingID.String(), resp.Msg.Thing.Id)
 		assert.Equal(t, "Test Thing", resp.Msg.Thing.Name)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 
 	t.Run("not found", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
 		mockStore.On("Exist", mock.Anything, thingID).Return(false)
 
-		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()}, "valid-token")
+		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
+		ctx := contextWithUser(123, false)
 
-		resp, err := server.Get(context.Background(), req)
+		resp, err := server.Get(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -219,14 +153,12 @@ func TestThingConnectServer_Get(t *testing.T) {
 	t.Run("invalid UUID format", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
+		req := createConnectRequest(&thingv1.GetRequest{Id: "not-a-uuid"})
+		ctx := contextWithUser(123, false)
 
-		req := createConnectRequest(&thingv1.GetRequest{Id: "not-a-uuid"}, "valid-token")
-
-		resp, err := server.Get(context.Background(), req)
+		resp, err := server.Get(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -240,8 +172,7 @@ func TestThingConnectServer_Create(t *testing.T) {
 	t.Run("successful create", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
 		expectedThing := &Thing{
@@ -250,7 +181,6 @@ func TestThingConnectServer_Create(t *testing.T) {
 			CreatedBy: 123,
 		}
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
 		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false)
 		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(expectedThing, nil)
 
@@ -258,28 +188,26 @@ func TestThingConnectServer_Create(t *testing.T) {
 			Thing: &thingv1.Thing{
 				Name: "New Thing",
 			},
-		}, "valid-token")
+		})
+		ctx := contextWithUser(123, false)
 
-		resp, err := server.Create(context.Background(), req)
+		resp, err := server.Create(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		assert.Equal(t, "New Thing", resp.Msg.Thing.Name)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 
 	t.Run("validation error - missing thing", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
+		req := createConnectRequest(&thingv1.CreateRequest{Thing: nil})
+		ctx := contextWithUser(123, false)
 
-		req := createConnectRequest(&thingv1.CreateRequest{Thing: nil}, "valid-token")
-
-		resp, err := server.Create(context.Background(), req)
+		resp, err := server.Create(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -293,43 +221,40 @@ func TestThingConnectServer_Delete(t *testing.T) {
 	t.Run("successful delete", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(int(userID), false), nil)
 		mockStore.On("Exist", mock.Anything, thingID).Return(true)
 		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true)
 		mockStore.On("Delete", mock.Anything, thingID, userID).Return(nil)
 
-		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()}, "valid-token")
+		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
+		ctx := contextWithUser(userID, false)
 
-		resp, err := server.Delete(context.Background(), req)
+		resp, err := server.Delete(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 
 	t.Run("permission denied - not owner", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(int(userID), false), nil)
 		mockStore.On("Exist", mock.Anything, thingID).Return(true)
 		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false)
 
-		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()}, "valid-token")
+		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
+		ctx := contextWithUser(userID, false)
 
-		resp, err := server.Delete(context.Background(), req)
+		resp, err := server.Delete(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -344,40 +269,31 @@ func TestThingConnectServer_Count(t *testing.T) {
 	t.Run("successful count", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestThingConnectServer(mockStore, mockDB)
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
 		mockStore.On("Count", mock.Anything, CountParams{}).Return(42, nil)
 
-		req := createConnectRequest(&thingv1.CountRequest{}, "valid-token")
+		req := createConnectRequest(&thingv1.CountRequest{})
+		ctx := contextWithUser(123, false)
 
-		resp, err := server.Count(context.Background(), req)
+		resp, err := server.Count(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		assert.Equal(t, int32(42), resp.Msg.Count)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 }
 
 // =============================================================================
-// TypeThingConnectServer Tests (for completeness)
+// TypeThingConnectServer Tests
 // =============================================================================
-
-func createTestTypeThingConnectServer(mockStore *MockStorage, mockDB *MockDB, mockJwt *MockJwtChecker) *TypeThingConnectServer {
-	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
-	businessService := NewBusinessService(mockStore, mockDB, logger, 50)
-	return NewTypeThingConnectServer(businessService, logger, mockJwt)
-}
 
 func TestTypeThingConnectServer_List(t *testing.T) {
 	t.Run("successful list", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestTypeThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
 		now := time.Now()
 		expectedList := []*TypeThingList{
@@ -385,18 +301,17 @@ func TestTypeThingConnectServer_List(t *testing.T) {
 			{Id: 2, Name: "Type 2", CreatedAt: now},
 		}
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
 		mockStore.On("ListTypeThing", mock.Anything, 0, 250, TypeThingListParams{}).Return(expectedList, nil)
 
-		req := createConnectRequest(&thingv1.TypeThingListRequest{}, "valid-token")
+		req := createConnectRequest(&thingv1.TypeThingListRequest{})
+		ctx := contextWithUser(123, false)
 
-		resp, err := server.List(context.Background(), req)
+		resp, err := server.List(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		assert.Len(t, resp.Msg.TypeThings, 2)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 }
 
@@ -404,8 +319,7 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 	t.Run("admin can create", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestTypeThingConnectServer(mockStore, mockDB, mockJwt)
+		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
 		expectedTypeThing := &TypeThing{
 			Id:        1,
@@ -413,45 +327,65 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 			CreatedBy: 123,
 		}
 
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, true), nil)
 		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("TypeThing")).Return(expectedTypeThing, nil)
 
 		req := createConnectRequest(&thingv1.TypeThingCreateRequest{
 			TypeThing: &thingv1.TypeThing{
 				Name: "New Type",
 			},
-		}, "valid-token")
+		})
+		ctx := contextWithUser(123, true) // isAdmin = true
 
-		resp, err := server.Create(context.Background(), req)
+		resp, err := server.Create(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
 		assert.Equal(t, "New Type", resp.Msg.TypeThing.Name)
 		mockStore.AssertExpectations(t)
-		mockJwt.AssertExpectations(t)
 	})
 
 	t.Run("non-admin rejected", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
-		mockJwt := new(MockJwtChecker)
-		server := createTestTypeThingConnectServer(mockStore, mockDB, mockJwt)
-
-		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
+		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
 		req := createConnectRequest(&thingv1.TypeThingCreateRequest{
 			TypeThing: &thingv1.TypeThing{
 				Name: "New Type",
 			},
-		}, "valid-token")
+		})
+		ctx := contextWithUser(123, false) // isAdmin = false
 
-		resp, err := server.Create(context.Background(), req)
+		resp, err := server.Create(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
 		connectErr, ok := err.(*connect.Error)
 		assert.True(t, ok)
 		assert.Equal(t, connect.CodePermissionDenied, connectErr.Code())
-		mockJwt.AssertExpectations(t)
+	})
+}
+
+// =============================================================================
+// AuthInterceptor Tests
+// =============================================================================
+
+func TestGetUserFromContext(t *testing.T) {
+	t.Run("user present in context", func(t *testing.T) {
+		ctx := contextWithUser(456, true)
+
+		userId, isAdmin := GetUserFromContext(ctx)
+
+		assert.Equal(t, int32(456), userId)
+		assert.True(t, isAdmin)
+	})
+
+	t.Run("user not present in context", func(t *testing.T) {
+		ctx := context.Background()
+
+		userId, isAdmin := GetUserFromContext(ctx)
+
+		assert.Equal(t, int32(0), userId)
+		assert.False(t, isAdmin)
 	})
 }

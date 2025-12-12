@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/vanguard"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
@@ -336,13 +337,17 @@ func main() {
 	// ---------------------------------------------------------
 	// Connect + Vanguard: REST/gRPC/Connect transcoding
 	// ---------------------------------------------------------
-	// Create Connect servers
-	thingConnectServer := thing.NewThingConnectServer(thingBusinessService, l, myJwt)
-	typeThingConnectServer := thing.NewTypeThingConnectServer(thingBusinessService, l, myJwt)
+	// Create auth interceptor for JWT validation
+	authInterceptor := thing.NewAuthInterceptor(myJwt, l)
+	interceptors := connect.WithInterceptors(authInterceptor)
 
-	// Create service handlers
-	_, thingHandler := thingv1connect.NewThingServiceHandler(thingConnectServer)
-	_, typeThingHandler := thingv1connect.NewTypeThingServiceHandler(typeThingConnectServer)
+	// Create Connect servers (auth is handled by interceptor, not servers)
+	thingConnectServer := thing.NewThingConnectServer(thingBusinessService, l)
+	typeThingConnectServer := thing.NewTypeThingConnectServer(thingBusinessService, l)
+
+	// Create service handlers with auth interceptor
+	_, thingHandler := thingv1connect.NewThingServiceHandler(thingConnectServer, interceptors)
+	_, typeThingHandler := thingv1connect.NewTypeThingServiceHandler(typeThingConnectServer, interceptors)
 
 	// Create Vanguard services for HTTP transcoding
 	thingService := vanguard.NewService(

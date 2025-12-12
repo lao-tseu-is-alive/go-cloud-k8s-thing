@@ -4,63 +4,37 @@ package thing
 import (
 	"context"
 	"errors"
-	"net/http"
-	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 )
 
-// ThingConnectServer implements the ThingServiceHandler interface
+// ThingConnectServer implements the ThingServiceHandler interface.
+// Authentication is handled by the AuthInterceptor, which injects user info into context.
 type ThingConnectServer struct {
 	BusinessService *BusinessService
 	Log             golog.MyLogger
-	JwtCheck        goHttpEcho.JwtChecker
 
 	// Embed the unimplemented handler for forward compatibility
 	thingv1connect.UnimplementedThingServiceHandler
 }
 
-// NewThingConnectServer creates a new ThingConnectServer
-func NewThingConnectServer(business *BusinessService, log golog.MyLogger, jwtCheck goHttpEcho.JwtChecker) *ThingConnectServer {
+// NewThingConnectServer creates a new ThingConnectServer.
+// Note: Authentication is handled by the AuthInterceptor, not by this server.
+func NewThingConnectServer(business *BusinessService, log golog.MyLogger) *ThingConnectServer {
 	return &ThingConnectServer{
 		BusinessService: business,
 		Log:             log,
-		JwtCheck:        jwtCheck,
 	}
 }
 
 // =============================================================================
 // Helper Methods
 // =============================================================================
-
-// getUserFromContext extracts user info from the Authorization header
-func (s *ThingConnectServer) getUserFromContext(ctx context.Context, header http.Header) (userId int32, isAdmin bool, err error) {
-	auth := header.Get("Authorization")
-	if auth == "" {
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("missing authorization header"))
-	}
-
-	// Extract Bearer token
-	token := strings.TrimPrefix(auth, "Bearer ")
-	if token == auth {
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid authorization format"))
-	}
-
-	// Validate token and extract claims
-	claims, err := s.JwtCheck.ParseToken(token)
-	if err != nil {
-		s.Log.Warn("invalid JWT token: %v", err)
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid token"))
-	}
-
-	return int32(claims.User.UserId), claims.User.IsAdmin, nil
-}
 
 // mapErrorToConnect converts business errors to Connect errors
 func (s *ThingConnectServer) mapErrorToConnect(err error) *connect.Error {
@@ -98,11 +72,8 @@ func (s *ThingConnectServer) List(
 ) (*connect.Response[thingv1.ListResponse], error) {
 	s.Log.Info("Connect: List called")
 
-	// Extract user (for logging/auditing)
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("List: userId=%d", userId)
 
 	// Build domain params from proto request
@@ -151,10 +122,8 @@ func (s *ThingConnectServer) Create(
 ) (*connect.Response[thingv1.CreateResponse], error) {
 	s.Log.Info("Connect: Create called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Create: userId=%d", userId)
 
 	// Convert proto to domain
@@ -188,10 +157,8 @@ func (s *ThingConnectServer) Get(
 ) (*connect.Response[thingv1.GetResponse], error) {
 	s.Log.Info("Connect: Get called for id=%s", req.Msg.Id)
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Get: userId=%d", userId)
 
 	// Parse UUID
@@ -219,10 +186,8 @@ func (s *ThingConnectServer) Update(
 ) (*connect.Response[thingv1.UpdateResponse], error) {
 	s.Log.Info("Connect: Update called for id=%s", req.Msg.Id)
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Update: userId=%d", userId)
 
 	// Parse UUID
@@ -261,10 +226,8 @@ func (s *ThingConnectServer) Delete(
 ) (*connect.Response[thingv1.DeleteResponse], error) {
 	s.Log.Info("Connect: Delete called for id=%s", req.Msg.Id)
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Delete: userId=%d", userId)
 
 	// Parse UUID
@@ -289,10 +252,8 @@ func (s *ThingConnectServer) Search(
 ) (*connect.Response[thingv1.SearchResponse], error) {
 	s.Log.Info("Connect: Search called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Search: userId=%d", userId)
 
 	msg := req.Msg
@@ -340,10 +301,8 @@ func (s *ThingConnectServer) Count(
 ) (*connect.Response[thingv1.CountResponse], error) {
 	s.Log.Info("Connect: Count called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Count: userId=%d", userId)
 
 	msg := req.Msg
@@ -382,10 +341,8 @@ func (s *ThingConnectServer) GeoJson(
 ) (*connect.Response[thingv1.GeoJsonResponse], error) {
 	s.Log.Info("Connect: GeoJson called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("GeoJson: userId=%d", userId)
 
 	msg := req.Msg
@@ -430,10 +387,8 @@ func (s *ThingConnectServer) ListByExternalId(
 ) (*connect.Response[thingv1.ListByExternalIdResponse], error) {
 	s.Log.Info("Connect: ListByExternalId called for externalId=%d", req.Msg.ExternalId)
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("ListByExternalId: userId=%d", userId)
 
 	msg := req.Msg

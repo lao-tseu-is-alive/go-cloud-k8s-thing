@@ -4,62 +4,36 @@ package thing
 import (
 	"context"
 	"errors"
-	"net/http"
-	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 )
 
-// TypeThingConnectServer implements the TypeThingServiceHandler interface
+// TypeThingConnectServer implements the TypeThingServiceHandler interface.
+// Authentication is handled by the AuthInterceptor, which injects user info into context.
 type TypeThingConnectServer struct {
 	BusinessService *BusinessService
 	Log             golog.MyLogger
-	JwtCheck        goHttpEcho.JwtChecker
 
 	// Embed the unimplemented handler for forward compatibility
 	thingv1connect.UnimplementedTypeThingServiceHandler
 }
 
-// NewTypeThingConnectServer creates a new TypeThingConnectServer
-func NewTypeThingConnectServer(business *BusinessService, log golog.MyLogger, jwtCheck goHttpEcho.JwtChecker) *TypeThingConnectServer {
+// NewTypeThingConnectServer creates a new TypeThingConnectServer.
+// Note: Authentication is handled by the AuthInterceptor, not by this server.
+func NewTypeThingConnectServer(business *BusinessService, log golog.MyLogger) *TypeThingConnectServer {
 	return &TypeThingConnectServer{
 		BusinessService: business,
 		Log:             log,
-		JwtCheck:        jwtCheck,
 	}
 }
 
 // =============================================================================
 // Helper Methods
 // =============================================================================
-
-// getUserFromContext extracts user info from the Authorization header
-func (s *TypeThingConnectServer) getUserFromContext(ctx context.Context, header http.Header) (userId int32, isAdmin bool, err error) {
-	auth := header.Get("Authorization")
-	if auth == "" {
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("missing authorization header"))
-	}
-
-	// Extract Bearer token
-	token := strings.TrimPrefix(auth, "Bearer ")
-	if token == auth {
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid authorization format"))
-	}
-
-	// Validate token and extract claims
-	claims, err := s.JwtCheck.ParseToken(token)
-	if err != nil {
-		s.Log.Warn("invalid JWT token: %v", err)
-		return 0, false, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid token"))
-	}
-
-	return int32(claims.User.UserId), claims.User.IsAdmin, nil
-}
 
 // mapErrorToConnect converts business errors to Connect errors
 func (s *TypeThingConnectServer) mapErrorToConnect(err error) *connect.Error {
@@ -91,10 +65,8 @@ func (s *TypeThingConnectServer) List(
 ) (*connect.Response[thingv1.TypeThingListResponse], error) {
 	s.Log.Info("Connect: TypeThing.List called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.List: userId=%d", userId)
 
 	msg := req.Msg
@@ -146,10 +118,8 @@ func (s *TypeThingConnectServer) Create(
 ) (*connect.Response[thingv1.TypeThingCreateResponse], error) {
 	s.Log.Info("Connect: TypeThing.Create called")
 
-	userId, isAdmin, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, isAdmin := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Create: userId=%d, isAdmin=%v", userId, isAdmin)
 
 	protoTypeThing := req.Msg.TypeThing
@@ -177,10 +147,8 @@ func (s *TypeThingConnectServer) Get(
 ) (*connect.Response[thingv1.TypeThingGetResponse], error) {
 	s.Log.Info("Connect: TypeThing.Get called for id=%d", req.Msg.Id)
 
-	_, isAdmin, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	_, isAdmin := GetUserFromContext(ctx)
 
 	typeThing, err := s.BusinessService.GetTypeThing(ctx, isAdmin, req.Msg.Id)
 	if err != nil {
@@ -200,10 +168,8 @@ func (s *TypeThingConnectServer) Update(
 ) (*connect.Response[thingv1.TypeThingUpdateResponse], error) {
 	s.Log.Info("Connect: TypeThing.Update called for id=%d", req.Msg.Id)
 
-	userId, isAdmin, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, isAdmin := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Update: userId=%d, isAdmin=%v", userId, isAdmin)
 
 	protoTypeThing := req.Msg.TypeThing
@@ -231,13 +197,11 @@ func (s *TypeThingConnectServer) Delete(
 ) (*connect.Response[thingv1.TypeThingDeleteResponse], error) {
 	s.Log.Info("Connect: TypeThing.Delete called for id=%d", req.Msg.Id)
 
-	userId, isAdmin, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, isAdmin := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Delete: userId=%d, isAdmin=%v", userId, isAdmin)
 
-	err = s.BusinessService.DeleteTypeThing(ctx, userId, isAdmin, req.Msg.Id)
+	err := s.BusinessService.DeleteTypeThing(ctx, userId, isAdmin, req.Msg.Id)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -252,10 +216,8 @@ func (s *TypeThingConnectServer) Count(
 ) (*connect.Response[thingv1.TypeThingCountResponse], error) {
 	s.Log.Info("Connect: TypeThing.Count called")
 
-	userId, _, err := s.getUserFromContext(ctx, req.Header())
-	if err != nil {
-		return nil, err
-	}
+	// User info injected by AuthInterceptor
+	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Count: userId=%d", userId)
 
 	msg := req.Msg
