@@ -40,3 +40,4 @@ The OpenApi 3.0 definition is available in [Yaml](https://raw.githubusercontent.
 
 ### Project Layout and conventions
 This project uses the Standard Go Project Layout : https://github.com/golang-standards/project-layout
+

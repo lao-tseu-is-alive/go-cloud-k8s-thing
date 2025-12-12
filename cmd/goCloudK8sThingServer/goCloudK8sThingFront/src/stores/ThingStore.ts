@@ -21,48 +21,48 @@ export interface ISearchThingParameters {
 export const maxSearchLimit: number = 1000
 export const defaultListItem: ThingList = {
   id: crypto.randomUUID(),
-  type_id: 0,
+  typeId: 0,
   name: "",
   description: undefined,
-  external_id: undefined,
+  externalId: undefined,
   inactivated: false,
   validated: undefined,
   status: undefined,
-  created_by: 0,
-  created_at: undefined,
-  pos_x: 0,
-  pos_y: 0,
+  createdBy: 0,
+  createdAt: undefined,
+  posX: 0,
+  posY: 0,
 }
 export const defaultItem: Thing = {
   id: crypto.randomUUID(),
-  type_id: 0,
+  typeId: 0,
   name: "",
   description: undefined,
   comment: undefined,
-  external_id: undefined,
-  external_ref: undefined,
-  build_at: undefined,
+  externalId: undefined,
+  externalRef: undefined,
+  buildAt: undefined,
   status: undefined,
-  contained_by: undefined,
-  contained_by_old: undefined,
+  containedBy: undefined,
+  containedByOld: undefined,
   inactivated: false,
-  inactivated_time: undefined,
-  inactivated_by: undefined,
-  inactivated_reason: undefined,
+  inactivatedTime: undefined,
+  inactivatedBy: undefined,
+  inactivatedReason: undefined,
   validated: undefined,
-  validated_time: undefined,
-  validated_by: undefined,
-  managed_by: undefined,
-  created_at: undefined,
-  created_by: 0,
-  last_modified_at: undefined,
-  last_modified_by: undefined,
+  validatedTime: undefined,
+  validatedBy: undefined,
+  managedBy: undefined,
+  createdAt: undefined,
+  createdBy: 0,
+  lastModifiedAt: undefined,
+  lastModifiedBy: undefined,
   deleted: false,
-  deleted_at: undefined,
-  deleted_by: undefined,
-  more_data: undefined,
-  pos_x: 0,
-  pos_y: 0,
+  deletedAt: undefined,
+  deletedBy: undefined,
+  moreData: undefined,
+  posX: 0,
+  posY: 0,
 }
 
 type netThing = { data: Thing | null; err: Error | null }
@@ -107,14 +107,14 @@ export const useThingStore = defineStore("Thing", {
                   "name": "EPSG:2056"
                 }
               },
-              "coordinates": [${r.pos_x}, ${r.pos_y}]
+              "coordinates": [${r.posX}, ${r.posY}]
               },
               "properties": {
                 "id": "${r.id}",
-                "type_id": ${r.type_id},
+                "type_id": ${r.typeId},
                 "name": "${r.name}",
-                "external_id": ${r.external_id},
-                "icon_path": "${state.dicoTypeThingIconPath[r.type_id]}"
+                "external_id": ${r.externalId},
+                "icon_path": "${state.dicoTypeThingIconPath[r.typeId]}"
               }},`
           // log.l(feature)
           result += feature
@@ -156,7 +156,7 @@ export const useThingStore = defineStore("Thing", {
         log.l(`SUCCESS myAPi.get(id:${resp.data.id}`)
         if (resp.status == 200) {
           this.areWeReady = true
-          return { data: resp.data, err: null }
+          return { data: resp.data.thing, err: null }
         } else {
           this.areWeReady = true
           log.w("getThing got problem", resp)
@@ -200,7 +200,7 @@ export const useThingStore = defineStore("Thing", {
           `>> in searchThing.. afterAwaitMyAxiosGetTime: ${Math.round(afterAwaitMyAxiosGetTime - afterClearRecordsTime)} milliseconds `
         )
         log.l("myAxios.get(thing/search) : ")
-        this.records = resp.data
+        this.records = resp.data.things
         /* next loop takes 4560 milliseconds with 1000 rows (14 milliseconds with direct allocation
         resp.data.forEach((r: Thing) => {
           this.records.push(r)
@@ -233,8 +233,8 @@ export const useThingStore = defineStore("Thing", {
     },
     async create(id: string, t: Thing): Promise<netThing> {
       log.t(`> Entering.. createThing: ${id}`)
-      if (t.pos_x !== undefined) t.pos_x = +t.pos_x
-      if (t.pos_y !== undefined) t.pos_y = +t.pos_y
+      if (t.posX !== undefined) t.posX = +t.posX
+      if (t.posY !== undefined) t.posY = +t.posY
       this.clearError()
       this.areWeReady = false
       try {
@@ -260,8 +260,8 @@ export const useThingStore = defineStore("Thing", {
     },
     async update(id: string, t: Thing): Promise<netThing> {
       log.t(`> Entering.. updateThing: ${id}`)
-      if (t.pos_x !== undefined) t.pos_x = +t.pos_x
-      if (t.pos_y !== undefined) t.pos_y = +t.pos_y
+      if (t.posX !== undefined) t.posX = +t.posX
+      if (t.posY !== undefined) t.posY = +t.posY
       this.clearError()
       this.areWeReady = false
       try {
@@ -339,7 +339,12 @@ export const useThingStore = defineStore("Thing", {
         const resp = await myAxios.get("types")
         log.l(`SUCCESS myAPi.getTypes`)
         if (resp.status == 200) {
-          resp.data.forEach((r: TypeThingList) => {
+          if (isNullOrUndefined(resp.data.typeThings)) {
+            this.areWeReady = true
+            log.w("getTypes got problem", resp)
+            return { data: null, err: Error(`problem in getTypes status : ${resp.status}, ${resp.statusText}`) }
+          }
+          resp.data.typeThings.forEach((r: TypeThingList) => {
             this.arrListTypeThing.push(r)
           })
           this.areWeReady = true
@@ -368,7 +373,7 @@ export const useThingStore = defineStore("Thing", {
     },
     getIconPath(idType: number): string {
       this.arrListTypeThing.forEach((e) => {
-        if (e.id == idType) return e.icon_path
+        if (e.id == idType) return e.iconPath
       })
       return "/img/gomarker_star_blue.png"
     },
@@ -397,7 +402,7 @@ export const useThingStore = defineStore("Thing", {
         log.w(msg)
       }
       this.dicoTypeThing = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.name]))
-      this.dicoTypeThingIconPath = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.icon_path]))
+      this.dicoTypeThingIconPath = Object.fromEntries(this.arrListTypeThing.map((x) => [x.id, x.iconPath]))
       this.areWeReady = true
       this.isInitDone = true
     },

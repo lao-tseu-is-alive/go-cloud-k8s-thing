@@ -32,11 +32,11 @@
                   <v-window-item value="tab-info-base">
                     <v-row>
                       <v-col class="d-none d-sm-flex" cols="0" sm="2" md="2" lg="1" xl="1">
-                        <v-text-field v-model="editedItem.type_id" density="compact" label="id-type"></v-text-field>
+                        <v-text-field v-model="editedItem.typeId" density="compact" label="id-type"></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="10" md="4" lg="3" xl="2">
                         <v-select
-                          v-model="editedItem.type_id"
+                          v-model="editedItem.typeId"
                           item-title="name"
                           item-value="id"
                           :items="store.arrListTypeThing"
@@ -71,13 +71,13 @@
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-text-field
                           type="number"
-                          v-model="editedItem.external_id"
+                          v-model="editedItem.externalId"
                           density="compact"
                           label="identifiant externe"
                         />
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
-                        <v-text-field v-model="editedItem.external_ref" density="compact" label="référence externe" />
+                        <v-text-field v-model="editedItem.externalRef" density="compact" label="référence externe" />
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
                         <v-menu
@@ -91,7 +91,7 @@
                         >
                           <template #activator="{ props }">
                             <v-text-field
-                              v-model="editedItem.build_at"
+                              v-model="editedItem.buildAt"
                               prepend-icon="mdi-calendar"
                               density="compact"
                               label="Date construction"
@@ -101,7 +101,7 @@
                           </template>
                           <v-locale-provider locale="fr">
                             <v-date-picker
-                              v-model="editedItem.build_at"
+                              v-model="editedItem.buildAt"
                               cancel-text="ANNULER"
                               header="Choisissez une date SVP"
                               title="Date de construction"
@@ -122,10 +122,10 @@
                         <v-text-field v-model="editedItem.status" density="compact" label="Etat de l'objet" />
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
-                        <v-text-field v-model="editedItem.pos_x" density="compact" label="Coord X" />
+                        <v-text-field v-model="editedItem.posX" density="compact" label="Coord X" />
                       </v-col>
                       <v-col cols="12" sm="4" md="3" lg="3">
-                        <v-text-field v-model="editedItem.pos_y" density="compact" label="Coord Y" />
+                        <v-text-field v-model="editedItem.posY" density="compact" label="Coord Y" />
                       </v-col>
                     </v-row>
                   </v-window-item>
@@ -133,21 +133,21 @@
                     <v-row>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.contained_by"
+                          v-model="editedItem.containedBy"
                           density="compact"
                           label="Contenu dans"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.contained_by_old"
+                          v-model="editedItem.containedByOld"
                           density="compact"
                           label="Contenu dans(ancien)"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.managed_by"
+                          v-model="editedItem.managedBy"
                           density="compact"
                           label="Managé par"
                         ></v-text-field>
@@ -159,7 +159,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="5">
                         <v-text-field
-                          v-model="editedItem.validated_time"
+                          v-model="editedItem.validatedTime"
                           label="Date de validation"
                           density="compact"
                           :disabled="true"
@@ -167,7 +167,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="5">
                         <v-text-field
-                          v-model="editedItem.validated_by"
+                          v-model="editedItem.validatedBy"
                           label="Validé par"
                           density="compact"
                           :disabled="true"
@@ -178,7 +178,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.inactivated_time"
+                          v-model="editedItem.inactivatedTime"
                           label="Date d'inactivation"
                           density="compact"
                           :disabled="true"
@@ -186,7 +186,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.inactivated_by"
+                          v-model="editedItem.inactivatedBy"
                           label="Inactivé par"
                           density="compact"
                           :disabled="true"
@@ -194,7 +194,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.inactivated_reason"
+                          v-model="editedItem.inactivatedReason"
                           label="Raison de l'inactivation"
                           density="compact"
                           :disabled="true"
@@ -209,7 +209,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.deleted_at"
+                          v-model="editedItem.deletedAt"
                           label="Date d'effacement"
                           density="compact"
                           :disabled="true"
@@ -217,7 +217,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
-                          v-model="editedItem.deleted_by"
+                          v-model="editedItem.deletedBy"
                           label="Effacé par"
                           density="compact"
                           :disabled="true"
@@ -227,7 +227,7 @@
                     <v-row>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.created_at"
+                          v-model="editedItem.createdAt"
                           label="Date de Création"
                           density="compact"
                           :disabled="true"
@@ -235,7 +235,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.created_by"
+                          v-model="editedItem.createdBy"
                           label="Création par"
                           density="compact"
                           :disabled="true"
@@ -243,7 +243,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.last_modified_at"
+                          v-model="editedItem.lastModifiedAt"
                           label="Date de modification"
                           density="compact"
                           :disabled="true"
@@ -251,7 +251,7 @@
                       </v-col>
                       <v-col cols="12" sm="6" md="3">
                         <v-text-field
-                          v-model="editedItem.last_modified_by"
+                          v-model="editedItem.lastModifiedBy"
                           label="Modification par"
                           density="compact"
                           :disabled="true"
@@ -274,7 +274,7 @@
         <v-dialog v-model="dialogDelete" :persistent="true" transition="dialog-top-transition" width="560">
           <v-card>
             <v-card-title class="text-h5">Voulez-vous vraiment effacer ?</v-card-title>
-            <v-card-text> {{ deletedItem.external_id }} : {{ deletedItem.name }} </v-card-text>
+            <v-card-text> {{ deletedItem.externalId }} : {{ deletedItem.name }} </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn dark color="primary" variant="flat" @click="closeDelete">Annuler</v-btn>
@@ -301,7 +301,7 @@
             :headers="getHeaderVTable as any"
             :items="records"
             item-key="id"
-            :sort-by="[{ key: 'external_id', order: 'asc' }]"
+            :sort-by="[{ key: 'externalId', order: 'asc' }]"
             class="elevation-1"
           >
             <template #top>
@@ -330,8 +330,8 @@
             <template #item.validated="{ item }">
               <v-checkbox-btn v-model="item.validated" :disabled="true" class="d-none d-lg-block"></v-checkbox-btn>
             </template>
-            <template #item.created_at="{ item }">
-              <v-label> {{ getDateFromTimeStamp(item.created_at) }}</v-label>
+            <template #item.createdAt="{ item }">
+              <v-label> {{ getDateFromTimeStamp(item.createdAt) }}</v-label>
             </template>
             <template #item.actions="{ item }">
               <v-icon size="small" class="me-2" @click="editItem(item)"> mdi-pencil</v-icon>
@@ -358,6 +358,7 @@ import { getUserId } from "@/components/AuthService"
 import { Thing, ThingList } from "@/openapi-generator-cli_thing_typescript-axios"
 import { useThingStore } from "@/stores/ThingStore"
 import { storeToRefs } from "pinia"
+import { useAppStore } from "@/stores/appStore"
 
 const log = getLog("ThingListVue", 4, 2)
 const displaySize = reactive(useDisplay())
@@ -368,30 +369,31 @@ const maxLimit = 1000
 const dialogTab = ref(null)
 const store = useThingStore()
 const { records, searchParameters } = storeToRefs(store)
+const appStore = useAppStore()
 const defaultListItem: Ref<ThingList> = ref({
   id: crypto.randomUUID(),
-  type_id: 0,
+  typeId: 0,
   name: "",
   description: undefined,
-  external_id: undefined,
+  externalId: undefined,
   inactivated: false,
   validated: undefined,
   status: undefined,
-  created_by: 0,
-  created_at: undefined,
-  pos_x: 0,
-  pos_y: 0,
+  createdBy: 0,
+  createdAt: undefined,
+  posX: 0,
+  posY: 0,
 })
 const editedIndex = ref(-1)
 const defaultItem: Ref<Thing> = ref({
   id: crypto.randomUUID(),
-  type_id: 0,
+  typeId: 0,
   name: "",
   description: undefined,
   comment: undefined,
-  external_id: undefined,
-  external_ref: undefined,
-  build_at: undefined,
+  externalId: undefined,
+  externalRef: undefined,
+  buildAt: undefined,
   status: undefined,
   contained_by: undefined,
   contained_by_old: undefined,
@@ -403,16 +405,16 @@ const defaultItem: Ref<Thing> = ref({
   validated_time: undefined,
   validated_by: undefined,
   managed_by: undefined,
-  created_at: undefined,
-  created_by: 0,
-  last_modified_at: undefined,
-  last_modified_by: undefined,
+  createdAt: undefined,
+  createdBy: 0,
+  lastModifiedAt: undefined,
+  lastModifiedBy: undefined,
   deleted: false,
-  deleted_at: undefined,
-  deleted_by: undefined,
-  more_data: undefined,
-  pos_x: 0,
-  pos_y: 0,
+  deletedAt: undefined,
+  deletedBy: undefined,
+  moreData: undefined,
+  posX: 0,
+  posY: 0,
 })
 const editedItem: Ref<Thing> = ref(JSON.parse(JSON.stringify(defaultItem.value)))
 const deletedItem: Ref<ThingList> = ref(Object.assign({}, defaultListItem))
@@ -558,7 +560,7 @@ const getHeaderVTable = computed(() => {
       {
         title: "id (external)",
         sortable: true,
-        key: "external_id",
+        key: "externalId",
       },
       {
         title: "Nom",
@@ -569,7 +571,7 @@ const getHeaderVTable = computed(() => {
       { title: "Type", key: "type_id" },
       { title: "Inactif", key: "inactivated" },
       { title: "Valide", key: "validated" },
-      { title: "Created", key: "created_at" },
+      { title: "Created", key: "createdAt" },
       { title: "Actions", key: "actions", sortable: false },
     ]
   } else {
@@ -577,7 +579,7 @@ const getHeaderVTable = computed(() => {
       {
         title: "id (external)",
         sortable: true,
-        key: "external_id",
+        key: "externalId",
       },
       {
         title: "Nom",
@@ -586,7 +588,7 @@ const getHeaderVTable = computed(() => {
         key: "name",
       },
       { title: "Type", key: "type_id" },
-      { title: "Created", key: "created_at" },
+      { title: "Created", key: "createdAt" },
       { title: "Actions", key: "actions", sortable: false },
     ]
   }
@@ -601,9 +603,9 @@ const editItem = async (item: ThingList) => {
   if (res.data !== null) {
     log.l(`ok, filling editedItem with Thing id : ${res.data.id}`)
     editedItem.value = Object.assign({}, res.data)
-    if (editedItem.value.build_at !== undefined) {
-      if (editedItem.value.build_at.indexOf("T") > 0) {
-        editedItem.value.build_at = editedItem.value.build_at.split("T")[0]
+    if (editedItem.value.buildAt !== undefined) {
+      if (editedItem.value.buildAt.indexOf("T") > 0) {
+        editedItem.value.buildAt = editedItem.value.buildAt.split("T")[0]
       }
     }
     dialog.value = true
@@ -616,15 +618,15 @@ const editItem = async (item: ThingList) => {
 const editDateBuild = (cancel: boolean) => {
   log.t(`#> entering editDateBuild... cancel=${cancel}`)
   if (!cancel) {
-    if (editedItem.value.build_at !== undefined) {
-      if (editedItem.value.build_at.indexOf("T") > 0) {
-        editedItem.value.build_at = editedItem.value.build_at.split("T")[0]
+    if (editedItem.value.buildAt !== undefined) {
+      if (editedItem.value.buildAt.indexOf("T") > 0) {
+        editedItem.value.buildAt = editedItem.value.buildAt.split("T")[0]
       } else {
-        editedItem.value.build_at = new Date(editedItem.value.build_at).toISOString().split("T")[0]
+        editedItem.value.buildAt = new Date(editedItem.value.buildAt).toISOString().split("T")[0]
       }
     }
   }
-  log.t(`<# exit ... build_at=${editedItem.value.build_at}`)
+  log.t(`<# exit ... buildAt=${editedItem.value.buildAt}`)
   menuDateConstruction.value = false
 }
 
@@ -632,9 +634,9 @@ const newThing = () => {
   log.t("#> entering newThing...")
   editedItem.value = Object.assign({}, defaultItem.value)
   editedItem.value.id = crypto.randomUUID()
-  editedItem.value.created_by = getUserId()
+  editedItem.value.createdBy = getUserId(appStore.getAppName)
   const justNow = new Date()
-  editedItem.value.created_at = justNow.toISOString()
+  editedItem.value.createdAt = justNow.toISOString()
   dialog.value = true
 }
 
@@ -679,21 +681,21 @@ const closeDelete = () => {
 
 const save = async () => {
   log.t(" #> entering SAVE...")
-  if (editedItem.value.pos_x !== 0) editedItem.value.pos_x = +editedItem.value.pos_x
-  if (editedItem.value.pos_y !== 0) editedItem.value.pos_y = +editedItem.value.pos_y
-  if (editedItem.value.external_id !== undefined) {
-    editedItem.value.external_id = +editedItem.value.external_id
+  if (editedItem.value.posX !== 0) editedItem.value.posX = +editedItem.value.posX
+  if (editedItem.value.posY !== 0) editedItem.value.posY = +editedItem.value.posY
+  if (editedItem.value.externalId !== undefined) {
+    editedItem.value.externalId = +editedItem.value.externalId
   }
   if (editedIndex.value > -1) {
     //// HANDLING UPDATE OF EXISTING ITEM
     records.value[editedIndex.value] = Object.assign({}, editedItem.value)
-    log.l(`build_at : ${editedItem.value.build_at}`)
-    if (editedItem.value.build_at != undefined) {
-      const tmpDate = new Date(editedItem.value.build_at).toISOString()
+    log.l(`buildAt : ${editedItem.value.buildAt}`)
+    if (editedItem.value.buildAt != undefined) {
+      const tmpDate = new Date(editedItem.value.buildAt).toISOString()
       log.l(`tmpDate : ${tmpDate}`)
-      editedItem.value.build_at = tmpDate
+      editedItem.value.buildAt = tmpDate
     }
-    log.l(`build_at : ${editedItem.value.build_at}`)
+    log.l(`buildAt : ${editedItem.value.buildAt}`)
     const res = await store.update(editedItem.value.id, editedItem.value)
     if (res.data === null) {
       const msg = `Save update failed. Problem:  ${res.err?.message}`
@@ -716,20 +718,20 @@ const save = async () => {
       Object.assign(editedItem.value, res.data)
       const newItem = Object.assign({}, defaultListItem.value)
       newItem.id = editedItem.value.id
-      newItem.type_id = editedItem.value.type_id
+      newItem.typeId = editedItem.value.typeId
       newItem.name = editedItem.value.name
       newItem.description = editedItem.value.description
-      newItem.external_id = editedItem.value.external_id
+      newItem.externalId = editedItem.value.externalId
       newItem.inactivated = editedItem.value.inactivated
       newItem.validated = editedItem.value.validated
       newItem.status = editedItem.value.status
-      newItem.created_by = editedItem.value.created_by
-      newItem.created_at = editedItem.value.created_at
-      newItem.pos_x = editedItem.value.pos_x
-      newItem.pos_y = editedItem.value.pos_y
+      newItem.createdBy = editedItem.value.createdBy
+      newItem.createdAt = editedItem.value.createdAt
+      newItem.posX = editedItem.value.posX
+      newItem.posY = editedItem.value.posY
       records.value.push(newItem)
       //reset of editedItem is done in close()
-      const msg = `Nouvel enregistrement sauvé dans la Base  id: ${res.data?.external_id}`
+      const msg = `Nouvel enregistrement sauvé dans la Base  id: ${res.data?.externalId}`
       log.w(msg)
       emit("thing-ok", msg)
     }

@@ -72,7 +72,7 @@ export interface Thing {
      * @type {number}
      * @memberof Thing
      */
-    'type_id': number;
+    'typeId': number;
     /**
      *
      * @type {string}
@@ -96,19 +96,19 @@ export interface Thing {
      * @type {number}
      * @memberof Thing
      */
-    'external_id'?: number;
+    'externalId'?: number;
     /**
      *
      * @type {string}
      * @memberof Thing
      */
-    'external_ref'?: string;
+    'externalRef'?: string;
     /**
      *
      * @type {string}
      * @memberof Thing
      */
-    'build_at'?: string;
+    'buildAt'?: string;
     /**
      *
      * @type {ThingStatus}
@@ -120,13 +120,13 @@ export interface Thing {
      * @type {string}
      * @memberof Thing
      */
-    'contained_by'?: string;
+    'containedBy'?: string;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'contained_by_old'?: number;
+    'containedByOld'?: number;
     /**
      *
      * @type {boolean}
@@ -138,19 +138,19 @@ export interface Thing {
      * @type {string}
      * @memberof Thing
      */
-    'inactivated_time'?: string;
+    'inactivatedTime'?: string;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'inactivated_by'?: number;
+    'inactivatedBy'?: number;
     /**
      *
      * @type {string}
      * @memberof Thing
      */
-    'inactivated_reason'?: string;
+    'inactivatedReason'?: string;
     /**
      *
      * @type {boolean}
@@ -162,43 +162,43 @@ export interface Thing {
      * @type {string}
      * @memberof Thing
      */
-    'validated_time'?: string;
+    'validatedTime'?: string;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'validated_by'?: number;
+    'validatedBy'?: number;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'managed_by'?: number;
+    'managedBy'?: number;
     /**
      * date de création de cet enregistrement dans la base
      * @type {string}
      * @memberof Thing
      */
-    'created_at'?: string;
+    'createdAt'?: string;
     /**
      * identifiant de l\'utilisateur ayant créé cet enregistrement
      * @type {number}
      * @memberof Thing
      */
-    'created_by': number;
+    'createdBy': number;
     /**
      * date de la dernière modification de cet enregistrement
      * @type {string}
      * @memberof Thing
      */
-    'last_modified_at'?: string;
+    'lastModifiedAt'?: string;
     /**
      * utilisateur ayant effectué la dernière modication de cet enregistrement
      * @type {number}
      * @memberof Thing
      */
-    'last_modified_by'?: number;
+    'lastModifiedBy'?: number;
     /**
      * cet enregisrement a été marqué comme effacé
      * @type {boolean}
@@ -210,31 +210,31 @@ export interface Thing {
      * @type {string}
      * @memberof Thing
      */
-    'deleted_at'?: string;
+    'deletedAt'?: string;
     /**
      * utilisateur ayant demandé de marquer cet enregisrement comme effacé
      * @type {number}
      * @memberof Thing
      */
-    'deleted_by'?: number;
+    'deletedBy'?: number;
     /**
      * permet de stocker des attributs complémentaires au format json
      * @type {object}
      * @memberof Thing
      */
-    'more_data'?: object;
+    'moreData'?: object;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'pos_x': number;
+    'posX': number;
     /**
      *
      * @type {number}
      * @memberof Thing
      */
-    'pos_y': number;
+    'posY': number;
 }
 
 
@@ -255,7 +255,7 @@ export interface ThingList {
      * @type {number}
      * @memberof ThingList
      */
-    'type_id': number;
+    'typeId': number;
     /**
      *
      * @type {string}
@@ -273,7 +273,7 @@ export interface ThingList {
      * @type {number}
      * @memberof ThingList
      */
-    'external_id'?: number;
+    'externalId'?: number;
     /**
      *
      * @type {boolean}
@@ -297,25 +297,25 @@ export interface ThingList {
      * @type {number}
      * @memberof ThingList
      */
-    'created_by': number;
+    'createdBy': number;
     /**
      *
      * @type {string}
      * @memberof ThingList
      */
-    'created_at'?: string;
+    'createdAt'?: string;
     /**
      *
      * @type {number}
      * @memberof ThingList
      */
-    'pos_x': number;
+    'posX': number;
     /**
      *
      * @type {number}
      * @memberof ThingList
      */
-    'pos_y': number;
+    'posY': number;
 }
 
 
@@ -371,7 +371,7 @@ export interface TypeThing {
      * @type {number}
      * @memberof TypeThing
      */
-    'external_id'?: number;
+    'externalId'?: number;
     /**
      *
      * @type {string}
@@ -401,7 +401,7 @@ export interface TypeThing {
      * @type {number}
      * @memberof TypeThing
      */
-    'inactivated_by'?: number;
+    'inactivatedBy'?: number;
     /**
      *
      * @type {string}
@@ -413,31 +413,31 @@ export interface TypeThing {
      * @type {number}
      * @memberof TypeThing
      */
-    'managed_by'?: number;
+    'managedBy'?: number;
     /**
      *
      * @type {string}
      * @memberof TypeThing
      */
-    'created_at'?: string;
+    'createdAt'?: string;
     /**
      *
      * @type {number}
      * @memberof TypeThing
      */
-    'created_by': number;
+    'createdBy': number;
     /**
      *
      * @type {string}
      * @memberof TypeThing
      */
-    'last_modified_at'?: string;
+    'last_modifiedAt'?: string;
     /**
      *
      * @type {number}
      * @memberof TypeThing
      */
-    'last_modified_by'?: number;
+    'last_modifiedBy'?: number;
     /**
      *
      * @type {boolean}
@@ -449,19 +449,19 @@ export interface TypeThing {
      * @type {string}
      * @memberof TypeThing
      */
-    'deleted_at'?: string;
+    'deletedAt'?: string;
     /**
      *
      * @type {number}
      * @memberof TypeThing
      */
-    'deleted_by'?: number;
+    'deletedBy'?: number;
     /**
      *
      * @type {any}
      * @memberof TypeThing
      */
-    'more_data_schema'?: any;
+    'moreData_schema'?: any;
 }
 /**
  *
@@ -486,31 +486,31 @@ export interface TypeThingList {
      * @type {number}
      * @memberof TypeThingList
      */
-    'external_id'?: number;
+    'externalId'?: number;
     /**
      *
      * @type {string}
      * @memberof TypeThingList
      */
-    'created_at': string;
+    'createdAt': string;
     /**
      *
      * @type {string}
      * @memberof TypeThingList
      */
-    'table_name'?: string;
+    'tableName'?: string;
     /**
      *
      * @type {string}
      * @memberof TypeThingList
      */
-    'icon_path': string;
+    'iconPath': string;
     /**
      *
      * @type {string}
      * @memberof TypeThingList
      */
-    'geometry_type'?: string;
+    'geometryType'?: string;
     /**
      *
      * @type {boolean}
@@ -600,7 +600,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (createdBy !== undefined) {
-                localVarQueryParameter['created_by'] = createdBy;
+                localVarQueryParameter['createdBy'] = createdBy;
             }
 
             if (inactivated !== undefined) {
@@ -734,7 +734,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (createdBy !== undefined) {
-                localVarQueryParameter['created_by'] = createdBy;
+                localVarQueryParameter['createdBy'] = createdBy;
             }
 
             if (inactivated !== undefined) {
@@ -851,7 +851,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (createdBy !== undefined) {
-                localVarQueryParameter['created_by'] = createdBy;
+                localVarQueryParameter['createdBy'] = createdBy;
             }
 
             if (inactivated !== undefined) {
@@ -912,7 +912,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (createdBy !== undefined) {
-                localVarQueryParameter['created_by'] = createdBy;
+                localVarQueryParameter['createdBy'] = createdBy;
             }
 
             if (inactivated !== undefined) {
@@ -1080,11 +1080,11 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (createdBy !== undefined) {
-                localVarQueryParameter['created_by'] = createdBy;
+                localVarQueryParameter['createdBy'] = createdBy;
             }
 
             if (externalId !== undefined) {
-                localVarQueryParameter['external_id'] = externalId;
+                localVarQueryParameter['externalId'] = externalId;
             }
 
             if (inactivated !== undefined) {
@@ -1186,7 +1186,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (externalId !== undefined) {
-                localVarFormParams.set('external_id', externalId as any);
+                localVarFormParams.set('externalId', externalId as any);
             }
 
             if (tableName !== undefined) {
@@ -1206,7 +1206,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (inactivatedBy !== undefined) {
-                localVarFormParams.set('inactivated_by', inactivatedBy as any);
+                localVarFormParams.set('inactivatedBy', inactivatedBy as any);
             }
 
             if (inactivatedReason !== undefined) {
@@ -1214,23 +1214,23 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (managedBy !== undefined) {
-                localVarFormParams.set('managed_by', managedBy as any);
+                localVarFormParams.set('managedBy', managedBy as any);
             }
 
             if (createdAt !== undefined) {
-                localVarFormParams.set('created_at', createdAt as any);
+                localVarFormParams.set('createdAt', createdAt as any);
             }
 
             if (createdBy !== undefined) {
-                localVarFormParams.set('created_by', createdBy as any);
+                localVarFormParams.set('createdBy', createdBy as any);
             }
 
             if (lastModifiedAt !== undefined) {
-                localVarFormParams.set('last_modified_at', lastModifiedAt as any);
+                localVarFormParams.set('last_modifiedAt', lastModifiedAt as any);
             }
 
             if (lastModifiedBy !== undefined) {
-                localVarFormParams.set('last_modified_by', lastModifiedBy as any);
+                localVarFormParams.set('last_modifiedBy', lastModifiedBy as any);
             }
 
             if (deleted !== undefined) {
@@ -1238,15 +1238,15 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (deletedAt !== undefined) {
-                localVarFormParams.set('deleted_at', deletedAt as any);
+                localVarFormParams.set('deletedAt', deletedAt as any);
             }
 
             if (deletedBy !== undefined) {
-                localVarFormParams.set('deleted_by', deletedBy as any);
+                localVarFormParams.set('deletedBy', deletedBy as any);
             }
 
             if (moreDataSchema !== undefined) {
-                localVarFormParams.set('more_data_schema', moreDataSchema as any);
+                localVarFormParams.set('moreData_schema', moreDataSchema as any);
             }
 
 
@@ -1341,7 +1341,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (typeId !== undefined) {
-                localVarFormParams.set('type_id', typeId as any);
+                localVarFormParams.set('typeId', typeId as any);
             }
 
             if (name !== undefined) {
@@ -1357,15 +1357,15 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (externalId !== undefined) {
-                localVarFormParams.set('external_id', externalId as any);
+                localVarFormParams.set('externalId', externalId as any);
             }
 
             if (externalRef !== undefined) {
-                localVarFormParams.set('external_ref', externalRef as any);
+                localVarFormParams.set('externalRef', externalRef as any);
             }
 
             if (buildAt !== undefined) {
-                localVarFormParams.set('build_at', buildAt as any);
+                localVarFormParams.set('buildAt', buildAt as any);
             }
 
             if (status !== undefined) {
@@ -1373,11 +1373,11 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (containedBy !== undefined) {
-                localVarFormParams.set('contained_by', containedBy as any);
+                localVarFormParams.set('containedBy', containedBy as any);
             }
 
             if (containedByOld !== undefined) {
-                localVarFormParams.set('contained_by_old', containedByOld as any);
+                localVarFormParams.set('containedBy_old', containedByOld as any);
             }
 
             if (inactivated !== undefined) {
@@ -1389,7 +1389,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (inactivatedBy !== undefined) {
-                localVarFormParams.set('inactivated_by', inactivatedBy as any);
+                localVarFormParams.set('inactivatedBy', inactivatedBy as any);
             }
 
             if (inactivatedReason !== undefined) {
@@ -1405,27 +1405,27 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (validatedBy !== undefined) {
-                localVarFormParams.set('validated_by', validatedBy as any);
+                localVarFormParams.set('validatedBy', validatedBy as any);
             }
 
             if (managedBy !== undefined) {
-                localVarFormParams.set('managed_by', managedBy as any);
+                localVarFormParams.set('managedBy', managedBy as any);
             }
 
             if (createdAt !== undefined) {
-                localVarFormParams.set('created_at', createdAt as any);
+                localVarFormParams.set('createdAt', createdAt as any);
             }
 
             if (createdBy !== undefined) {
-                localVarFormParams.set('created_by', createdBy as any);
+                localVarFormParams.set('createdBy', createdBy as any);
             }
 
             if (lastModifiedAt !== undefined) {
-                localVarFormParams.set('last_modified_at', lastModifiedAt as any);
+                localVarFormParams.set('last_modifiedAt', lastModifiedAt as any);
             }
 
             if (lastModifiedBy !== undefined) {
-                localVarFormParams.set('last_modified_by', lastModifiedBy as any);
+                localVarFormParams.set('last_modifiedBy', lastModifiedBy as any);
             }
 
             if (deleted !== undefined) {
@@ -1433,23 +1433,23 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             }
 
             if (deletedAt !== undefined) {
-                localVarFormParams.set('deleted_at', deletedAt as any);
+                localVarFormParams.set('deletedAt', deletedAt as any);
             }
 
             if (deletedBy !== undefined) {
-                localVarFormParams.set('deleted_by', deletedBy as any);
+                localVarFormParams.set('deletedBy', deletedBy as any);
             }
 
             if (moreData !== undefined) {
-                localVarFormParams.set('more_data', moreData as any);
+                localVarFormParams.set('moreData', moreData as any);
             }
 
             if (posX !== undefined) {
-                localVarFormParams.set('pos_x', posX as any);
+                localVarFormParams.set('posX', posX as any);
             }
 
             if (posY !== undefined) {
-                localVarFormParams.set('pos_y', posY as any);
+                localVarFormParams.set('posY', posY as any);
             }
 
 

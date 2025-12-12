@@ -3,7 +3,7 @@ import { getLog, BACKEND_URL, defaultAxiosTimeout, API_URL } from "@/config"
 import { isNullOrUndefined } from "@/tools/utils"
 
 // Logger setup
-const log = getLog("AuthService", 4, 2)
+const log = getLog("AuthService", 2, 2)
 
 // Centralized session storage keys
 const SESSION_KEYS = {

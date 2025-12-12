@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"connectrpc.com/vanguard"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -20,6 +21,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/metadata"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"github.com/prometheus/client_golang/prometheus"
@@ -331,11 +333,51 @@ func main() {
 	// Create business service (transport-agnostic)
 	thingBusinessService := thing.NewBusinessService(thingStore, db, l, 50)
 
-	// Create HTTP handler (Echo-specific adapter)
-	thingHTTPHandler := thing.NewHTTPHandler(thingBusinessService, server)
+	// ---------------------------------------------------------
+	// Connect + Vanguard: REST/gRPC/Connect transcoding
+	// ---------------------------------------------------------
+	// Create Connect servers
+	thingConnectServer := thing.NewThingConnectServer(thingBusinessService, l, myJwt)
+	typeThingConnectServer := thing.NewTypeThingConnectServer(thingBusinessService, l, myJwt)
 
-	// Register HTTP handlers with OpenAPI routes
-	thing.RegisterHandlers(r, thingHTTPHandler)
+	// Create service handlers
+	_, thingHandler := thingv1connect.NewThingServiceHandler(thingConnectServer)
+	_, typeThingHandler := thingv1connect.NewTypeThingServiceHandler(typeThingConnectServer)
+
+	// Create Vanguard services for HTTP transcoding
+	thingService := vanguard.NewService(
+		thingv1connect.ThingServiceName,
+		thingHandler,
+	)
+	typeThingService := vanguard.NewService(
+		thingv1connect.TypeThingServiceName,
+		typeThingHandler,
+	)
+
+	// Create transcoder for REST + gRPC + Connect
+	transcoder, err := vanguard.NewTranscoder([]*vanguard.Service{
+		thingService,
+		typeThingService,
+	})
+	if err != nil {
+		l.Fatal("💥💥 ERROR: 'failed to create vanguard transcoder: %v'\n", err)
+	}
+
+	// Mount transcoder into Echo with /goapi/v1 prefix
+	// The transcoder handles REST endpoints defined in proto:
+	// - GET /thing, POST /thing, etc. (defined in proto HTTP annotations)
+	// - Connect endpoints: /thing.v1.ThingService/*
+	//
+	// We strip the /goapi/v1 prefix before passing to transcoder
+	transcoderWithPrefix := http.StripPrefix(defaultSecuredApi, transcoder)
+
+	e.Any(defaultSecuredApi+"/thing*", echo.WrapHandler(transcoderWithPrefix))
+	e.Any(defaultSecuredApi+"/types*", echo.WrapHandler(transcoderWithPrefix))
+
+	// Connect RPC endpoints (no prefix stripping needed)
+	e.Any("/thing.v1.*", echo.WrapHandler(transcoder))
+
+	l.Info("🚀 Connect+Vanguard handlers mounted at %s for REST/gRPC transcoding", defaultSecuredApi)
 
 	err = server.StartServer()
 	if err != nil {

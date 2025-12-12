@@ -69,7 +69,7 @@ import { isNullOrUndefined } from "@/tools/utils"
 import { BACKEND_URL, getLog } from "@/config"
 import {getRemoteJwtToken, getPasswordHashSHA256} from "@/components/AuthService";
 
-const log = getLog("Login-Vue", 4, 4)
+const log = getLog("Login-Vue", 2, 2)
 
 
 export default {
