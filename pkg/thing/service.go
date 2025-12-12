@@ -71,7 +71,9 @@ func (s Service) GeoJson(ctx echo.Context, params GeoJsonParams) error {
 	if params.Offset != nil {
 		offset = int(*params.Offset)
 	}
-	jsonResult, err := s.Store.GeoJson(offset, limit, params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	jsonResult, err := s.Store.GeoJson(reqCtx, offset, limit, params)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
@@ -101,7 +103,9 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	if params.Offset != nil {
 		offset = int(*params.Offset)
 	}
-	list, err := s.Store.List(offset, limit, params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	list, err := s.Store.List(reqCtx, offset, limit, params)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.List :%v", err))
@@ -147,12 +151,14 @@ func (s Service) Create(ctx echo.Context) error {
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	if s.Store.Exist(newThing.Id) {
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	if s.Store.Exist(reqCtx, newThing.Id) {
 		msg := fmt.Sprintf("This id (%v) already exist !", newThing.Id)
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	thingCreated, err := s.Store.Create(*newThing)
+	thingCreated, err := s.Store.Create(reqCtx, *newThing)
 	if err != nil {
 		msg := fmt.Sprintf("Create had an error saving thing:%#v, err:%#v", *newThing, err)
 		s.Log.Info(msg)
@@ -171,7 +177,9 @@ func (s Service) Count(ctx echo.Context, params CountParams) error {
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
 	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
-	numThings, err := s.Store.Count(params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	numThings, err := s.Store.Count(reqCtx, params)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
 	}
@@ -188,13 +196,15 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
 	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
-	if s.Store.Exist(thingId) == false {
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	if s.Store.Exist(reqCtx, thingId) == false {
 		msg := fmt.Sprintf("Delete(%v) cannot delete this id, it does not exist !", thingId)
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
 	// IF USER IS NOT OWNER OF RECORD RETURN 401 Unauthorized
-	if !s.Store.IsUserOwner(thingId, currentUserId) {
+	if !s.Store.IsUserOwner(reqCtx, thingId, currentUserId) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
 	/* TODO implement ACL & RBAC handling
@@ -202,7 +212,7 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-	err := s.Store.Delete(thingId, currentUserId)
+	err := s.Store.Delete(reqCtx, thingId, currentUserId)
 	if err != nil {
 		msg := fmt.Sprintf("Delete(%v) got an error: %#v ", thingId, err)
 		s.Log.Error(msg)
@@ -221,7 +231,9 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
 	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
-	if s.Store.Exist(thingId) == false {
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	if s.Store.Exist(reqCtx, thingId) == false {
 		msg := fmt.Sprintf("Get(%v) cannot get this id, it does not exist !", thingId)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
@@ -231,7 +243,7 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
 	}
 	*/
-	thing, err := s.Store.Get(thingId)
+	thing, err := s.Store.Get(reqCtx, thingId)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving thing :%v", err))
@@ -253,12 +265,14 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
 	s.Log.Info("in %s(%d) : currentUserId: %d", handlerName, thingId, currentUserId)
-	if s.Store.Exist(thingId) == false {
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	if s.Store.Exist(reqCtx, thingId) == false {
 		msg := fmt.Sprintf("Update(%v) cannot update this id, it does not exist !", thingId)
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
-	if !s.Store.IsUserOwner(thingId, currentUserId) {
+	if !s.Store.IsUserOwner(reqCtx, thingId, currentUserId) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user is not owner of this thing")
 	}
 	/* TODO implement ACL & RBAC handling
@@ -287,7 +301,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	updateThing.LastModifiedBy = &currentUserId
 	//TODO handle update of validated field correctly by adding validated time & user
 	// handle update of managed_by field correctly by checking if user is a valid active one
-	thingUpdated, err := s.Store.Update(thingId, *updateThing)
+	thingUpdated, err := s.Store.Update(reqCtx, thingId, *updateThing)
 	if err != nil {
 		msg := fmt.Sprintf("Update had an error saving thing:%#v, err:%#v", *updateThing, err)
 		s.Log.Info(msg)
@@ -314,7 +328,9 @@ func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params Lis
 	if params.Offset != nil {
 		offset = int(*params.Offset)
 	}
-	list, err := s.Store.ListByExternalId(offset, limit, int(externalId))
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	list, err := s.Store.ListByExternalId(reqCtx, offset, limit, int(externalId))
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListByExternalId :%v", err))
@@ -344,7 +360,9 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	if params.Offset != nil {
 		offset = int(*params.Offset)
 	}
-	list, err := s.Store.Search(offset, limit, params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	list, err := s.Store.Search(reqCtx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			list = make([]*ThingList, 0)
@@ -372,7 +390,9 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 	if params.Offset != nil {
 		offset = int(*params.Offset)
 	}
-	list, err := s.Store.ListTypeThing(offset, limit, params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	list, err := s.Store.ListTypeThing(reqCtx, offset, limit, params)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return ctx.JSON(http.StatusInternalServerError, fmt.Sprintf("there was a problem when calling store.ListTypeThing :%v", err))
@@ -433,8 +453,10 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
 	//s.Log.Info("# Create() before Store.TypeThingCreate newThing : %#v\n", newThing)
-	typeThingCreated, err := s.Store.CreateTypeThing(*newTypeThing)
+	typeThingCreated, err := s.Store.CreateTypeThing(reqCtx, *newTypeThing)
 	if err != nil {
 		msg := fmt.Sprintf("TypeThingCreate had an error saving thing:%#v, err:%#v", *newTypeThing, err)
 		s.Log.Info(msg)
@@ -451,7 +473,9 @@ func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) e
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
 	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
-	numThings, err := s.Store.CountTypeThing(params)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	numThings, err := s.Store.CountTypeThing(reqCtx, params)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem counting things :%v", err))
 	}
@@ -476,7 +500,9 @@ func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	} else {
-		err := s.Store.DeleteTypeThing(typeThingId, currentUserId)
+		// Use request context for cancellation and tracing support
+		reqCtx := ctx.Request().Context()
+		err := s.Store.DeleteTypeThing(reqCtx, typeThingId, currentUserId)
 		if err != nil {
 			msg := fmt.Sprintf("TypeThingDelete(%v) got an error: %#v ", typeThingId, err)
 			s.Log.Error(msg)
@@ -503,8 +529,9 @@ func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
-
-	typeThing, err := s.Store.GetTypeThing(typeThingId)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	typeThing, err := s.Store.GetTypeThing(reqCtx, typeThingId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving TypeThing :%v", err))
 	}
@@ -545,7 +572,9 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	uTypeThing.LastModifiedBy = &currentUserId
-	thingUpdated, err := s.Store.UpdateTypeThing(typeThingId, *uTypeThing)
+	// Use request context for cancellation and tracing support
+	reqCtx := ctx.Request().Context()
+	thingUpdated, err := s.Store.UpdateTypeThing(reqCtx, typeThingId, *uTypeThing)
 	if err != nil {
 		msg := fmt.Sprintf("TypeThingUpdate had an error saving typeThing:%#v, err:%#v", *uTypeThing, err)
 		s.Log.Info(msg)

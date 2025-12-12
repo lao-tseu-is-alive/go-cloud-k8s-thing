@@ -122,7 +122,7 @@ func (s *TypeThingConnectServer) List(
 		offset = int(msg.Offset)
 	}
 
-	list, err := s.BusinessService.ListTypeThings(offset, limit, params)
+	list, err := s.BusinessService.ListTypeThings(ctx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Return empty list instead of error
@@ -159,7 +159,7 @@ func (s *TypeThingConnectServer) Create(
 
 	domainTypeThing := ProtoTypeThingToDomain(protoTypeThing)
 
-	createdTypeThing, err := s.BusinessService.CreateTypeThing(userId, isAdmin, *domainTypeThing)
+	createdTypeThing, err := s.BusinessService.CreateTypeThing(ctx, userId, isAdmin, *domainTypeThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -182,7 +182,7 @@ func (s *TypeThingConnectServer) Get(
 		return nil, err
 	}
 
-	typeThing, err := s.BusinessService.GetTypeThing(isAdmin, req.Msg.Id)
+	typeThing, err := s.BusinessService.GetTypeThing(ctx, isAdmin, req.Msg.Id)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -213,7 +213,7 @@ func (s *TypeThingConnectServer) Update(
 
 	domainTypeThing := ProtoTypeThingToDomain(protoTypeThing)
 
-	updatedTypeThing, err := s.BusinessService.UpdateTypeThing(userId, isAdmin, req.Msg.Id, *domainTypeThing)
+	updatedTypeThing, err := s.BusinessService.UpdateTypeThing(ctx, userId, isAdmin, req.Msg.Id, *domainTypeThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -237,7 +237,7 @@ func (s *TypeThingConnectServer) Delete(
 	}
 	s.Log.Info("TypeThing.Delete: userId=%d, isAdmin=%v", userId, isAdmin)
 
-	err = s.BusinessService.DeleteTypeThing(userId, isAdmin, req.Msg.Id)
+	err = s.BusinessService.DeleteTypeThing(ctx, userId, isAdmin, req.Msg.Id)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -270,7 +270,7 @@ func (s *TypeThingConnectServer) Count(
 		params.Inactivated = &msg.Inactivated
 	}
 
-	count, err := s.BusinessService.CountTypeThings(params)
+	count, err := s.BusinessService.CountTypeThings(ctx, params)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}

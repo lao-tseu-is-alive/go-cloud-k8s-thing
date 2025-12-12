@@ -132,7 +132,7 @@ func (s *ThingConnectServer) List(
 	}
 
 	// Call business logic
-	list, err := s.BusinessService.List(offset, limit, params)
+	list, err := s.BusinessService.List(ctx, offset, limit, params)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -169,7 +169,7 @@ func (s *ThingConnectServer) Create(
 	}
 
 	// Call business logic
-	createdThing, err := s.BusinessService.Create(userId, *domainThing)
+	createdThing, err := s.BusinessService.Create(ctx, userId, *domainThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -201,7 +201,7 @@ func (s *ThingConnectServer) Get(
 	}
 
 	// Call business logic
-	thing, err := s.BusinessService.Get(thingId)
+	thing, err := s.BusinessService.Get(ctx, thingId)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -243,7 +243,7 @@ func (s *ThingConnectServer) Update(
 	}
 
 	// Call business logic
-	updatedThing, err := s.BusinessService.Update(userId, thingId, *domainThing)
+	updatedThing, err := s.BusinessService.Update(ctx, userId, thingId, *domainThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -274,7 +274,7 @@ func (s *ThingConnectServer) Delete(
 	}
 
 	// Call business logic
-	err = s.BusinessService.Delete(userId, thingId)
+	err = s.BusinessService.Delete(ctx, userId, thingId)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -322,7 +322,7 @@ func (s *ThingConnectServer) Search(
 		offset = int(msg.Offset)
 	}
 
-	list, err := s.BusinessService.Search(offset, limit, params)
+	list, err := s.BusinessService.Search(ctx, offset, limit, params)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -364,7 +364,7 @@ func (s *ThingConnectServer) Count(
 		params.Validated = &msg.Validated
 	}
 
-	count, err := s.BusinessService.Count(params)
+	count, err := s.BusinessService.Count(ctx, params)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -412,7 +412,7 @@ func (s *ThingConnectServer) GeoJson(
 		offset = int(msg.Offset)
 	}
 
-	result, err := s.BusinessService.GeoJson(offset, limit, params)
+	result, err := s.BusinessService.GeoJson(ctx, offset, limit, params)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -446,7 +446,7 @@ func (s *ThingConnectServer) ListByExternalId(
 		offset = int(msg.Offset)
 	}
 
-	list, err := s.BusinessService.ListByExternalId(offset, limit, int(msg.ExternalId))
+	list, err := s.BusinessService.ListByExternalId(ctx, offset, limit, int(msg.ExternalId))
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}

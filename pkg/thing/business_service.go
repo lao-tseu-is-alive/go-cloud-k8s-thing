@@ -1,6 +1,7 @@
 package thing
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
-// Business Service contains the transport-agnostic business logic for Thing operations
+// BusinessService Business Service contains the transport-agnostic business logic for Thing operations
 type BusinessService struct {
 	Log              golog.MyLogger
 	DbConn           database.DB
@@ -41,8 +42,8 @@ func validateName(name string) error {
 }
 
 // GeoJson returns a geoJson representation of things based on the given parameters
-func (s *BusinessService) GeoJson(offset, limit int, params GeoJsonParams) (string, error) {
-	jsonResult, err := s.Store.GeoJson(offset, limit, params)
+func (s *BusinessService) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
+	jsonResult, err := s.Store.GeoJson(ctx, offset, limit, params)
 	if err != nil {
 		return "", fmt.Errorf("error retrieving geoJson: %w", err)
 	}
@@ -53,8 +54,8 @@ func (s *BusinessService) GeoJson(offset, limit int, params GeoJsonParams) (stri
 }
 
 // List returns the list of things based on the given parameters
-func (s *BusinessService) List(offset, limit int, params ListParams) ([]*ThingList, error) {
-	list, err := s.Store.List(offset, limit, params)
+func (s *BusinessService) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
+	list, err := s.Store.List(ctx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
@@ -69,14 +70,14 @@ func (s *BusinessService) List(offset, limit int, params ListParams) ([]*ThingLi
 }
 
 // Create creates a new thing with the given data
-func (s *BusinessService) Create(currentUserId int32, newThing Thing) (*Thing, error) {
+func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newThing Thing) (*Thing, error) {
 	// Validate name
 	if err := validateName(newThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
 
 	// Check if thing already exists
-	if s.Store.Exist(newThing.Id) {
+	if s.Store.Exist(ctx, newThing.Id) {
 		return nil, fmt.Errorf("%w: id %v", ErrAlreadyExists, newThing.Id)
 	}
 
@@ -84,7 +85,7 @@ func (s *BusinessService) Create(currentUserId int32, newThing Thing) (*Thing, e
 	newThing.CreatedBy = currentUserId
 
 	// Create in storage
-	thingCreated, err := s.Store.Create(newThing)
+	thingCreated, err := s.Store.Create(ctx, newThing)
 	if err != nil {
 		return nil, fmt.Errorf("error creating thing: %w", err)
 	}
@@ -94,8 +95,8 @@ func (s *BusinessService) Create(currentUserId int32, newThing Thing) (*Thing, e
 }
 
 // Count returns the number of things based on the given parameters
-func (s *BusinessService) Count(params CountParams) (int32, error) {
-	numThings, err := s.Store.Count(params)
+func (s *BusinessService) Count(ctx context.Context, params CountParams) (int32, error) {
+	numThings, err := s.Store.Count(ctx, params)
 	if err != nil {
 		return 0, fmt.Errorf("error counting things: %w", err)
 	}
@@ -103,19 +104,19 @@ func (s *BusinessService) Count(params CountParams) (int32, error) {
 }
 
 // Delete removes a thing with the given ID
-func (s *BusinessService) Delete(currentUserId int32, thingId uuid.UUID) error {
+func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thingId uuid.UUID) error {
 	// Check if thing exists
-	if !s.Store.Exist(thingId) {
+	if !s.Store.Exist(ctx, thingId) {
 		return fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
 	// Check if user is owner
-	if !s.Store.IsUserOwner(thingId, currentUserId) {
+	if !s.Store.IsUserOwner(ctx, thingId, currentUserId) {
 		return fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
 	}
 
 	// Delete from storage
-	err := s.Store.Delete(thingId, currentUserId)
+	err := s.Store.Delete(ctx, thingId, currentUserId)
 	if err != nil {
 		return fmt.Errorf("error deleting thing: %w", err)
 	}
@@ -125,14 +126,14 @@ func (s *BusinessService) Delete(currentUserId int32, thingId uuid.UUID) error {
 }
 
 // Get retrieves a thing by its ID
-func (s *BusinessService) Get(thingId uuid.UUID) (*Thing, error) {
+func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*Thing, error) {
 	// Check if thing exists
-	if !s.Store.Exist(thingId) {
+	if !s.Store.Exist(ctx, thingId) {
 		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
 	// Get from storage
-	thing, err := s.Store.Get(thingId)
+	thing, err := s.Store.Get(ctx, thingId)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving thing: %w", err)
 	}
@@ -141,14 +142,14 @@ func (s *BusinessService) Get(thingId uuid.UUID) (*Thing, error) {
 }
 
 // Update updates a thing with the given ID
-func (s *BusinessService) Update(currentUserId int32, thingId uuid.UUID, updateThing Thing) (*Thing, error) {
+func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thingId uuid.UUID, updateThing Thing) (*Thing, error) {
 	// Check if thing exists
-	if !s.Store.Exist(thingId) {
+	if !s.Store.Exist(ctx, thingId) {
 		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
 	// Check if user is owner
-	if !s.Store.IsUserOwner(thingId, currentUserId) {
+	if !s.Store.IsUserOwner(ctx, thingId, currentUserId) {
 		return nil, fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
 	}
 
@@ -161,7 +162,7 @@ func (s *BusinessService) Update(currentUserId int32, thingId uuid.UUID, updateT
 	updateThing.LastModifiedBy = &currentUserId
 
 	// Update in storage
-	thingUpdated, err := s.Store.Update(thingId, updateThing)
+	thingUpdated, err := s.Store.Update(ctx, thingId, updateThing)
 	if err != nil {
 		return nil, fmt.Errorf("error updating thing: %w", err)
 	}
@@ -171,8 +172,8 @@ func (s *BusinessService) Update(currentUserId int32, thingId uuid.UUID, updateT
 }
 
 // ListByExternalId returns things filtered by external ID
-func (s *BusinessService) ListByExternalId(offset, limit, externalId int) ([]*ThingList, error) {
-	list, err := s.Store.ListByExternalId(offset, limit, externalId)
+func (s *BusinessService) ListByExternalId(ctx context.Context, offset, limit, externalId int) ([]*ThingList, error) {
+	list, err := s.Store.ListByExternalId(ctx, offset, limit, externalId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
@@ -187,8 +188,8 @@ func (s *BusinessService) ListByExternalId(offset, limit, externalId int) ([]*Th
 }
 
 // Search returns things based on search criteria
-func (s *BusinessService) Search(offset, limit int, params SearchParams) ([]*ThingList, error) {
-	list, err := s.Store.Search(offset, limit, params)
+func (s *BusinessService) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
+	list, err := s.Store.Search(ctx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
@@ -203,8 +204,8 @@ func (s *BusinessService) Search(offset, limit int, params SearchParams) ([]*Thi
 }
 
 // ListTypeThings returns a list of TypeThing based on parameters
-func (s *BusinessService) ListTypeThings(offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
-	list, err := s.Store.ListTypeThing(offset, limit, params)
+func (s *BusinessService) ListTypeThings(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
+	list, err := s.Store.ListTypeThing(ctx, offset, limit, params)
 	if err != nil {
 		return nil, fmt.Errorf("error listing type things: %w", err)
 	}
@@ -215,7 +216,7 @@ func (s *BusinessService) ListTypeThings(offset, limit int, params TypeThingList
 }
 
 // CreateTypeThing creates a new TypeThing
-func (s *BusinessService) CreateTypeThing(currentUserId int32, isAdmin bool, newTypeThing TypeThing) (*TypeThing, error) {
+func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, newTypeThing TypeThing) (*TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -230,7 +231,7 @@ func (s *BusinessService) CreateTypeThing(currentUserId int32, isAdmin bool, new
 	newTypeThing.CreatedBy = currentUserId
 
 	// Create in storage
-	typeThingCreated, err := s.Store.CreateTypeThing(newTypeThing)
+	typeThingCreated, err := s.Store.CreateTypeThing(ctx, newTypeThing)
 	if err != nil {
 		return nil, fmt.Errorf("error creating type thing: %w", err)
 	}
@@ -240,8 +241,8 @@ func (s *BusinessService) CreateTypeThing(currentUserId int32, isAdmin bool, new
 }
 
 // CountTypeThings returns the count of TypeThings based on parameters
-func (s *BusinessService) CountTypeThings(params TypeThingCountParams) (int32, error) {
-	numThings, err := s.Store.CountTypeThing(params)
+func (s *BusinessService) CountTypeThings(ctx context.Context, params TypeThingCountParams) (int32, error) {
+	numThings, err := s.Store.CountTypeThing(ctx, params)
 	if err != nil {
 		return 0, fmt.Errorf("error counting type things: %w", err)
 	}
@@ -249,7 +250,7 @@ func (s *BusinessService) CountTypeThings(params TypeThingCountParams) (int32, e
 }
 
 // DeleteTypeThing deletes a TypeThing by ID
-func (s *BusinessService) DeleteTypeThing(currentUserId int32, isAdmin bool, typeThingId int32) error {
+func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32) error {
 	// Check admin privileges
 	if !isAdmin {
 		return ErrAdminRequired
@@ -262,7 +263,7 @@ func (s *BusinessService) DeleteTypeThing(currentUserId int32, isAdmin bool, typ
 	}
 
 	// Delete from storage
-	err = s.Store.DeleteTypeThing(typeThingId, currentUserId)
+	err = s.Store.DeleteTypeThing(ctx, typeThingId, currentUserId)
 	if err != nil {
 		return fmt.Errorf("error deleting type thing: %w", err)
 	}
@@ -272,7 +273,7 @@ func (s *BusinessService) DeleteTypeThing(currentUserId int32, isAdmin bool, typ
 }
 
 // GetTypeThing retrieves a TypeThing by ID
-func (s *BusinessService) GetTypeThing(isAdmin bool, typeThingId int32) (*TypeThing, error) {
+func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeThingId int32) (*TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -285,7 +286,7 @@ func (s *BusinessService) GetTypeThing(isAdmin bool, typeThingId int32) (*TypeTh
 	}
 
 	// Get from storage
-	typeThing, err := s.Store.GetTypeThing(typeThingId)
+	typeThing, err := s.Store.GetTypeThing(ctx, typeThingId)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving type thing: %w", err)
 	}
@@ -294,7 +295,7 @@ func (s *BusinessService) GetTypeThing(isAdmin bool, typeThingId int32) (*TypeTh
 }
 
 // UpdateTypeThing updates a TypeThing
-func (s *BusinessService) UpdateTypeThing(currentUserId int32, isAdmin bool, typeThingId int32, updateTypeThing TypeThing) (*TypeThing, error) {
+func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32, updateTypeThing TypeThing) (*TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -315,7 +316,7 @@ func (s *BusinessService) UpdateTypeThing(currentUserId int32, isAdmin bool, typ
 	updateTypeThing.LastModifiedBy = &currentUserId
 
 	// Update in storage
-	thingUpdated, err := s.Store.UpdateTypeThing(typeThingId, updateTypeThing)
+	thingUpdated, err := s.Store.UpdateTypeThing(ctx, typeThingId, updateTypeThing)
 	if err != nil {
 		return nil, fmt.Errorf("error updating type thing: %w", err)
 	}

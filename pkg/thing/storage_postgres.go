@@ -46,7 +46,7 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 	return &psql, err
 }
 
-func (db *PGX) GeoJson(offset, limit int, params GeoJsonParams) (string, error) {
+func (db *PGX) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
 	db.log.Debug("trace : entering GeoJson(params : %+v)", params)
 	if params.Type != nil {
 		db.log.Info("param type : %v", *params.Type)
@@ -67,11 +67,11 @@ func (db *PGX) GeoJson(offset, limit int, params GeoJsonParams) (string, error) 
 		db.log.Debug("params.Validated is not nil ")
 		isValidated := *params.Validated
 		listThings += " AND validated = coalesce($6, validated) " + geoJsonListEndOfQuery
-		err = pgxscan.Select(context.Background(), db.Conn, &mayBeResultIsNull, listThings,
+		err = pgxscan.Select(ctx, db.Conn, &mayBeResultIsNull, listThings,
 			limit, offset, &params.Type, &params.CreatedBy, isInactive, isValidated)
 	} else {
 		listThings += geoJsonListEndOfQuery
-		err = pgxscan.Select(context.Background(), db.Conn, &mayBeResultIsNull, listThings,
+		err = pgxscan.Select(ctx, db.Conn, &mayBeResultIsNull, listThings,
 			limit, offset, &params.Type, &params.CreatedBy, isInactive)
 	}
 	if err != nil {
@@ -86,7 +86,7 @@ func (db *PGX) GeoJson(offset, limit int, params GeoJsonParams) (string, error) 
 }
 
 // List returns the list of existing things with the given offset and limit.
-func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) {
+func (db *PGX) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
 	db.log.Debug("trace : entering List(params : %+v)", params)
 	if params.Type != nil {
 		db.log.Info("param type : %v", *params.Type)
@@ -107,11 +107,11 @@ func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) 
 		db.log.Debug("params.Validated is not nil ")
 		isValidated := *params.Validated
 		listThings += " AND validated = coalesce($6, validated) " + thingListOrderBy
-		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
+		err = pgxscan.Select(ctx, db.Conn, &res, listThings,
 			limit, offset, &params.Type, &params.CreatedBy, isInactive, isValidated)
 	} else {
 		listThings += thingListOrderBy
-		err = pgxscan.Select(context.Background(), db.Conn, &res, listThings,
+		err = pgxscan.Select(ctx, db.Conn, &res, listThings,
 			limit, offset, &params.Type, &params.CreatedBy, isInactive)
 	}
 	if err != nil {
@@ -126,11 +126,11 @@ func (db *PGX) List(offset, limit int, params ListParams) ([]*ThingList, error) 
 }
 
 // ListByExternalId returns the list of existing things having given externalId with the given offset and limit.
-func (db *PGX) ListByExternalId(offset, limit int, externalId int) ([]*ThingList, error) {
+func (db *PGX) ListByExternalId(ctx context.Context, offset, limit int, externalId int) ([]*ThingList, error) {
 	db.log.Debug("trace : entering ListByExternalId(externalId : %v)", externalId)
 	var res []*ThingList
 	listByExternalIdThings := baseThingListQuery + listByExternalIdThingsCondition + thingListOrderBy
-	err := pgxscan.Select(context.Background(), db.Conn, &res, listByExternalIdThings, limit, offset, externalId)
+	err := pgxscan.Select(ctx, db.Conn, &res, listByExternalIdThings, limit, offset, externalId)
 	if err != nil {
 		db.log.Error(SelectFailedInNWithErrorE, "ListByExternalId", err)
 		return nil, err
@@ -142,7 +142,7 @@ func (db *PGX) ListByExternalId(offset, limit int, externalId int) ([]*ThingList
 	return res, nil
 }
 
-func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, error) {
+func (db *PGX) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
 	db.log.Debug("trace : entering Search(params : %+v)", params)
 	var (
 		res []*ThingList
@@ -153,21 +153,21 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 		searchThings += " AND text_search @@ plainto_tsquery('french', unaccent($6))"
 		if params.Validated != nil {
 			searchThings += " AND validated = coalesce($7, validated) " + thingListOrderBy
-			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			err = pgxscan.Select(ctx, db.Conn, &res, searchThings,
 				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords, &params.Validated)
 		} else {
 			searchThings += thingListOrderBy
-			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			err = pgxscan.Select(ctx, db.Conn, &res, searchThings,
 				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Keywords)
 		}
 	} else {
 		if params.Validated != nil {
 			searchThings += " AND validated = coalesce($6, validated) " + thingListOrderBy
-			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			err = pgxscan.Select(ctx, db.Conn, &res, searchThings,
 				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated, &params.Validated)
 		} else {
 			searchThings += thingListOrderBy
-			err = pgxscan.Select(context.Background(), db.Conn, &res, searchThings,
+			err = pgxscan.Select(ctx, db.Conn, &res, searchThings,
 				limit, offset, &params.Type, &params.CreatedBy, &params.Inactivated)
 		}
 	}
@@ -184,10 +184,10 @@ func (db *PGX) Search(offset, limit int, params SearchParams) ([]*ThingList, err
 }
 
 // Get will retrieve the thing with given id
-func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
+func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*Thing, error) {
 	db.log.Debug("trace : entering Get(%v)", id)
 	res := &Thing{}
-	err := pgxscan.Get(context.Background(), db.Conn, res, getThing, id)
+	err := pgxscan.Get(ctx, db.Conn, res, getThing, id)
 	if err != nil {
 		db.log.Error(SelectFailedInNWithErrorE, "Get", err)
 		return nil, err
@@ -200,7 +200,7 @@ func (db *PGX) Get(id uuid.UUID) (*Thing, error) {
 }
 
 // Exist returns true only if a thing with the specified id exists in store.
-func (db *PGX) Exist(id uuid.UUID) bool {
+func (db *PGX) Exist(ctx context.Context, id uuid.UUID) bool {
 	db.log.Debug("trace : entering Exist(%v)", id)
 	count, err := db.dbi.GetQueryInt(existThing, id)
 	if err != nil {
@@ -217,7 +217,7 @@ func (db *PGX) Exist(id uuid.UUID) bool {
 }
 
 // Count returns the number of thing stored in DB
-func (db *PGX) Count(params CountParams) (int32, error) {
+func (db *PGX) Count(ctx context.Context, params CountParams) (int32, error) {
 	db.log.Debug("trace : entering Count()")
 	var (
 		count int
@@ -268,7 +268,7 @@ func (db *PGX) Count(params CountParams) (int32, error) {
 }
 
 // Create will store the new Thing in the database
-func (db *PGX) Create(t Thing) (*Thing, error) {
+func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
 	db.log.Debug("trace : entering Create(%q,%q)", t.Name, t.Id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(createThing,
@@ -297,7 +297,7 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 	db.log.Info(" Create(%q) created with id : %v", t.Name, t.Id)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	createdThing, err := db.Get(t.Id)
+	createdThing, err := db.Get(ctx, t.Id)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error %v: thing was created, but can not be retrieved", err))
 	}
@@ -305,7 +305,7 @@ func (db *PGX) Create(t Thing) (*Thing, error) {
 }
 
 // Update the thing stored in DB with given id and other information in struct
-func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
+func (db *PGX) Update(ctx context.Context, id uuid.UUID, t Thing) (*Thing, error) {
 	db.log.Debug("trace : entering Update(%q)", t.Id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(updateThing,
@@ -324,7 +324,7 @@ func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
 	}
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	updatedThing, err := db.Get(t.Id)
+	updatedThing, err := db.Get(ctx, t.Id)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
 	}
@@ -332,7 +332,7 @@ func (db *PGX) Update(id uuid.UUID, t Thing) (*Thing, error) {
 }
 
 // Delete the thing stored in DB with given id
-func (db *PGX) Delete(id uuid.UUID, userId int32) error {
+func (db *PGX) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
 	db.log.Debug("trace : entering Delete(%d)", id)
 	rowsAffected, err := db.dbi.ExecActionQuery(deleteThing, userId, id)
 	if err != nil {
@@ -350,7 +350,7 @@ func (db *PGX) Delete(id uuid.UUID, userId int32) error {
 }
 
 // IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
-func (db *PGX) IsThingActive(id uuid.UUID) bool {
+func (db *PGX) IsThingActive(ctx context.Context, id uuid.UUID) bool {
 	db.log.Debug("trace : entering IsThingActive(%d)", id)
 	count, err := db.dbi.GetQueryInt(isActiveThing, id)
 	if err != nil {
@@ -367,7 +367,7 @@ func (db *PGX) IsThingActive(id uuid.UUID) bool {
 }
 
 // IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
-func (db *PGX) IsUserOwner(id uuid.UUID, userId int32) bool {
+func (db *PGX) IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) bool {
 	db.log.Debug("trace : entering IsUserOwner(%v, %d)", id, userId)
 	count, err := db.dbi.GetQueryInt(existThingOwnedBy, id, userId)
 	if err != nil {
@@ -384,10 +384,10 @@ func (db *PGX) IsUserOwner(id uuid.UUID, userId int32) bool {
 }
 
 // CreateTypeThing will store the new TypeThing in the database
-func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
+func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, error) {
 	db.log.Debug("trace : entering CreateTypeThing(%q, userId)", tt.Name, tt.CreatedBy)
 	var lastInsertId int = 0
-	err := db.Conn.QueryRow(context.Background(), createTypeThing,
+	err := db.Conn.QueryRow(ctx, createTypeThing,
 		/*	INSERT INTO go_thing.type_thing
 			    (name, description, comment, external_id, table_name, geometry_type,
 			     managed_by, icon_path, _created_at, _created_by, more_data_schema, text_search)
@@ -406,7 +406,7 @@ func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
 	db.log.Info(" CreateTypeThing(%q) created with id : %v", tt.Name, &lastInsertId)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	createdTypeThing, err := db.GetTypeThing(int32(lastInsertId))
+	createdTypeThing, err := db.GetTypeThing(ctx, int32(lastInsertId))
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error %v: typeThing was created, but can not be retrieved", err))
 	}
@@ -414,31 +414,31 @@ func (db *PGX) CreateTypeThing(tt TypeThing) (*TypeThing, error) {
 }
 
 // UpdateTypeThing updates the TypeThing stored in DB with given id and other information in struct
-func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
+func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*TypeThing, error) {
 	db.log.Debug("trace : entering UpdateTypeThing(%d)", id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(updateTypeTing,
 		/*		UPDATE go_thing.type_thing
-						SET
-						    name               = $2,
-						    description        = $3,
-						    comment            = $4,
-						    external_id        = $5,
-						    table_name         = $6,
-						    geometry_type      = $7,
-						    inactivated        = $8,
-						    inactivated_time   = $9,
-						    inactivated_by     = $10,
-						    inactivated_reason = $11,
-						    managed_by         = $12,
-							icon_path          = $13,
-				            _last_modified_at  = CURRENT_TIMESTAMP,
-				            _last_modified_by  = $14,
-				            more_data_schema   = $15,
-						    text_search = to_tsvector('french', unaccent($2) ||
-						                             ' ' || coalesce(unaccent($3), ' ') ||
-						                             ' ' || coalesce(unaccent($4), ' ') )
-						WHERE id = $1;
+							SET
+							    name               = $2,
+							    description        = $3,
+							    comment            = $4,
+							    external_id        = $5,
+							    table_name         = $6,
+							    geometry_type      = $7,
+							    inactivated        = $8,
+							    inactivated_time   = $9,
+							    inactivated_by     = $10,
+							    inactivated_reason = $11,
+							    managed_by         = $12,
+								icon_path          = $13,
+				                _last_modified_at  = CURRENT_TIMESTAMP,
+				                _last_modified_by  = $14,
+				                more_data_schema   = $15,
+							    text_search = to_tsvector('french', unaccent($2) ||
+							                             ' ' || coalesce(unaccent($3), ' ') ||
+							                             ' ' || coalesce(unaccent($4), ' ') )
+							WHERE id = $1;
 		*/
 		id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
 		&tt.GeometryType, tt.Inactivated, &tt.InactivatedTime, &tt.InactivatedBy, &tt.InactivatedReason, //$11
@@ -454,7 +454,7 @@ func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
 	}
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	updatedTypeThing, err := db.GetTypeThing(id)
+	updatedTypeThing, err := db.GetTypeThing(ctx, id)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
 	}
@@ -462,7 +462,7 @@ func (db *PGX) UpdateTypeThing(id int32, tt TypeThing) (*TypeThing, error) {
 }
 
 // DeleteTypeThing deletes the TypeThing stored in DB with given id
-func (db *PGX) DeleteTypeThing(id int32, userId int32) error {
+func (db *PGX) DeleteTypeThing(ctx context.Context, id int32, userId int32) error {
 	db.log.Debug("trace : entering DeleteTypeThing(%d)", id)
 	rowsAffected, err := db.dbi.ExecActionQuery(deleteTypeThing, userId, id)
 	if err != nil {
@@ -480,7 +480,7 @@ func (db *PGX) DeleteTypeThing(id int32, userId int32) error {
 }
 
 // ListTypeThing returns the list of existing TypeThing with the given offset and limit.
-func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
+func (db *PGX) ListTypeThing(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
 	db.log.Debug("trace : entering ListTypeThing")
 	var (
 		res []*TypeThingList
@@ -491,11 +491,11 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 		listTypeThings += listTypeThingsConditionsWithKeywords + typeThingListOrderBy
 		//db.log.Debug("params.Keywords is not nil %s", *params.Keywords)
 		//db.log.Debug("params.Keywords is not nil sql: %s", listTypeThings)
-		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
+		err = pgxscan.Select(ctx, db.Conn, &res, listTypeThings,
 			limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	} else {
 		listTypeThings += listTypeThingsConditionsWithoutKeywords + typeThingListOrderBy
-		err = pgxscan.Select(context.Background(), db.Conn, &res, listTypeThings,
+		err = pgxscan.Select(ctx, db.Conn, &res, listTypeThings,
 			limit, offset, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	}
 
@@ -511,10 +511,10 @@ func (db *PGX) ListTypeThing(offset, limit int, params TypeThingListParams) ([]*
 }
 
 // GetTypeThing will retrieve the TypeThing with given id
-func (db *PGX) GetTypeThing(id int32) (*TypeThing, error) {
+func (db *PGX) GetTypeThing(ctx context.Context, id int32) (*TypeThing, error) {
 	db.log.Debug("trace : entering GetTypeThing(%v)", id)
 	res := &TypeThing{}
-	err := pgxscan.Get(context.Background(), db.Conn, res, getTypeThing, id)
+	err := pgxscan.Get(ctx, db.Conn, res, getTypeThing, id)
 	if err != nil {
 		db.log.Error(SelectFailedInNWithErrorE, "GetTypeThing", err)
 		return nil, err
@@ -527,7 +527,7 @@ func (db *PGX) GetTypeThing(id int32) (*TypeThing, error) {
 }
 
 // CountTypeThing returns the number of TypeThing based on search criteria
-func (db *PGX) CountTypeThing(params TypeThingCountParams) (int32, error) {
+func (db *PGX) CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error) {
 	db.log.Debug("trace : entering CountTypeThing()")
 	var (
 		count int

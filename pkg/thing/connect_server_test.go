@@ -104,7 +104,7 @@ func TestThingConnectServer_List(t *testing.T) {
 			{Id: uuid.New(), Name: "Thing 1", CreatedAt: &now},
 			{Id: uuid.New(), Name: "Thing 2", CreatedAt: &now},
 		}
-		mockStore.On("List", 0, 50, ListParams{}).Return(expectedList, nil)
+		mockStore.On("List", mock.Anything, 0, 50, ListParams{}).Return(expectedList, nil)
 
 		// Create request
 		req := createConnectRequest(&thingv1.ListRequest{Limit: 0, Offset: 0}, "valid-token")
@@ -178,8 +178,8 @@ func TestThingConnectServer_Get(t *testing.T) {
 		}
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
-		mockStore.On("Exist", thingID).Return(true)
-		mockStore.On("Get", thingID).Return(expectedThing, nil)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true)
+		mockStore.On("Get", mock.Anything, thingID).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()}, "valid-token")
 
@@ -202,7 +202,7 @@ func TestThingConnectServer_Get(t *testing.T) {
 		thingID := uuid.New()
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
-		mockStore.On("Exist", thingID).Return(false)
+		mockStore.On("Exist", mock.Anything, thingID).Return(false)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()}, "valid-token")
 
@@ -251,8 +251,8 @@ func TestThingConnectServer_Create(t *testing.T) {
 		}
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
-		mockStore.On("Exist", mock.AnythingOfType("uuid.UUID")).Return(false)
-		mockStore.On("Create", mock.AnythingOfType("Thing")).Return(expectedThing, nil)
+		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false)
+		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.CreateRequest{
 			Thing: &thingv1.Thing{
@@ -300,9 +300,9 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		userID := int32(123)
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(int(userID), false), nil)
-		mockStore.On("Exist", thingID).Return(true)
-		mockStore.On("IsUserOwner", thingID, userID).Return(true)
-		mockStore.On("Delete", thingID, userID).Return(nil)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true)
+		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true)
+		mockStore.On("Delete", mock.Anything, thingID, userID).Return(nil)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()}, "valid-token")
 
@@ -324,8 +324,8 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		userID := int32(123)
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(int(userID), false), nil)
-		mockStore.On("Exist", thingID).Return(true)
-		mockStore.On("IsUserOwner", thingID, userID).Return(false)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true)
+		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()}, "valid-token")
 
@@ -348,7 +348,7 @@ func TestThingConnectServer_Count(t *testing.T) {
 		server := createTestThingConnectServer(mockStore, mockDB, mockJwt)
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
-		mockStore.On("Count", CountParams{}).Return(42, nil)
+		mockStore.On("Count", mock.Anything, CountParams{}).Return(42, nil)
 
 		req := createConnectRequest(&thingv1.CountRequest{}, "valid-token")
 
@@ -386,7 +386,7 @@ func TestTypeThingConnectServer_List(t *testing.T) {
 		}
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, false), nil)
-		mockStore.On("ListTypeThing", 0, 250, TypeThingListParams{}).Return(expectedList, nil)
+		mockStore.On("ListTypeThing", mock.Anything, 0, 250, TypeThingListParams{}).Return(expectedList, nil)
 
 		req := createConnectRequest(&thingv1.TypeThingListRequest{}, "valid-token")
 
@@ -414,7 +414,7 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 		}
 
 		mockJwt.On("ParseToken", "valid-token").Return(createMockClaims(123, true), nil)
-		mockStore.On("CreateTypeThing", mock.AnythingOfType("TypeThing")).Return(expectedTypeThing, nil)
+		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("TypeThing")).Return(expectedTypeThing, nil)
 
 		req := createConnectRequest(&thingv1.TypeThingCreateRequest{
 			TypeThing: &thingv1.TypeThing{
