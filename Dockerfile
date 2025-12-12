@@ -20,6 +20,7 @@ RUN go mod download
 # Copy the source from the current directory to the Working Directory inside the container
 COPY cmd/goCloudK8sThingServer ./goCloudK8sThingServer
 COPY pkg ./pkg
+COPY gen ./gen
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o goCloudK8sThingServer ./goCloudK8sThingServer
