@@ -62,7 +62,7 @@ jobs:
         DB_PASSWORD: postgres
         PGPASSWORD: postgres
         APP_DSN: postgres://127.0.0.1:${{ job.services.postgres.ports[5432] }}/postgres?sslmode=disable&user=postgres&password=postgres
-      run: go test -race -coverprofile coverage.out -coverpkg=./... ./...
+      run: go test -race -coverprofile coverage.out -coverpkg=./cmd/...,./pkg/... ./...
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
