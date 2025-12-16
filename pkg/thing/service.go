@@ -3,6 +3,7 @@ package thing
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 type Permission int8 // enum
@@ -49,7 +49,7 @@ func (s Permission) String() string {
 }
 
 type Service struct {
-	Log              golog.MyLogger
+	Log              *slog.Logger
 	DbConn           database.DB
 	Store            Storage
 	Server           *goHttpEcho.Server
@@ -62,7 +62,7 @@ func (s Service) GeoJson(ctx echo.Context, params GeoJsonParams) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	limit := s.ListDefaultLimit
 	if params.Limit != nil {
 		limit = int(*params.Limit)
@@ -94,7 +94,7 @@ func (s Service) List(ctx echo.Context, params ListParams) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	limit := s.ListDefaultLimit
 	if params.Limit != nil {
 		limit = int(*params.Limit)
@@ -125,7 +125,7 @@ func (s Service) Create(ctx echo.Context) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	/* TODO implement ACL & RBAC handling
 	if !s.Store.IsUserAllowedToCreate(currentUserId, typeThing) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "current user has no create role privilege")
@@ -139,7 +139,7 @@ func (s Service) Create(ctx echo.Context) error {
 		s.Log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("Create Thing Bind ok : %+v ", newThing)
+	s.Log.Info("Create Thing Bind ok", "thing", newThing.Name)
 	if len(strings.Trim(newThing.Name, " ")) < 1 {
 
 		msg := fmt.Sprintf(FieldCannotBeEmpty, "name")
@@ -164,7 +164,7 @@ func (s Service) Create(ctx echo.Context) error {
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# Create() success Thing %#v\n", thingCreated)
+	s.Log.Info("Create success", "thingId", thingCreated.Id)
 	return ctx.JSON(http.StatusCreated, thingCreated)
 }
 
@@ -176,7 +176,7 @@ func (s Service) Count(ctx echo.Context, params CountParams) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// Use request context for cancellation and tracing support
 	reqCtx := ctx.Request().Context()
 	numThings, err := s.Store.Count(reqCtx, params)
@@ -195,7 +195,7 @@ func (s Service) Delete(ctx echo.Context, thingId uuid.UUID) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// Use request context for cancellation and tracing support
 	reqCtx := ctx.Request().Context()
 	if s.Store.Exist(reqCtx, thingId) == false {
@@ -230,7 +230,7 @@ func (s Service) Get(ctx echo.Context, thingId uuid.UUID) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// Use request context for cancellation and tracing support
 	reqCtx := ctx.Request().Context()
 	if s.Store.Exist(reqCtx, thingId) == false {
@@ -264,7 +264,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
-	s.Log.Info("in %s(%d) : currentUserId: %d", handlerName, thingId, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "thingId", thingId, "userId", currentUserId)
 	// Use request context for cancellation and tracing support
 	reqCtx := ctx.Request().Context()
 	if s.Store.Exist(reqCtx, thingId) == false {
@@ -307,7 +307,7 @@ func (s Service) Update(ctx echo.Context, thingId uuid.UUID) error {
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# Update success Thing %#v\n", thingUpdated)
+	s.Log.Info("Update success", "thingId", thingUpdated.Id)
 	return ctx.JSON(http.StatusOK, thingUpdated)
 }
 
@@ -319,7 +319,7 @@ func (s Service) ListByExternalId(ctx echo.Context, externalId int32, params Lis
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	limit := s.ListDefaultLimit
 	if params.Limit != nil {
 		limit = int(*params.Limit)
@@ -351,7 +351,7 @@ func (s Service) Search(ctx echo.Context, params SearchParams) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	limit := s.ListDefaultLimit
 	if params.Limit != nil {
 		limit = int(*params.Limit)
@@ -381,7 +381,7 @@ func (s Service) TypeThingList(ctx echo.Context, params TypeThingListParams) err
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	limit := 250
 	if params.Limit != nil {
 		limit = int(*params.Limit)
@@ -411,7 +411,7 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	if !claims.User.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
@@ -462,7 +462,7 @@ func (s Service) TypeThingCreate(ctx echo.Context) error {
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# TypeThingCreate() success TypeThing %#v\n", typeThingCreated)
+	s.Log.Info("TypeThingCreate success", "typeThingId", typeThingCreated.Id)
 	return ctx.JSON(http.StatusCreated, typeThingCreated)
 }
 
@@ -472,7 +472,7 @@ func (s Service) TypeThingCount(ctx echo.Context, params TypeThingCountParams) e
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// Use request context for cancellation and tracing support
 	reqCtx := ctx.Request().Context()
 	numThings, err := s.Store.CountTypeThing(reqCtx, params)
@@ -489,19 +489,18 @@ func (s Service) TypeThingDelete(ctx echo.Context, typeThingId int32) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	if !claims.User.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	reqCtx := ctx.Request().Context()
+	typeThingCount, err := s.DbConn.GetQueryInt(reqCtx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingDelete(%v) cannot delete this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	} else {
-		// Use request context for cancellation and tracing support
-		reqCtx := ctx.Request().Context()
 		err := s.Store.DeleteTypeThing(reqCtx, typeThingId, currentUserId)
 		if err != nil {
 			msg := fmt.Sprintf("TypeThingDelete(%v) got an error: %#v ", typeThingId, err)
@@ -519,18 +518,17 @@ func (s Service) TypeThingGet(ctx echo.Context, typeThingId int32) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	if !claims.User.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	reqCtx := ctx.Request().Context()
+	typeThingCount, err := s.DbConn.GetQueryInt(reqCtx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingGet(%v) cannot retrieve this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
 		return ctx.JSON(http.StatusNotFound, msg)
 	}
-	// Use request context for cancellation and tracing support
-	reqCtx := ctx.Request().Context()
 	typeThing, err := s.Store.GetTypeThing(reqCtx, typeThingId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("problem retrieving TypeThing :%v", err))
@@ -544,12 +542,13 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 	// get the current user from JWT TOKEN
 	claims := s.Server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := int32(claims.User.UserId)
-	s.Log.Info("in %s : currentUserId: %d", handlerName, currentUserId)
+	s.Log.Info("handler called", "handler", handlerName, "userId", currentUserId)
 	// IF USER IS NOT ADMIN  RETURN 401 Unauthorized
 	if !claims.User.IsAdmin {
 		return echo.NewHTTPError(http.StatusUnauthorized, OnlyAdminCanManageTypeThings)
 	}
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	reqCtx := ctx.Request().Context()
+	typeThingCount, err := s.DbConn.GetQueryInt(reqCtx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		msg := fmt.Sprintf("TypeThingUpdate(%v) cannot update this id, it does not exist !", typeThingId)
 		s.Log.Warn(msg)
@@ -572,14 +571,12 @@ func (s Service) TypeThingUpdate(ctx echo.Context, typeThingId int32) error {
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 	uTypeThing.LastModifiedBy = &currentUserId
-	// Use request context for cancellation and tracing support
-	reqCtx := ctx.Request().Context()
 	thingUpdated, err := s.Store.UpdateTypeThing(reqCtx, typeThingId, *uTypeThing)
 	if err != nil {
 		msg := fmt.Sprintf("TypeThingUpdate had an error saving typeThing:%#v, err:%#v", *uTypeThing, err)
 		s.Log.Info(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
-	s.Log.Info("# TypeThingUpdate success updating TypeThing %#+v\n", thingUpdated)
+	s.Log.Info("TypeThingUpdate success", "typeThingId", thingUpdated.Id)
 	return ctx.JSON(http.StatusOK, thingUpdated)
 }

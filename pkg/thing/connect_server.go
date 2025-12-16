@@ -4,11 +4,11 @@ package thing
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 )
@@ -17,7 +17,7 @@ import (
 // Authentication is handled by the AuthInterceptor, which injects user info into context.
 type ThingConnectServer struct {
 	BusinessService *BusinessService
-	Log             golog.MyLogger
+	Log             *slog.Logger
 
 	// Embed the unimplemented handler for forward compatibility
 	thingv1connect.UnimplementedThingServiceHandler
@@ -25,7 +25,7 @@ type ThingConnectServer struct {
 
 // NewThingConnectServer creates a new ThingConnectServer.
 // Note: Authentication is handled by the AuthInterceptor, not by this server.
-func NewThingConnectServer(business *BusinessService, log golog.MyLogger) *ThingConnectServer {
+func NewThingConnectServer(business *BusinessService, log *slog.Logger) *ThingConnectServer {
 	return &ThingConnectServer{
 		BusinessService: business,
 		Log:             log,
@@ -56,7 +56,7 @@ func (s *ThingConnectServer) mapErrorToConnect(err error) *connect.Error {
 	case errors.Is(err, pgx.ErrNoRows):
 		return connect.NewError(connect.CodeNotFound, errors.New("not found"))
 	default:
-		s.Log.Error("internal error: %v", err)
+		s.Log.Error("internal error", "error", err)
 		return connect.NewError(connect.CodeInternal, errors.New("internal error"))
 	}
 }
@@ -74,7 +74,7 @@ func (s *ThingConnectServer) List(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("List: userId=%d", userId)
+	s.Log.Info("List", "userId", userId)
 
 	// Build domain params from proto request
 	msg := req.Msg
@@ -124,7 +124,7 @@ func (s *ThingConnectServer) Create(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Create: userId=%d", userId)
+	s.Log.Info("Create", "userId", userId)
 
 	// Convert proto to domain
 	protoThing := req.Msg.Thing
@@ -155,11 +155,11 @@ func (s *ThingConnectServer) Get(
 	ctx context.Context,
 	req *connect.Request[thingv1.GetRequest],
 ) (*connect.Response[thingv1.GetResponse], error) {
-	s.Log.Info("Connect: Get called for id=%s", req.Msg.Id)
+	s.Log.Info("Connect: Get called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Get: userId=%d", userId)
+	s.Log.Info("Get", "userId", userId)
 
 	// Parse UUID
 	thingId, err := uuid.Parse(req.Msg.Id)
@@ -184,11 +184,11 @@ func (s *ThingConnectServer) Update(
 	ctx context.Context,
 	req *connect.Request[thingv1.UpdateRequest],
 ) (*connect.Response[thingv1.UpdateResponse], error) {
-	s.Log.Info("Connect: Update called for id=%s", req.Msg.Id)
+	s.Log.Info("Connect: Update called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Update: userId=%d", userId)
+	s.Log.Info("Update", "userId", userId)
 
 	// Parse UUID
 	thingId, err := uuid.Parse(req.Msg.Id)
@@ -224,11 +224,11 @@ func (s *ThingConnectServer) Delete(
 	ctx context.Context,
 	req *connect.Request[thingv1.DeleteRequest],
 ) (*connect.Response[thingv1.DeleteResponse], error) {
-	s.Log.Info("Connect: Delete called for id=%s", req.Msg.Id)
+	s.Log.Info("Connect: Delete called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Delete: userId=%d", userId)
+	s.Log.Info("Delete", "userId", userId)
 
 	// Parse UUID
 	thingId, err := uuid.Parse(req.Msg.Id)
@@ -254,7 +254,7 @@ func (s *ThingConnectServer) Search(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Search: userId=%d", userId)
+	s.Log.Info("Search", "userId", userId)
 
 	msg := req.Msg
 	params := SearchParams{}
@@ -303,7 +303,7 @@ func (s *ThingConnectServer) Count(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("Count: userId=%d", userId)
+	s.Log.Info("Count", "userId", userId)
 
 	msg := req.Msg
 	params := CountParams{}
@@ -343,7 +343,7 @@ func (s *ThingConnectServer) GeoJson(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("GeoJson: userId=%d", userId)
+	s.Log.Info("GeoJson", "userId", userId)
 
 	msg := req.Msg
 	params := GeoJsonParams{}
@@ -385,11 +385,11 @@ func (s *ThingConnectServer) ListByExternalId(
 	ctx context.Context,
 	req *connect.Request[thingv1.ListByExternalIdRequest],
 ) (*connect.Response[thingv1.ListByExternalIdResponse], error) {
-	s.Log.Info("Connect: ListByExternalId called for externalId=%d", req.Msg.ExternalId)
+	s.Log.Info("Connect: ListByExternalId called", "externalId", req.Msg.ExternalId)
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("ListByExternalId: userId=%d", userId)
+	s.Log.Info("ListByExternalId", "userId", userId)
 
 	msg := req.Msg
 	limit := s.BusinessService.ListDefaultLimit

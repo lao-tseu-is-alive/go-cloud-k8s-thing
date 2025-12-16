@@ -4,23 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 type PGX struct {
 	Conn *pgxpool.Pool
 	dbi  database.DB
-	log  golog.MyLogger
+	log  *slog.Logger
 }
 
 // NewPgxDB will instantiate a new storage of type postgres and ensure schema exist
-func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
+func NewPgxDB(db database.DB, log *slog.Logger) (Storage, error) {
 	var psql PGX
 	pgConn, err := db.GetPGConn()
 	if err != nil {
@@ -32,14 +32,14 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 	var numberOfTypeThings int
 	errTypeThingTable := pgConn.QueryRow(context.Background(), typeThingCount).Scan(&numberOfTypeThings)
 	if errTypeThingTable != nil {
-		log.Error("Unable to retrieve the number of typeThing error: %v", err)
+		log.Error("Unable to retrieve the number of typeThing", "error", err)
 		return nil, err
 	}
 
 	if numberOfTypeThings > 0 {
-		log.Info("'database contains %d records in «go_thing.type_thing»'", numberOfTypeThings)
+		log.Info("database contains records in go_thing.type_thing", "count", numberOfTypeThings)
 	} else {
-		log.Warn("«go_thing.type_thing» is empty ! it should contain at least one row")
+		log.Warn("go_thing.type_thing is empty - it should contain at least one row")
 		return nil, errors.New("problem with initial content of database «go_thing.type_thing» should not be empty ")
 	}
 
@@ -47,12 +47,12 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 }
 
 func (db *PGX) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
-	db.log.Debug("trace : entering GeoJson(params : %+v)", params)
+	db.log.Debug("trace: entering GeoJson", "offset", offset, "limit", limit)
 	if params.Type != nil {
-		db.log.Info("param type : %v", *params.Type)
+		db.log.Info("param type", "type", *params.Type)
 	}
 	if params.CreatedBy != nil {
-		db.log.Info("params.CreatedBy : %v", *params.CreatedBy)
+		db.log.Info("params.CreatedBy", "createdBy", *params.CreatedBy)
 	}
 	var (
 		mayBeResultIsNull *string
@@ -79,7 +79,7 @@ func (db *PGX) GeoJson(ctx context.Context, offset, limit int, params GeoJsonPar
 		return "nil", err
 	}
 	if mayBeResultIsNull == nil {
-		db.log.Info(FunctionNReturnedNoResults, "List")
+		db.log.Info("List returned no results")
 		return "nil", pgx.ErrNoRows
 	}
 	return *mayBeResultIsNull, nil
@@ -87,12 +87,12 @@ func (db *PGX) GeoJson(ctx context.Context, offset, limit int, params GeoJsonPar
 
 // List returns the list of existing things with the given offset and limit.
 func (db *PGX) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
-	db.log.Debug("trace : entering List(params : %+v)", params)
+	db.log.Debug("trace: entering List", "offset", offset, "limit", limit)
 	if params.Type != nil {
-		db.log.Info("param type : %v", *params.Type)
+		db.log.Info("param type", "type", *params.Type)
 	}
 	if params.CreatedBy != nil {
-		db.log.Info("params.CreatedBy : %v", *params.CreatedBy)
+		db.log.Info("params.CreatedBy", "createdBy", *params.CreatedBy)
 	}
 	var (
 		res []*ThingList
@@ -119,7 +119,7 @@ func (db *PGX) List(ctx context.Context, offset, limit int, params ListParams) (
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "List")
+		db.log.Info("List returned no results")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -127,23 +127,23 @@ func (db *PGX) List(ctx context.Context, offset, limit int, params ListParams) (
 
 // ListByExternalId returns the list of existing things having given externalId with the given offset and limit.
 func (db *PGX) ListByExternalId(ctx context.Context, offset, limit int, externalId int) ([]*ThingList, error) {
-	db.log.Debug("trace : entering ListByExternalId(externalId : %v)", externalId)
+	db.log.Debug("trace: entering ListByExternalId", "externalId", externalId)
 	var res []*ThingList
 	listByExternalIdThings := baseThingListQuery + listByExternalIdThingsCondition + thingListOrderBy
 	err := pgxscan.Select(ctx, db.Conn, &res, listByExternalIdThings, limit, offset, externalId)
 	if err != nil {
-		db.log.Error(SelectFailedInNWithErrorE, "ListByExternalId", err)
+		db.log.Error("ListByExternalId failed", "error", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "ListByExternalId")
+		db.log.Info("ListByExternalId returned no results")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
 }
 
 func (db *PGX) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
-	db.log.Debug("trace : entering Search(params : %+v)", params)
+	db.log.Debug("trace: entering Search", "offset", offset, "limit", limit)
 	var (
 		res []*ThingList
 		err error
@@ -173,11 +173,11 @@ func (db *PGX) Search(ctx context.Context, offset, limit int, params SearchParam
 	}
 
 	if err != nil {
-		db.log.Error(SelectFailedInNWithErrorE, "Search", err)
+		db.log.Error("Search failed", "error", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "Search")
+		db.log.Info("Search returned no results")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -185,15 +185,15 @@ func (db *PGX) Search(ctx context.Context, offset, limit int, params SearchParam
 
 // Get will retrieve the thing with given id
 func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*Thing, error) {
-	db.log.Debug("trace : entering Get(%v)", id)
+	db.log.Debug("trace: entering Get", "id", id)
 	res := &Thing{}
 	err := pgxscan.Get(ctx, db.Conn, res, getThing, id)
 	if err != nil {
-		db.log.Error(SelectFailedInNWithErrorE, "Get", err)
+		db.log.Error("Get failed", "error", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "Get")
+		db.log.Info("Get returned no results")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -201,17 +201,17 @@ func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*Thing, error) {
 
 // Exist returns true only if a thing with the specified id exists in store.
 func (db *PGX) Exist(ctx context.Context, id uuid.UUID) bool {
-	db.log.Debug("trace : entering Exist(%v)", id)
-	count, err := db.dbi.GetQueryInt(existThing, id)
+	db.log.Debug("trace: entering Exist", "id", id)
+	count, err := db.dbi.GetQueryInt(ctx, existThing, id)
 	if err != nil {
-		db.log.Error("Exist(%v) could not be retrieved from DB. failed db.Query err: %v", id, err)
+		db.log.Error("Exist could not be retrieved from DB", "id", id, "error", err)
 		return false
 	}
 	if count > 0 {
-		db.log.Info(" Exist(%v) id does exist  count:%v", id, count)
+		db.log.Info("Exist: id does exist", "id", id, "count", count)
 		return true
 	} else {
-		db.log.Info(" Exist(%v) id does not exist count:%v", id, count)
+		db.log.Info("Exist: id does not exist", "id", id, "count", count)
 		return false
 	}
 }
@@ -236,10 +236,10 @@ func (db *PGX) Count(ctx context.Context, params CountParams) (int32, error) {
 			db.log.Debug("params.Validated is not nil ")
 			isValidated := *params.Validated
 			queryCount += " AND validated = coalesce($4, validated) "
-			count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
+			count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
 
 		} else {
-			count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated)
+			count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.Keywords, &params.Type, &params.CreatedBy, &params.Inactivated)
 		}
 	}
 	if withoutSearchParameters {
@@ -252,16 +252,16 @@ func (db *PGX) Count(ctx context.Context, params CountParams) (int32, error) {
 			db.log.Debug("params.Validated is not nil ")
 			isValidated := *params.Validated
 			queryCount += " AND validated = coalesce($4, validated) "
-			count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
+			count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.Type, &params.CreatedBy, &params.Inactivated, isValidated)
 
 		} else {
-			count, err = db.dbi.GetQueryInt(queryCount, &params.Type, &params.CreatedBy, &params.Inactivated)
+			count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.Type, &params.CreatedBy, &params.Inactivated)
 		}
 
 	}
 
 	if err != nil {
-		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
+		db.log.Error("Count failed", "error", err)
 		return 0, err
 	}
 	return int32(count), nil
@@ -269,9 +269,9 @@ func (db *PGX) Count(ctx context.Context, params CountParams) (int32, error) {
 
 // Create will store the new Thing in the database
 func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
-	db.log.Debug("trace : entering Create(%q,%q)", t.Name, t.Id)
+	db.log.Debug("trace: entering Create", "name", t.Name, "id", t.Id)
 
-	rowsAffected, err := db.dbi.ExecActionQuery(createThing,
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, createThing,
 		/*	INSERT INTO go_thing.thing
 			(id, type_id, name, description, comment, external_id, external_ref,
 				build_at, status, contained_by, contained_by_old,validated, validated_time, validated_by,
@@ -287,14 +287,14 @@ func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$14
 		&t.ManagedBy, t.CreatedBy, &t.MoreData, t.PosX, t.PosY)
 	if err != nil {
-		db.log.Error("Create(%q) unexpectedly failed. error : %v", t.Name, err)
+		db.log.Error("Create unexpectedly failed", "name", t.Name, "error", err)
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("Create(%q) no row was created so create as failed. error : %v", t.Name, err)
+		db.log.Error("Create no row was created", "name", t.Name)
 		return nil, err
 	}
-	db.log.Info(" Create(%q) created with id : %v", t.Name, t.Id)
+	db.log.Info("Create success", "name", t.Name, "id", t.Id)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	createdThing, err := db.Get(ctx, t.Id)
@@ -306,20 +306,20 @@ func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
 
 // Update the thing stored in DB with given id and other information in struct
 func (db *PGX) Update(ctx context.Context, id uuid.UUID, t Thing) (*Thing, error) {
-	db.log.Debug("trace : entering Update(%q)", t.Id)
+	db.log.Debug("trace: entering Update", "id", t.Id)
 
-	rowsAffected, err := db.dbi.ExecActionQuery(updateThing,
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateThing,
 		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Inactivated, &t.InactivatedTime, &t.InactivatedBy, &t.InactivatedReason, //$15
 		t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$18
 		&t.ManagedBy, &t.LastModifiedBy, &t.MoreData, t.PosX, t.PosY) //$23
 	if err != nil {
 
-		db.log.Error("Update(%q) unexpectedly failed. error : %v", t.Id, err)
+		db.log.Error("Update unexpectedly failed", "id", t.Id, "error", err)
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("Update(%q) no row was created so create as failed. error : %v", t.Id, err)
+		db.log.Error("Update no row was updated", "id", t.Id)
 		return nil, err
 	}
 
@@ -333,59 +333,56 @@ func (db *PGX) Update(ctx context.Context, id uuid.UUID, t Thing) (*Thing, error
 
 // Delete the thing stored in DB with given id
 func (db *PGX) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
-	db.log.Debug("trace : entering Delete(%d)", id)
-	rowsAffected, err := db.dbi.ExecActionQuery(deleteThing, userId, id)
+	db.log.Debug("trace: entering Delete", "id", id)
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, deleteThing, userId, id)
 	if err != nil {
-		msg := fmt.Sprintf("thing could not be deleted, err: %v", err)
-		db.log.Error(msg)
-		return errors.New(msg)
+		db.log.Error("thing could not be deleted", "id", id, "error", err)
+		return fmt.Errorf("thing could not be deleted: %w", err)
 	}
 	if rowsAffected < 1 {
-		msg := fmt.Sprintf("thing was not deleted, err: %v", err)
-		db.log.Error(msg)
-		return errors.New(msg)
+		db.log.Error("thing was not deleted", "id", id)
+		return errors.New("thing was not deleted")
 	}
-	// if we get to here all is good
 	return nil
 }
 
 // IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
 func (db *PGX) IsThingActive(ctx context.Context, id uuid.UUID) bool {
-	db.log.Debug("trace : entering IsThingActive(%d)", id)
-	count, err := db.dbi.GetQueryInt(isActiveThing, id)
+	db.log.Debug("trace: entering IsThingActive", "id", id)
+	count, err := db.dbi.GetQueryInt(ctx, isActiveThing, id)
 	if err != nil {
-		db.log.Error("IsThingActive(%d) could not be retrieved from DB. failed db.Query err: %v", id, err)
+		db.log.Error("IsThingActive could not be retrieved from DB", "id", id, "error", err)
 		return false
 	}
 	if count > 0 {
-		db.log.Info(" IsThingActive(%d) is true  count:%v", id, count)
+		db.log.Info("IsThingActive is true", "id", id, "count", count)
 		return true
 	} else {
-		db.log.Info(" IsThingActive(%d) is false count:%v", id, count)
+		db.log.Info("IsThingActive is false", "id", id, "count", count)
 		return false
 	}
 }
 
 // IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
 func (db *PGX) IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) bool {
-	db.log.Debug("trace : entering IsUserOwner(%v, %d)", id, userId)
-	count, err := db.dbi.GetQueryInt(existThingOwnedBy, id, userId)
+	db.log.Debug("trace: entering IsUserOwner", "id", id, "userId", userId)
+	count, err := db.dbi.GetQueryInt(ctx, existThingOwnedBy, id, userId)
 	if err != nil {
-		db.log.Error("IsUserOwner(%v, %d) could not be retrieved from DB. failed db.Query err: %v", id, userId, err)
+		db.log.Error("IsUserOwner could not be retrieved from DB", "id", id, "userId", userId, "error", err)
 		return false
 	}
 	if count > 0 {
-		db.log.Info(" IsUserOwner(%v, %d) is true  count:%v", id, userId, count)
+		db.log.Info("IsUserOwner is true", "id", id, "userId", userId, "count", count)
 		return true
 	} else {
-		db.log.Info(" IsUserOwner(%v, %d) is false count:%v", id, userId, count)
+		db.log.Info("IsUserOwner is false", "id", id, "userId", userId, "count", count)
 		return false
 	}
 }
 
 // CreateTypeThing will store the new TypeThing in the database
 func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, error) {
-	db.log.Debug("trace : entering CreateTypeThing(%q, userId)", tt.Name, tt.CreatedBy)
+	db.log.Debug("trace: entering CreateTypeThing", "name", tt.Name, "createdBy", tt.CreatedBy)
 	var lastInsertId int = 0
 	err := db.Conn.QueryRow(ctx, createTypeThing,
 		/*	INSERT INTO go_thing.type_thing
@@ -400,10 +397,10 @@ func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, e
 		tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, &tt.GeometryType, //$6
 		&tt.ManagedBy, tt.IconPath, tt.CreatedBy, &tt.MoreDataSchema).Scan(&lastInsertId)
 	if err != nil {
-		db.log.Error("CreateTypeThing(%q) unexpectedly failed. error : %v", tt.Name, err)
+		db.log.Error("CreateTypeThing unexpectedly failed", "name", tt.Name, "error", err)
 		return nil, err
 	}
-	db.log.Info(" CreateTypeThing(%q) created with id : %v", tt.Name, &lastInsertId)
+	db.log.Info("CreateTypeThing success", "name", tt.Name, "id", lastInsertId)
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	createdTypeThing, err := db.GetTypeThing(ctx, int32(lastInsertId))
@@ -415,9 +412,9 @@ func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, e
 
 // UpdateTypeThing updates the TypeThing stored in DB with given id and other information in struct
 func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*TypeThing, error) {
-	db.log.Debug("trace : entering UpdateTypeThing(%d)", id)
+	db.log.Debug("trace: entering UpdateTypeThing", "id", id)
 
-	rowsAffected, err := db.dbi.ExecActionQuery(updateTypeTing,
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateTypeTing,
 		/*		UPDATE go_thing.type_thing
 							SET
 							    name               = $2,
@@ -445,11 +442,11 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*Ty
 		&tt.ManagedBy, tt.IconPath, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
 	if err != nil {
 
-		db.log.Error("UpdateTypeThing(%q) unexpectedly failed. error : %v", id, err)
+		db.log.Error("UpdateTypeThing unexpectedly failed", "id", id, "error", err)
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("UpdateTypeThing(%q) no row was created so create as failed. error : %v", id, err)
+		db.log.Error("UpdateTypeThing no row was updated", "id", id)
 		return nil, err
 	}
 
@@ -463,19 +460,16 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*Ty
 
 // DeleteTypeThing deletes the TypeThing stored in DB with given id
 func (db *PGX) DeleteTypeThing(ctx context.Context, id int32, userId int32) error {
-	db.log.Debug("trace : entering DeleteTypeThing(%d)", id)
-	rowsAffected, err := db.dbi.ExecActionQuery(deleteTypeThing, userId, id)
+	db.log.Debug("trace: entering DeleteTypeThing", "id", id)
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, deleteTypeThing, userId, id)
 	if err != nil {
-		msg := fmt.Sprintf("typething could not be deleted, err: %v", err)
-		db.log.Error(msg)
-		return errors.New(msg)
+		db.log.Error("typething could not be deleted", "id", id, "error", err)
+		return fmt.Errorf("typething could not be deleted: %w", err)
 	}
 	if rowsAffected < 1 {
-		msg := fmt.Sprintf("typething was not deleted, err: %v", err)
-		db.log.Error(msg)
-		return errors.New(msg)
+		db.log.Error("typething was not deleted", "id", id)
+		return errors.New("typething was not deleted")
 	}
-	// if we get to here all is good
 	return nil
 }
 
@@ -500,11 +494,11 @@ func (db *PGX) ListTypeThing(ctx context.Context, offset, limit int, params Type
 	}
 
 	if err != nil {
-		db.log.Error(SelectFailedInNWithErrorE, "ListTypeThing", err)
+		db.log.Error("ListTypeThing failed", "error", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "ListTypeThing")
+		db.log.Info("ListTypeThing returned no results")
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -512,15 +506,15 @@ func (db *PGX) ListTypeThing(ctx context.Context, offset, limit int, params Type
 
 // GetTypeThing will retrieve the TypeThing with given id
 func (db *PGX) GetTypeThing(ctx context.Context, id int32) (*TypeThing, error) {
-	db.log.Debug("trace : entering GetTypeThing(%v)", id)
+	db.log.Debug("trace: entering GetTypeThing", "id", id)
 	res := &TypeThing{}
 	err := pgxscan.Get(ctx, db.Conn, res, getTypeThing, id)
 	if err != nil {
-		db.log.Error(SelectFailedInNWithErrorE, "GetTypeThing", err)
+		db.log.Error("GetTypeThing failed", "error", err)
 		return nil, err
 	}
 	if res == nil {
-		db.log.Info(FunctionNReturnedNoResults, "GetTypeThing", id)
+		db.log.Info("GetTypeThing returned no results", "id", id)
 		return nil, pgx.ErrNoRows
 	}
 	return res, nil
@@ -541,29 +535,29 @@ func (db *PGX) CountTypeThing(ctx context.Context, params TypeThingCountParams) 
 		AND _created_by = coalesce($2, _created_by)
 		AND inactivated = coalesce($3, inactivated)
 `
-		count, err = db.dbi.GetQueryInt(queryCount, &params.Keywords, &params.CreatedBy, &params.Inactivated)
+		count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.Keywords, &params.CreatedBy, &params.Inactivated)
 	}
 	if withoutSearchParameters {
 		queryCount += `
 		AND _created_by = coalesce($1, _created_by)
 		AND inactivated = coalesce($2, inactivated)
 `
-		count, err = db.dbi.GetQueryInt(queryCount, &params.CreatedBy, &params.Inactivated)
+		count, err = db.dbi.GetQueryInt(ctx, queryCount, &params.CreatedBy, &params.Inactivated)
 
 	}
 	if err != nil {
-		db.log.Error("Count() could not be retrieved from DB. failed db.Query err: %v", err)
+		db.log.Error("CountTypeThing failed", "error", err)
 		return 0, err
 	}
 	return int32(count), nil
 }
 
 // GetTypeThingMaxId will retrieve maximum value of TypeThing id existing in store.
-func (db *PGX) GetTypeThingMaxId(id int32) (int32, error) {
-	db.log.Debug("trace : entering GetTypeThingMaxId(%v)")
-	existingMaxId, err := db.dbi.GetQueryInt(typeThingMaxId)
+func (db *PGX) GetTypeThingMaxId(ctx context.Context, id int32) (int32, error) {
+	db.log.Debug("trace : entering GetTypeThingMaxId")
+	existingMaxId, err := db.dbi.GetQueryInt(ctx, typeThingMaxId)
 	if err != nil {
-		db.log.Error("GetTypeThingMaxId() failed, error : %v", err)
+		db.log.Error("GetTypeThingMaxId() failed", "error", err)
 		return 0, err
 	}
 	return int32(existingMaxId), nil

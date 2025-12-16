@@ -42,3 +42,4 @@ ___goCloudK8sThingServer_test_go.test
 /cmd/goCloudK8sThingServer/goCloudK8sThingFront/node_modules*
 **/node_modules
 proto_third_party/*
+/coverage.txt

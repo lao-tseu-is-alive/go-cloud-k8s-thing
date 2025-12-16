@@ -20,14 +20,14 @@ import (
 
 // Helper to create a test Connect server
 func createTestThingConnectServer(mockStore *MockStorage, mockDB *MockDB) *ThingConnectServer {
-	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
+	logger := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
 	businessService := NewBusinessService(mockStore, mockDB, logger, 50)
 	return NewThingConnectServer(businessService, logger)
 }
 
 // Helper to create a test TypeThing Connect server
 func createTestTypeThingConnectServer(mockStore *MockStorage, mockDB *MockDB) *TypeThingConnectServer {
-	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
+	logger := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
 	businessService := NewBusinessService(mockStore, mockDB, logger, 50)
 	return NewTypeThingConnectServer(businessService, logger)
 }

@@ -4,24 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 // BusinessService Business Service contains the transport-agnostic business logic for Thing operations
 type BusinessService struct {
-	Log              golog.MyLogger
+	Log              *slog.Logger
 	DbConn           database.DB
 	Store            Storage
 	ListDefaultLimit int
 }
 
 // NewBusinessService creates a new instance of BusinessService
-func NewBusinessService(store Storage, dbConn database.DB, log golog.MyLogger, listDefaultLimit int) *BusinessService {
+func NewBusinessService(store Storage, dbConn database.DB, log *slog.Logger, listDefaultLimit int) *BusinessService {
 	return &BusinessService{
 		Log:              log,
 		DbConn:           dbConn,
@@ -90,7 +90,7 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 		return nil, fmt.Errorf("error creating thing: %w", err)
 	}
 
-	s.Log.Info("Created thing with id: %v by user: %d", thingCreated.Id, currentUserId)
+	s.Log.Info("Created thing", "id", thingCreated.Id, "userId", currentUserId)
 	return thingCreated, nil
 }
 
@@ -121,7 +121,7 @@ func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thing
 		return fmt.Errorf("error deleting thing: %w", err)
 	}
 
-	s.Log.Info("Deleted thing %v by user: %d", thingId, currentUserId)
+	s.Log.Info("Deleted thing", "id", thingId, "userId", currentUserId)
 	return nil
 }
 
@@ -167,7 +167,7 @@ func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thing
 		return nil, fmt.Errorf("error updating thing: %w", err)
 	}
 
-	s.Log.Info("Updated thing %v by user: %d", thingId, currentUserId)
+	s.Log.Info("Updated thing", "id", thingId, "userId", currentUserId)
 	return thingUpdated, nil
 }
 
@@ -236,7 +236,7 @@ func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int
 		return nil, fmt.Errorf("error creating type thing: %w", err)
 	}
 
-	s.Log.Info("Created TypeThing with id: %d by user: %d", typeThingCreated.Id, currentUserId)
+	s.Log.Info("Created TypeThing", "id", typeThingCreated.Id, "userId", currentUserId)
 	return typeThingCreated, nil
 }
 
@@ -257,7 +257,7 @@ func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int
 	}
 
 	// Check if TypeThing exists
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		return fmt.Errorf("%w: id %d", ErrTypeThingNotFound, typeThingId)
 	}
@@ -268,7 +268,7 @@ func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int
 		return fmt.Errorf("error deleting type thing: %w", err)
 	}
 
-	s.Log.Info("Deleted TypeThing %d by user: %d", typeThingId, currentUserId)
+	s.Log.Info("Deleted TypeThing", "id", typeThingId, "userId", currentUserId)
 	return nil
 }
 
@@ -280,7 +280,7 @@ func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeTh
 	}
 
 	// Check if TypeThing exists
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		return nil, fmt.Errorf("%w: id %d", ErrTypeThingNotFound, typeThingId)
 	}
@@ -302,7 +302,7 @@ func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int
 	}
 
 	// Check if TypeThing exists
-	typeThingCount, err := s.DbConn.GetQueryInt(existTypeThing, typeThingId)
+	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
 		return nil, fmt.Errorf("%w: id %d", ErrTypeThingNotFound, typeThingId)
 	}
@@ -321,6 +321,6 @@ func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int
 		return nil, fmt.Errorf("error updating type thing: %w", err)
 	}
 
-	s.Log.Info("Updated TypeThing %d by user: %d", typeThingId, currentUserId)
+	s.Log.Info("Updated TypeThing", "id", typeThingId, "userId", currentUserId)
 	return thingUpdated, nil
 }

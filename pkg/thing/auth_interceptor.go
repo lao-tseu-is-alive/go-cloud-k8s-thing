@@ -4,11 +4,11 @@ package thing
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/goHttpEcho"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 // Context keys for storing user information
@@ -33,7 +33,7 @@ const (
 //
 //	interceptors := connect.WithInterceptors(NewAuthInterceptor(jwtCheck, log))
 //	handler := thingv1connect.NewThingServiceHandler(server, interceptors)
-func NewAuthInterceptor(jwtCheck goHttpEcho.JwtChecker, log golog.MyLogger) connect.UnaryInterceptorFunc {
+func NewAuthInterceptor(jwtCheck goHttpEcho.JwtChecker, log *slog.Logger) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			// Extract Authorization header
@@ -51,7 +51,7 @@ func NewAuthInterceptor(jwtCheck goHttpEcho.JwtChecker, log golog.MyLogger) conn
 			// Validate token and extract claims
 			claims, err := jwtCheck.ParseToken(token)
 			if err != nil {
-				log.Warn("invalid JWT token: %v", err)
+				log.Warn("invalid JWT token", "error", err)
 				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid token"))
 			}
 

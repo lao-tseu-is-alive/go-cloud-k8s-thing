@@ -144,13 +144,13 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) GetQueryInt(query string, args ...interface{}) (int, error) {
-	callArgs := m.Called(query, args)
+func (m *MockDB) GetQueryInt(ctx context.Context, query string, args ...interface{}) (int, error) {
+	callArgs := m.Called(ctx, query, args)
 	return callArgs.Int(0), callArgs.Error(1)
 }
 
-func (m *MockDB) GetVersion() (string, error) {
-	args := m.Called()
+func (m *MockDB) GetVersion(ctx context.Context) (string, error) {
+	args := m.Called(ctx)
 	return args.String(0), args.Error(1)
 }
 
@@ -158,18 +158,23 @@ func (m *MockDB) Close() {
 	m.Called()
 }
 
-func (m *MockDB) GetQueryBool(query string, args ...interface{}) (bool, error) {
-	callArgs := m.Called(query, args)
+func (m *MockDB) HealthCheck(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockDB) GetQueryBool(ctx context.Context, query string, args ...interface{}) (bool, error) {
+	callArgs := m.Called(ctx, query, args)
 	return callArgs.Bool(0), callArgs.Error(1)
 }
 
-func (m *MockDB) ExecActionQuery(query string, args ...interface{}) (int, error) {
-	callArgs := m.Called(query, args)
+func (m *MockDB) ExecActionQuery(ctx context.Context, query string, args ...interface{}) (int, error) {
+	callArgs := m.Called(ctx, query, args)
 	return callArgs.Int(0), callArgs.Error(1)
 }
 
-func (m *MockDB) DoesTableExist(schema, table string) bool {
-	args := m.Called(schema, table)
+func (m *MockDB) DoesTableExist(ctx context.Context, schema, table string) bool {
+	args := m.Called(ctx, schema, table)
 	return args.Bool(0)
 }
 
@@ -181,19 +186,19 @@ func (m *MockDB) GetPGConn() (*pgxpool.Pool, error) {
 	return args.Get(0).(*pgxpool.Pool), args.Error(1)
 }
 
-func (m *MockDB) GetQueryString(query string, args ...interface{}) (string, error) {
-	callArgs := m.Called(query, args)
+func (m *MockDB) GetQueryString(ctx context.Context, query string, args ...interface{}) (string, error) {
+	callArgs := m.Called(ctx, query, args)
 	return callArgs.String(0), callArgs.Error(1)
 }
 
-func (m *MockDB) Insert(query string, args ...interface{}) (int, error) {
-	callArgs := m.Called(query, args)
+func (m *MockDB) Insert(ctx context.Context, query string, args ...interface{}) (int, error) {
+	callArgs := m.Called(ctx, query, args)
 	return callArgs.Int(0), callArgs.Error(1)
 }
 
 // Helper function to create a test business service
 func createTestBusinessService(mockStore *MockStorage, mockDB *MockDB) *BusinessService {
-	logger, _ := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
+	logger := golog.NewLogger("simple", os.Stdout, golog.InfoLevel, "test")
 	return NewBusinessService(mockStore, mockDB, logger, 50)
 }
 

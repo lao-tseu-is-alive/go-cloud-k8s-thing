@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
+	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/vanguard"
@@ -68,7 +73,7 @@ type UserLogin struct {
 }
 
 type Service struct {
-	Logger        golog.MyLogger
+	Logger        *slog.Logger
 	dbConn        database.DB
 	server        *goHttpEcho.Server
 	jwtCookieName string
@@ -94,8 +99,9 @@ func (s *Service) login(ctx echo.Context) error {
 	}
 	s.Logger.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 
-	if s.server.Authenticator.AuthenticateUser(uLogin.Username, uLogin.PasswordHash) {
-		userInfo, err := s.server.Authenticator.GetUserInfoFromLogin(login)
+	reqCtx := ctx.Request().Context()
+	if s.server.Authenticator.AuthenticateUser(reqCtx, uLogin.Username, uLogin.PasswordHash) {
+		userInfo, err := s.server.Authenticator.GetUserInfoFromLogin(reqCtx, login)
 		if err != nil {
 			myErrMsg := fmt.Sprintf("Error getting user info from login: %v", err)
 			s.Logger.Error(myErrMsg)
@@ -112,7 +118,7 @@ func (s *Service) login(ctx echo.Context) error {
 			"jwtStatus": "success",
 			"token":     token.String(),
 		}
-		s.Logger.Info("LoginUser(%s) successful login", login)
+		s.Logger.Info("LoginUser() successful", "login", login)
 		return ctx.JSON(http.StatusOK, response)
 	} else {
 		myErrMsg := "username not found or password invalid"
@@ -126,7 +132,7 @@ func (s *Service) GetStatus(ctx echo.Context) error {
 	// get the current user from JWT TOKEN
 	claims := s.server.JwtCheck.GetJwtCustomClaimsFromContext(ctx)
 	currentUserId := claims.User.UserId
-	s.Logger.Info("in restricted : currentUserId: %d", currentUserId)
+	s.Logger.Info("in restricted : ", "currentUserId", currentUserId)
 	// you can check if the user is not active anymore and RETURN 401 Unauthorized
 	//if !s.Store.IsUserActive(currentUserId) {
 	//	return echo.NewHTTPError(http.StatusUnauthorized, "current calling user is not active anymore")
@@ -135,7 +141,7 @@ func (s *Service) GetStatus(ctx echo.Context) error {
 }
 
 func (s *Service) IsDBAlive() bool {
-	dbVer, err := s.dbConn.GetVersion()
+	dbVer, err := s.dbConn.GetVersion(context.Background())
 	if err != nil {
 		return false
 	}
@@ -161,72 +167,86 @@ func checkHealthy(string) bool {
 	return true
 }
 
-func initMetadataOrFail(db database.DB, l golog.MyLogger) {
+func initMetadataOrFail(db database.DB, l *slog.Logger) {
 	// checking metadata information
 	metadataService := metadata.Service{Log: l, Db: db}
-	metadataService.CreateMetadataTableOrFail()
-	found, ver := metadataService.GetServiceVersionOrFail(version.APP)
+	metaDataCtx, metaDataCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer metaDataCancel()
+	metadataService.CreateMetadataTableOrFail(metaDataCtx)
+	found, ver := metadataService.GetServiceVersionOrFail(metaDataCtx, version.APP)
 	if found {
-		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
+		l.Info("retrieved service", "app", version.APP, "version", ver, "status", "found")
 	} else {
-		l.Info("service %s was not found in metadata", version.APP)
+		l.Info("impossible to retrieved service", "app", version.APP, "version", ver, "status", "not found")
 	}
-	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
+	metadataService.SetServiceVersionOrFail(metaDataCtx, version.APP, version.VERSION)
 }
 
-func runMigrationsOrFail(dbDsn string, l golog.MyLogger) {
+func runMigrationsOrFail(dbDsn string) {
 	// begin section go-migrate db migration with embed files in go program
 	// https://github.com/golang-migrate/migrate
 	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
 	if err != nil {
-		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
+		log.Fatalf("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
 	}
 	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx5", 1))
 	if err != nil {
-		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
+		log.Fatalf("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
 	}
 
 	err = m.Up()
 	if err != nil {
 		//if err == m.
 		if !errors.Is(err, migrate.ErrNoChange) {
-			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
+			log.Fatalf("💥💥 error doing migrate.Up error: %v\n", err)
 		}
 	}
 	// end section go-migrate db migration with embed files in go program
 }
 
 func main() {
-	l, err := golog.NewLogger(
-		"simple", // can be "zap"
-		config.GetLogWriterFromEnvOrPanic(defaultLogName),
-		config.GetLogLevelFromEnvOrPanic(golog.InfoLevel),
-		version.APP,
-	)
+	logWriter, err := config.GetLogWriter(defaultLogName)
 	if err != nil {
-		panic(fmt.Sprintf("💥💥 error log.NewLogger error: %v'\n", err))
+		log.Fatalf("💥💥 error getting log writer: %v'\n", err)
 	}
-	l.Info("🚀🚀 Starting App:'%s', ver:%s, from: %s", version.APP, version.VERSION, version.REPOSITORY)
-
-	dbDsn := config.GetPgDbDsnUrlFromEnvOrPanic(defaultDBIp, defaultDBPort, tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
-	db, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
+	logLevel, err := config.GetLogLevel(golog.InfoLevel)
 	if err != nil {
-		l.Fatal("💥💥 error doing database.GetInstance(pgx ...) error: %v", err)
+		log.Fatalf("💥💥 error getting log level: %v'\n", err)
+	}
+	l := golog.NewLogger("simple", logWriter, logLevel, version.APP)
+	l.Info("🚀 Starting", "app", version.APP, "version", version.VERSION, "revision", version.REVISION, "build", version.BuildStamp, "repository", version.REPOSITORY)
+
+	dbDsn, err := config.GetPgDbDsnUrl(defaultDBIp, defaultDBPort, tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
+	if err != nil {
+		l.Error("💥💥 error getting database DSN", "error", err)
+		os.Exit(1)
+	}
+	dbConnCtx, dbConnCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer dbConnCancel()
+	db, err := database.GetInstance(dbConnCtx, "pgx", dbDsn, runtime.NumCPU(), l)
+	if err != nil {
+		l.Error("💥💥 error doing database.GetInstance", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
-	dbVersion, err := db.GetVersion()
+	dbVersion, err := db.GetVersion(context.Background())
 	if err != nil {
-		l.Fatal("💥💥 error doing dbConn.GetVersion() error: %v", err)
+		l.Error("💥💥 error doing dbConn.GetVersion", "error", err)
+		os.Exit(1)
 	}
-	l.Info("connected to db version : %s", dbVersion)
+	l.Info("connected to db", "version", dbVersion)
 
 	initMetadataOrFail(db, l)
-	runMigrationsOrFail(dbDsn, l)
+	runMigrationsOrFail(dbDsn)
 
 	// Get the ENV JWT_AUTH_URL value
-	jwtAuthUrl := config.GetJwtAuthUrlFromEnvOrPanic()
-	jwtStatusUrl := config.GetJwtStatusUrlFromEnv(defaultJwtStatusUrl)
+	jwtAuthUrl, err := config.GetJwtAuthUrl()
+	if err != nil {
+		l.Error("💥💥 error getting JWT auth URL", "error", err)
+		os.Exit(1)
+	}
+	jwtStatusUrl := config.GetJwtStatusUrl(defaultJwtStatusUrl)
 
 	myVersionReader := goHttpEcho.NewSimpleVersionReader(
 		version.APP,
@@ -238,26 +258,27 @@ func main() {
 		jwtStatusUrl,
 	)
 	// Create a new JWT checker
-	myJwt := goHttpEcho.NewJwtChecker(
-		config.GetJwtSecretFromEnvOrPanic(),
-		config.GetJwtIssuerFromEnvOrPanic(),
-		version.APP,
-		config.GetJwtContextKeyFromEnvOrPanic(),
-		config.GetJwtDurationFromEnvOrPanic(60),
-		l)
-	// Create a new Authenticator with a simple admin user
-	myAuthenticator := goHttpEcho.NewSimpleAdminAuthenticator(&goHttpEcho.UserInfo{
-		UserId:     config.GetAdminIdFromEnvOrPanic(defaultAdminId),
-		ExternalId: config.GetAdminExternalIdFromEnvOrPanic(9999999),
-		Name:       "NewSimpleAdminAuthenticator_Admin",
-		Email:      config.GetAdminEmailFromEnvOrPanic(defaultAdminEmail),
-		Login:      config.GetAdminUserFromEnvOrPanic(defaultAdminUser),
-		IsAdmin:    false,
-	},
-		config.GetAdminPasswordFromEnvOrPanic(),
-		myJwt)
+	myJwt, err := goHttpEcho.GetNewJwtCheckerFromConfig(version.APP, 60, l)
+	if err != nil {
+		l.Error("💥💥 error creating JWT checker", "error", err)
+		os.Exit(1)
+	}
+	// Create a new Authenticator using factory function
+	myAuthenticator, err := goHttpEcho.GetSimpleAdminAuthenticatorFromConfig(
+		goHttpEcho.AdminDefaults{
+			UserId:     defaultAdminId,
+			ExternalId: 9999999,
+			Login:      defaultAdminUser,
+			Email:      defaultAdminEmail,
+		},
+		myJwt,
+	)
+	if err != nil {
+		l.Error("💥💥 error creating authenticator", "error", err)
+		os.Exit(1)
+	}
 
-	server := goHttpEcho.CreateNewServerFromEnvOrFail(
+	server, err := goHttpEcho.CreateNewServerFromEnv(
 		defaultPort,
 		"0.0.0.0", // defaultServerIp,
 		&goHttpEcho.Config{
@@ -271,8 +292,12 @@ func main() {
 			RestrictedUrl: defaultSecuredApi,
 		},
 	)
+	if err != nil {
+		l.Error("💥💥 error creating server", "error", err)
+		os.Exit(1)
+	}
 
-	cookieNameForJWT := config.GetJwtCookieNameFromEnv(defaultJwtCookieName)
+	cookieNameForJWT := config.GetJwtCookieName(defaultJwtCookieName)
 	yourService := Service{
 		Logger:        l,
 		dbConn:        db,
@@ -296,7 +321,8 @@ func main() {
 		},
 	)
 	if err := prometheus.Register(customCounter); err != nil { // register your new counter metric with default metrics registry
-		l.Fatal("💥💥 ERROR: 'calling prometheus.Register got error: %v'\n", err)
+		l.Error("💥💥 error calling prometheus register", "error", err)
+		os.Exit(1)
 	}
 	// https://echo.labstack.com/docs/middleware/prometheus
 	mwConfig := echoprometheus.MiddlewareConfig{
@@ -365,7 +391,8 @@ func main() {
 		typeThingService,
 	})
 	if err != nil {
-		l.Fatal("💥💥 ERROR: 'failed to create vanguard transcoder: %v'\n", err)
+		l.Error("💥💥 error failed to create vanguard transcoder", "error", err)
+		os.Exit(1)
 	}
 
 	// Mount transcoder into Echo with /goapi/v1 prefix
@@ -382,11 +409,12 @@ func main() {
 	// Connect RPC endpoints (no prefix stripping needed)
 	e.Any("/thing.v1.*", echo.WrapHandler(transcoder))
 
-	l.Info("🚀 Connect+Vanguard handlers mounted at %s for REST/gRPC transcoding", defaultSecuredApi)
+	l.Info("🚀 Connect+Vanguard handlers mounted for REST/gRPC transcoding", "securedUrl", defaultSecuredApi)
 
 	err = server.StartServer()
 	if err != nil {
-		l.Fatal("💥💥 ERROR: 'calling echo.StartServer() got error: %v'\n", err)
+		l.Error("💥💥 error starting server", "error", err)
+		os.Exit(1)
 	}
 
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -103,7 +104,7 @@ type testStruct struct {
 	body                         string
 }
 
-func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l golog.MyLogger, defaultReadTimeout time.Duration) (string, error) {
+func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l *slog.Logger, defaultReadTimeout time.Duration) (string, error) {
 	// Create a Bearer string by appending string access token
 	var bearer = "Bearer " + token
 
@@ -127,19 +128,19 @@ func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l golog
 	resp, err := client.Do(req)
 
 	if err != nil {
-		l.Error("GetJsonFromUrlWithBearerAuth: Error on response.\n[ERROR] -", err)
+		l.Error("GetJsonFromUrlWithBearerAuth: error on response.", "error", err)
 		return "", err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			l.Error("GetJsonFromUrlWithBearerAuth: Error on Body.Close().\n[ERROR] -", err)
+			l.Error("GetJsonFromUrlWithBearerAuth: error on body.Close()", "error", err)
 		}
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Error("GetJsonFromUrlWithBearerAuth: Error while reading the response bytes:", err)
+		l.Error("GetJsonFromUrlWithBearerAuth: error while reading the response bytes:", "error", err)
 		return "", err
 	}
 	return string(body), nil
@@ -147,11 +148,8 @@ func MakeHttpRequest(method, url, sendBody, token string, caCert []byte, l golog
 
 // TestMainExec is instantiating the "real" main code using the env variable (in your .env files if you use the Makefile rule)
 func TestMainExec(t *testing.T) {
-	l, err := golog.NewLogger("simple", os.Stdout, golog.DebugLevel, "TestMainExec")
-	if err != nil {
-		log.Fatalf("💥💥 error log.NewLogger error: %v'\n", err)
-	}
-	listenPort := config.GetPortFromEnvOrPanic(defaultPort)
+	l := golog.NewLogger("simple", os.Stdout, golog.DebugLevel, version.APP)
+	listenPort, _ := config.GetPort(defaultPort)
 	listenAddr := fmt.Sprintf("http://localhost:%d", listenPort)
 	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
 	// common messages
@@ -171,8 +169,17 @@ func TestMainExec(t *testing.T) {
 		return r
 	}
 	// set local admin user for test
-	adminUsername := config.GetAdminUserFromEnvOrPanic("goadmin")
-	adminPassword := config.GetAdminPasswordFromEnvOrPanic()
+	adminUsername, err := config.GetAdminUser("goadmin")
+	if err != nil {
+		l.Error("💥💥 error retrieving admin user", "error", err)
+		os.Exit(1)
+	}
+	adminPassword, err := config.GetAdminPassword()
+	if err != nil {
+		l.Error("💥💥 error retrieving admin password", "error", err)
+		os.Exit(1)
+	}
+	l.Warn("will try to connect with admin credentials", "user", adminUsername, "password", adminPassword)
 	h := sha256.New()
 	h.Write([]byte(adminPassword))
 	adminPasswordHash := fmt.Sprintf("%x", h.Sum(nil))
@@ -183,6 +190,7 @@ func TestMainExec(t *testing.T) {
 
 	getValidToken := func() string {
 		// let's get first a valid JWT TOKEN
+
 		req := newRequest(http.MethodPost, listenAddr+urlLogin, formLogin.Encode(), true)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -214,38 +222,48 @@ func TestMainExec(t *testing.T) {
 	formLoginWrong.Set("login", adminUsername)
 	formLoginWrong.Set("pass", "anObviouslyWrongPass")
 
-	dbDsn := config.GetPgDbDsnUrlFromEnvOrPanic(defaultDBIp, defaultDBPort,
+	dbDsn, err := config.GetPgDbDsnUrl(defaultDBIp, defaultDBPort,
 		tools.ToSnakeCase(version.APP), version.AppSnake, defaultDBSslMode)
-	db, err := database.GetInstance("pgx", dbDsn, runtime.NumCPU(), l)
 	if err != nil {
-		t.Fatalf("💥💥 error doing users.GetPgxConn(postgres, dbDsn  : %v\n", err)
+		l.Error("💥💥 error getting database DSN", "error", err)
+		os.Exit(1)
+	}
+	dbConnCtx, dbConnCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer dbConnCancel()
+	db, err := database.GetInstance(dbConnCtx, "pgx", dbDsn, runtime.NumCPU(), l)
+	if err != nil {
+		l.Error("💥💥 error doing database.GetInstance", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
 	// checking database connection
-	dbVersion, err := db.GetVersion()
+	dbVersion, err := db.GetVersion(context.Background())
 	if err != nil {
-		t.Fatalf("💥💥 error doing dbConn.GetVersion() error: %v", err)
+		l.Error("💥💥 error doing dbConn.GetVersion", "error", err)
+		os.Exit(1)
 	}
-	fmt.Printf("connected to db version : %s", dbVersion)
-	existTable, err := db.GetQueryBool("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'thing');")
+	l.Info("connected to db", "version", dbVersion)
+	dbCtx, dbCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer dbCancel()
+	existTable, err := db.GetQueryBool(dbCtx, "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'thing');")
 	if err != nil {
 		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
 	if existTable {
 		// removing latest test record if exist only if the thing table already exist
-		count, err := db.GetQueryInt("SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;", newThingId)
+		count, err := db.GetQueryInt(dbCtx, "SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;", newThingId)
 		if err != nil {
 			t.Fatalf("problem during cleanup before test DB. failed db.Query err: %v", err)
 		}
 		if count > 0 {
 			fmt.Printf(" This Id(%v) does exist  will cleanup before running test", newThingId)
-			db.ExecActionQuery("DELETE FROM  go_thing.thing WHERE id=$1", newThingId)
+			db.ExecActionQuery(dbCtx, "DELETE FROM  go_thing.thing WHERE id=$1", newThingId)
 		}
 	}
 
 	// deleting type thing of previous run if it's still present and if table type_thing exist only
-	existTableTypeThing, err := db.GetQueryBool("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'type_thing');")
+	existTableTypeThing, err := db.GetQueryBool(dbCtx, "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'go_thing' AND tablename  = 'type_thing');")
 	if err != nil {
 		t.Fatalf("problem verifying if thing exist in DB. failed db.Query err: %v", err)
 	}
@@ -253,17 +271,17 @@ func TestMainExec(t *testing.T) {
 	var existingCountTypeThingId = 107
 	if existTableTypeThing {
 		sqlDeleteInsertedTypeThing := "DELETE FROM go_thing.type_thing WHERE external_id=987654321;"
-		_, err = db.ExecActionQuery(sqlDeleteInsertedTypeThing)
+		_, err = db.ExecActionQuery(dbCtx, sqlDeleteInsertedTypeThing)
 		if err != nil {
 			t.Fatalf("problem trying to delete type_thing from previous test doing cleanup before running tests. failed db.Query err: %v", err)
 		}
 		typeThingMaxIdSql := "SELECT MAX(id) FROM go_thing.type_thing"
-		existingMaxTypeThingId, err = db.GetQueryInt(typeThingMaxIdSql)
+		existingMaxTypeThingId, err = db.GetQueryInt(dbCtx, typeThingMaxIdSql)
 		if err != nil {
 			t.Fatalf("problem trying to retrieve max id for typeThing cleanup before running test. failed db.Query err: %v", err)
 		}
 		resetSequence := "SELECT setval('go_thing.type_thing_id_seq', max(id)) FROM go_thing.type_thing;"
-		_, err = db.ExecActionQuery(resetSequence)
+		_, err = db.ExecActionQuery(dbCtx, resetSequence)
 		if err != nil {
 			t.Fatalf("problem trying to resetSequence to max id for type_thing_id_seq while doing cleanup before running tests. failed db.Query err: %v", err)
 		}

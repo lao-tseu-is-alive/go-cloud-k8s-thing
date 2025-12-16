@@ -2,10 +2,10 @@ package thing
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 )
 
 // Storage is an interface to different implementation of persistence for Things/TypeThing
@@ -48,14 +48,15 @@ type Storage interface {
 	CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error)
 }
 
-func GetStorageInstanceOrPanic(dbDriver string, db database.DB, l golog.MyLogger) Storage {
+func GetStorageInstanceOrPanic(dbDriver string, db database.DB, l *slog.Logger) Storage {
 	var store Storage
 	var err error
 	switch dbDriver {
 	case "pgx":
 		store, err = NewPgxDB(db, l)
 		if err != nil {
-			l.Fatal("error doing NewPgxDB(pgConn : %w", err)
+			l.Error("error doing NewPgxDB", "error", err)
+			panic(err)
 		}
 
 	default:

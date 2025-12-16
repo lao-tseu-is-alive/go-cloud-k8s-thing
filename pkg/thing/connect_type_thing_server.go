@@ -4,10 +4,10 @@ package thing
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 )
@@ -16,7 +16,7 @@ import (
 // Authentication is handled by the AuthInterceptor, which injects user info into context.
 type TypeThingConnectServer struct {
 	BusinessService *BusinessService
-	Log             golog.MyLogger
+	Log             *slog.Logger
 
 	// Embed the unimplemented handler for forward compatibility
 	thingv1connect.UnimplementedTypeThingServiceHandler
@@ -24,7 +24,7 @@ type TypeThingConnectServer struct {
 
 // NewTypeThingConnectServer creates a new TypeThingConnectServer.
 // Note: Authentication is handled by the AuthInterceptor, not by this server.
-func NewTypeThingConnectServer(business *BusinessService, log golog.MyLogger) *TypeThingConnectServer {
+func NewTypeThingConnectServer(business *BusinessService, log *slog.Logger) *TypeThingConnectServer {
 	return &TypeThingConnectServer{
 		BusinessService: business,
 		Log:             log,
@@ -49,7 +49,7 @@ func (s *TypeThingConnectServer) mapErrorToConnect(err error) *connect.Error {
 	case errors.Is(err, pgx.ErrNoRows):
 		return connect.NewError(connect.CodeNotFound, errors.New("not found"))
 	default:
-		s.Log.Error("internal error: %v", err)
+		s.Log.Error("internal error", "error", err)
 		return connect.NewError(connect.CodeInternal, errors.New("internal error"))
 	}
 }
@@ -67,7 +67,7 @@ func (s *TypeThingConnectServer) List(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("TypeThing.List: userId=%d", userId)
+	s.Log.Info("TypeThing.List", "userId", userId)
 
 	msg := req.Msg
 	params := TypeThingListParams{}
@@ -120,7 +120,7 @@ func (s *TypeThingConnectServer) Create(
 
 	// User info injected by AuthInterceptor
 	userId, isAdmin := GetUserFromContext(ctx)
-	s.Log.Info("TypeThing.Create: userId=%d, isAdmin=%v", userId, isAdmin)
+	s.Log.Info("TypeThing.Create", "userId", userId, "isAdmin", isAdmin)
 
 	protoTypeThing := req.Msg.TypeThing
 	if protoTypeThing == nil {
@@ -145,7 +145,7 @@ func (s *TypeThingConnectServer) Get(
 	ctx context.Context,
 	req *connect.Request[thingv1.TypeThingGetRequest],
 ) (*connect.Response[thingv1.TypeThingGetResponse], error) {
-	s.Log.Info("Connect: TypeThing.Get called for id=%d", req.Msg.Id)
+	s.Log.Info("Connect: TypeThing.Get called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	_, isAdmin := GetUserFromContext(ctx)
@@ -166,11 +166,11 @@ func (s *TypeThingConnectServer) Update(
 	ctx context.Context,
 	req *connect.Request[thingv1.TypeThingUpdateRequest],
 ) (*connect.Response[thingv1.TypeThingUpdateResponse], error) {
-	s.Log.Info("Connect: TypeThing.Update called for id=%d", req.Msg.Id)
+	s.Log.Info("Connect: TypeThing.Update called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	userId, isAdmin := GetUserFromContext(ctx)
-	s.Log.Info("TypeThing.Update: userId=%d, isAdmin=%v", userId, isAdmin)
+	s.Log.Info("TypeThing.Update", "userId", userId, "isAdmin", isAdmin)
 
 	protoTypeThing := req.Msg.TypeThing
 	if protoTypeThing == nil {
@@ -195,11 +195,11 @@ func (s *TypeThingConnectServer) Delete(
 	ctx context.Context,
 	req *connect.Request[thingv1.TypeThingDeleteRequest],
 ) (*connect.Response[thingv1.TypeThingDeleteResponse], error) {
-	s.Log.Info("Connect: TypeThing.Delete called for id=%d", req.Msg.Id)
+	s.Log.Info("Connect: TypeThing.Delete called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
 	userId, isAdmin := GetUserFromContext(ctx)
-	s.Log.Info("TypeThing.Delete: userId=%d, isAdmin=%v", userId, isAdmin)
+	s.Log.Info("TypeThing.Delete", "userId", userId, "isAdmin", isAdmin)
 
 	err := s.BusinessService.DeleteTypeThing(ctx, userId, isAdmin, req.Msg.Id)
 	if err != nil {
@@ -218,7 +218,7 @@ func (s *TypeThingConnectServer) Count(
 
 	// User info injected by AuthInterceptor
 	userId, _ := GetUserFromContext(ctx)
-	s.Log.Info("TypeThing.Count: userId=%d", userId)
+	s.Log.Info("TypeThing.Count", "userId", userId)
 
 	msg := req.Msg
 	params := TypeThingCountParams{}
