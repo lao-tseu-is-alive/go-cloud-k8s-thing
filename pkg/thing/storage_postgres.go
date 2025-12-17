@@ -2,7 +2,6 @@ package thing
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -20,7 +19,7 @@ type PGX struct {
 }
 
 // NewPgxDB will instantiate a new storage of type postgres and ensure schema exist
-func NewPgxDB(db database.DB, log *slog.Logger) (Storage, error) {
+func NewPgxDB(ctx context.Context, db database.DB, log *slog.Logger) (Storage, error) {
 	var psql PGX
 	pgConn, err := db.GetPGConn()
 	if err != nil {
@@ -30,17 +29,17 @@ func NewPgxDB(db database.DB, log *slog.Logger) (Storage, error) {
 	psql.dbi = db
 	psql.log = log
 	var numberOfTypeThings int
-	errTypeThingTable := pgConn.QueryRow(context.Background(), typeThingCount).Scan(&numberOfTypeThings)
+	errTypeThingTable := pgConn.QueryRow(ctx, typeThingCount).Scan(&numberOfTypeThings)
 	if errTypeThingTable != nil {
 		log.Error("Unable to retrieve the number of typeThing", "error", err)
-		return nil, err
+		return nil, errTypeThingTable
 	}
 
 	if numberOfTypeThings > 0 {
 		log.Info("database contains records in go_thing.type_thing", "count", numberOfTypeThings)
 	} else {
 		log.Warn("go_thing.type_thing is empty - it should contain at least one row")
-		return nil, errors.New("problem with initial content of database «go_thing.type_thing» should not be empty ")
+		return nil, fmt.Errorf("«go_thing.type_thing» contains %w should not be empty", numberOfTypeThings)
 	}
 
 	return &psql, err
@@ -76,11 +75,11 @@ func (db *PGX) GeoJson(ctx context.Context, offset, limit int, params GeoJsonPar
 	}
 	if err != nil {
 		db.log.Error(SelectFailedInNWithErrorE, "List", err)
-		return "nil", err
+		return "", err
 	}
 	if mayBeResultIsNull == nil {
 		db.log.Info("List returned no results")
-		return "nil", pgx.ErrNoRows
+		return "", pgx.ErrNoRows
 	}
 	return *mayBeResultIsNull, nil
 }
@@ -272,17 +271,6 @@ func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
 	db.log.Debug("trace: entering Create", "name", t.Name, "id", t.Id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(ctx, createThing,
-		/*	INSERT INTO go_thing.thing
-			(id, type_id, name, description, comment, external_id, external_ref,
-				build_at, status, contained_by, contained_by_old,validated, validated_time, validated_by,
-				managed_by, _created_at, _created_by, more_data,
-				text_search, position)
-			VALUES ($1, $2, $3, $4, $5, $6, $7,
-			$8, $9, $10, $11, $12, $13, $14,
-			$15, CURRENT_TIMESTAMP, $16, $17,
-			to_tsvector('french',...)
-			ST_SetSRID(ST_MakePoint($18,$19), 2056)));
-		*/
 		t.Id, t.TypeId, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.ExternalRef, //$7
 		&t.BuildAt, &t.Status, &t.ContainedBy, &t.ContainedByOld, t.Validated, &t.ValidatedTime, &t.ValidatedBy, //$14
 		&t.ManagedBy, t.CreatedBy, &t.MoreData, t.PosX, t.PosY)
@@ -299,7 +287,7 @@ func (db *PGX) Create(ctx context.Context, t Thing) (*Thing, error) {
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	createdThing, err := db.Get(ctx, t.Id)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error %v: thing was created, but can not be retrieved", err))
+		return nil, fmt.Errorf("error %w: thing was created, but can not be retrieved", err)
 	}
 	return createdThing, nil
 }
@@ -326,7 +314,7 @@ func (db *PGX) Update(ctx context.Context, id uuid.UUID, t Thing) (*Thing, error
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	updatedThing, err := db.Get(ctx, t.Id)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
+		return nil, fmt.Errorf("error %w: thing was updated, but can not be retrieved", err)
 	}
 	return updatedThing, nil
 }
@@ -341,7 +329,7 @@ func (db *PGX) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
 	}
 	if rowsAffected < 1 {
 		db.log.Error("thing was not deleted", "id", id)
-		return errors.New("thing was not deleted")
+		return fmt.Errorf("thing was not marked for deletetion")
 	}
 	return nil
 }
@@ -385,15 +373,6 @@ func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, e
 	db.log.Debug("trace: entering CreateTypeThing", "name", tt.Name, "createdBy", tt.CreatedBy)
 	var lastInsertId int = 0
 	err := db.Conn.QueryRow(ctx, createTypeThing,
-		/*	INSERT INTO go_thing.type_thing
-			    (name, description, comment, external_id, table_name, geometry_type,
-			     managed_by, icon_path, _created_at, _created_by, more_data_schema, text_search)
-			VALUES ($1, $2, $3, $4, $5, $6,
-			        $7, $8, CURRENT_TIMESTAMP, $9, $10,
-			        to_tsvector('french', unaccent($1) ||
-			                              ' ' || coalesce(unaccent($2), ' ') ||
-			                              ' ' || coalesce(unaccent($3), ' ') ));
-		*/
 		tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, &tt.GeometryType, //$6
 		&tt.ManagedBy, tt.IconPath, tt.CreatedBy, &tt.MoreDataSchema).Scan(&lastInsertId)
 	if err != nil {
@@ -405,7 +384,7 @@ func (db *PGX) CreateTypeThing(ctx context.Context, tt TypeThing) (*TypeThing, e
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	createdTypeThing, err := db.GetTypeThing(ctx, int32(lastInsertId))
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error %v: typeThing was created, but can not be retrieved", err))
+		return nil, fmt.Errorf("error %w: typeThing was created, but can not be retrieved", err)
 	}
 	return createdTypeThing, nil
 }
@@ -415,28 +394,6 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*Ty
 	db.log.Debug("trace: entering UpdateTypeThing", "id", id)
 
 	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateTypeTing,
-		/*		UPDATE go_thing.type_thing
-							SET
-							    name               = $2,
-							    description        = $3,
-							    comment            = $4,
-							    external_id        = $5,
-							    table_name         = $6,
-							    geometry_type      = $7,
-							    inactivated        = $8,
-							    inactivated_time   = $9,
-							    inactivated_by     = $10,
-							    inactivated_reason = $11,
-							    managed_by         = $12,
-								icon_path          = $13,
-				                _last_modified_at  = CURRENT_TIMESTAMP,
-				                _last_modified_by  = $14,
-				                more_data_schema   = $15,
-							    text_search = to_tsvector('french', unaccent($2) ||
-							                             ' ' || coalesce(unaccent($3), ' ') ||
-							                             ' ' || coalesce(unaccent($4), ' ') )
-							WHERE id = $1;
-		*/
 		id, tt.Name, &tt.Description, &tt.Comment, &tt.ExternalId, &tt.TableName, //$6
 		&tt.GeometryType, tt.Inactivated, &tt.InactivatedTime, &tt.InactivatedBy, &tt.InactivatedReason, //$11
 		&tt.ManagedBy, tt.IconPath, &tt.LastModifiedBy, &tt.MoreDataSchema) //$14
@@ -453,7 +410,7 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt TypeThing) (*Ty
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
 	updatedTypeThing, err := db.GetTypeThing(ctx, id)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error %v: thing was updated, but can not be retrieved.", err))
+		return nil, fmt.Errorf("error %w: thing was updated, but can not be retrieved", err)
 	}
 	return updatedTypeThing, nil
 }
@@ -468,7 +425,7 @@ func (db *PGX) DeleteTypeThing(ctx context.Context, id int32, userId int32) erro
 	}
 	if rowsAffected < 1 {
 		db.log.Error("typething was not deleted", "id", id)
-		return errors.New("typething was not deleted")
+		return fmt.Errorf("typething was not marked for deletion")
 	}
 	return nil
 }
@@ -483,8 +440,6 @@ func (db *PGX) ListTypeThing(ctx context.Context, offset, limit int, params Type
 	listTypeThings := typeThingListQuery
 	if params.Keywords != nil {
 		listTypeThings += listTypeThingsConditionsWithKeywords + typeThingListOrderBy
-		//db.log.Debug("params.Keywords is not nil %s", *params.Keywords)
-		//db.log.Debug("params.Keywords is not nil sql: %s", listTypeThings)
 		err = pgxscan.Select(ctx, db.Conn, &res, listTypeThings,
 			limit, offset, &params.Keywords, &params.CreatedBy, &params.ExternalId, &params.Inactivated)
 	} else {
@@ -553,7 +508,7 @@ func (db *PGX) CountTypeThing(ctx context.Context, params TypeThingCountParams) 
 }
 
 // GetTypeThingMaxId will retrieve maximum value of TypeThing id existing in store.
-func (db *PGX) GetTypeThingMaxId(ctx context.Context, id int32) (int32, error) {
+func (db *PGX) GetTypeThingMaxId(ctx context.Context) (int32, error) {
 	db.log.Debug("trace : entering GetTypeThingMaxId")
 	existingMaxId, err := db.dbi.GetQueryInt(ctx, typeThingMaxId)
 	if err != nil {

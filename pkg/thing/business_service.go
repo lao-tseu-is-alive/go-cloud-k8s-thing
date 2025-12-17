@@ -76,6 +76,12 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
 
+	// Validate TypeId
+	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, newThing.TypeId)
+	if err != nil || typeThingCount < 1 {
+		return nil, fmt.Errorf("%w: typeId %v", ErrTypeThingNotFound, newThing.TypeId)
+	}
+
 	// Check if thing already exists
 	if s.Store.Exist(ctx, newThing.Id) {
 		return nil, fmt.Errorf("%w: id %v", ErrAlreadyExists, newThing.Id)
@@ -156,6 +162,12 @@ func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thing
 	// Validate name
 	if err := validateName(updateThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
+	}
+
+	// Validate TypeId
+	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, updateThing.TypeId)
+	if err != nil || typeThingCount < 1 {
+		return nil, fmt.Errorf("%w: typeId %v", ErrTypeThingNotFound, updateThing.TypeId)
 	}
 
 	// Set last modifier

@@ -48,12 +48,12 @@ type Storage interface {
 	CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error)
 }
 
-func GetStorageInstanceOrPanic(dbDriver string, db database.DB, l *slog.Logger) Storage {
+func GetStorageInstanceOrPanic(ctx context.Context, dbDriver string, db database.DB, l *slog.Logger) Storage {
 	var store Storage
 	var err error
 	switch dbDriver {
 	case "pgx":
-		store, err = NewPgxDB(db, l)
+		store, err = NewPgxDB(ctx, db, l)
 		if err != nil {
 			l.Error("error doing NewPgxDB", "error", err)
 			panic(err)

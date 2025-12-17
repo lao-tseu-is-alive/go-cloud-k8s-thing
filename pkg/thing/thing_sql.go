@@ -143,7 +143,6 @@ FROM (SELECT 'FeatureCollection'                         AS type,
                
 `
 	geoJsonListEndOfQuery = `
-		AND text_search @@ plainto_tsquery('french', unaccent($6))
         ORDER BY _created_at DESC
         LIMIT $1 OFFSET $2) AS f) AS fc
 `

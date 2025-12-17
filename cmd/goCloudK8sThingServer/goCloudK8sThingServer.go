@@ -355,7 +355,9 @@ func main() {
 	r := server.GetRestrictedGroup()
 	r.GET(jwtStatusUrl, yourService.GetStatus)
 
-	thingStore := thing.GetStorageInstanceOrPanic("pgx", db, l)
+	dbStorageCtx, dbStorageCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer dbStorageCancel()
+	thingStore := thing.GetStorageInstanceOrPanic(dbStorageCtx, "pgx", db, l)
 
 	// Create business service (transport-agnostic)
 	thingBusinessService := thing.NewBusinessService(thingStore, db, l, 50)

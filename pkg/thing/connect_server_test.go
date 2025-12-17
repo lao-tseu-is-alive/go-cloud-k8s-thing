@@ -181,6 +181,7 @@ func TestThingConnectServer_Create(t *testing.T) {
 			CreatedBy: 123,
 		}
 
+		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, mock.Anything).Return(1, nil)
 		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false)
 		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(expectedThing, nil)
 

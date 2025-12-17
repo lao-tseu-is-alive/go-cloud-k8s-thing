@@ -20,7 +20,7 @@ const (
 	userInfoKey authContextKey = "auth_user_info"
 )
 
-// AuthInterceptor creates a Connect unary interceptor that validates JWT tokens
+// NewAuthInterceptor AuthInterceptor creates a Connect unary interceptor that validates JWT tokens
 // and injects user information into the request context.
 //
 // This interceptor:
