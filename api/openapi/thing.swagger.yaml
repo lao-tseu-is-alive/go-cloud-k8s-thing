@@ -709,15 +709,6 @@ definitions:
         type: number
         format: double
         title: Coordonnées Y de cet objet
-    required:
-      - id
-      - typeId
-      - name
-      - inactivated
-      - createdBy
-      - deleted
-      - posX
-      - posY
   v1ThingList:
     type: object
     properties:
@@ -808,13 +799,6 @@ definitions:
         format: int32
       moreDataSchema:
         type: object
-    required:
-      - id
-      - name
-      - inactivated
-      - iconPath
-      - createdBy
-      - deleted
   v1TypeThingList:
     type: object
     properties:

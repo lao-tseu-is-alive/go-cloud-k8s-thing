@@ -2,12 +2,11 @@ syntax = "proto3";
 
 package thing.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
-
-
+import "google/protobuf/timestamp.proto";
 
 // =========================================================
 // Service: Thing
@@ -17,9 +16,7 @@ service ThingService {
   // List returns a list of things.
   // Returns the thing in an array.
   rpc List(ListRequest) returns (ListResponse) {
-    option (google.api.http) = {
-      get: "/thing"
-    };
+    option (google.api.http) = {get: "/thing"};
   }
 
   // Create creates a new thing.
@@ -34,9 +31,7 @@ service ThingService {
   // Get retrieves in backend all information about a specific thingId.
   // Retrieve a specific thing.
   rpc Get(GetRequest) returns (GetResponse) {
-    option (google.api.http) = {
-      get: "/thing/{id}"
-    };
+    option (google.api.http) = {get: "/thing/{id}"};
   }
 
   // Update allows to modify information about a specific thingId.
@@ -51,44 +46,33 @@ service ThingService {
   // Delete allows to delete a specific thingId.
   // delete a thing.
   rpc Delete(DeleteRequest) returns (DeleteResponse) {
-    option (google.api.http) = {
-      delete: "/thing/{id}"
-    };
+    option (google.api.http) = {delete: "/thing/{id}"};
   }
 
   // Search returns a list of thing based on search criterias.
   // Returns the thing in an array.
   rpc Search(SearchRequest) returns (SearchResponse) {
-    option (google.api.http) = {
-      get: "/thing/search"
-    };
+    option (google.api.http) = {get: "/thing/search"};
   }
 
   // Count returns the number of thing based on search criterias.
   // Returns the number of things found after filtering with passed criterias.
   rpc Count(CountRequest) returns (CountResponse) {
-    option (google.api.http) = {
-      get: "/thing/count"
-    };
+    option (google.api.http) = {get: "/thing/count"};
   }
 
   // List returns a geoJson of things found.
   // Returns the geoJson of the thing selected by the given parameters.
   rpc GeoJson(GeoJsonRequest) returns (GeoJsonResponse) {
-    option (google.api.http) = {
-      get: "/thing/geojson"
-    };
+    option (google.api.http) = {get: "/thing/geojson"};
   }
 
   // ListByExternalId returns a list of thing filtered by externalId.
   // Returns the things in an array.
   rpc ListByExternalId(ListByExternalIdRequest) returns (ListByExternalIdResponse) {
-    option (google.api.http) = {
-      get: "/thing/by-external-id/{external_id}"
-    };
+    option (google.api.http) = {get: "/thing/by-external-id/{external_id}"};
   }
 }
-
 
 // =========================================================
 // Messages: Thing
@@ -97,14 +81,19 @@ service ThingService {
 message Thing {
   // identifiant uuid v4
   // cet Universally unique identifier (UUID) sera généré automatiquement pour vous
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 1 [(buf.validate.field).required = true];
 
   // identifiant du type d'objet
   // FK sur la clé primaire du TypeThing de cet objet
-  int32 type_id = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 type_id = 2 [(buf.validate.field).required = true];
 
   // nom de cet objet
-  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  string name = 3 [
+    (buf.validate.field).string = {
+      min_len: 5
+      max_len: 100
+    }
+  ];
 
   // description
   string description = 4;
@@ -130,7 +119,7 @@ message Thing {
   int32 contained_by_old = 11;
 
   // inactivé?
-  bool inactivated = 12 [(google.api.field_behavior) = REQUIRED];
+  bool inactivated = 12;
 
   // date d'inactivation
   google.protobuf.Timestamp inactivated_time = 13;
@@ -159,7 +148,7 @@ message Thing {
 
   // utilisateur ayant créé cet enregistrement
   // identifiant de l'utilisateur ayant créé cet enregistrement
-  int32 created_by = 21 [(google.api.field_behavior) = REQUIRED];
+  int32 created_by = 21 [(buf.validate.field).required = true];
 
   // date modification
   // date de la dernière modication de cet enregistrement
@@ -171,7 +160,7 @@ message Thing {
 
   // effacé?
   // cet enregisrement a été marqué comme effacé
-  bool deleted = 24 [(google.api.field_behavior) = REQUIRED];
+  bool deleted = 24;
 
   // date effacé
   // date à laquelle cet enregisrement a été marqué comme effacé
@@ -186,10 +175,10 @@ message Thing {
   google.protobuf.Struct more_data = 27;
 
   // Coordonnées X de cet objet
-  double pos_x = 28 [(google.api.field_behavior) = REQUIRED];
+  double pos_x = 28 [(buf.validate.field).required = true];
 
   // Coordonnées Y de cet objet
-  double pos_y = 29 [(google.api.field_behavior) = REQUIRED];
+  double pos_y = 29 [(buf.validate.field).required = true];
 }
 
 // A light version of Thing for lists
@@ -207,7 +196,6 @@ message ThingList {
   double pos_x = 11;
   double pos_y = 12;
 }
-
 
 // =========================================================
 // Requests & Responses
@@ -234,7 +222,7 @@ message ListResponse {
 
 message CreateRequest {
   // Thing to add
-  Thing thing = 1 [(google.api.field_behavior) = REQUIRED];
+  Thing thing = 1 [(buf.validate.field).required = true];
 }
 
 message CreateResponse {
@@ -243,7 +231,7 @@ message CreateResponse {
 
 message GetRequest {
   // Id of the thing
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 1 [(buf.validate.field).required = true];
 }
 
 message GetResponse {
@@ -252,9 +240,9 @@ message GetResponse {
 
 message UpdateRequest {
   // Id of the thing
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 1 [(buf.validate.field).required = true];
   // informations related to the thing
-  Thing thing = 2 [(google.api.field_behavior) = REQUIRED];
+  Thing thing = 2 [(buf.validate.field).required = true];
 }
 
 message UpdateResponse {
@@ -263,7 +251,7 @@ message UpdateResponse {
 
 message DeleteRequest {
   // Id of the thing
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 1 [(buf.validate.field).required = true];
 }
 
 message DeleteResponse {
@@ -313,7 +301,7 @@ message GeoJsonResponse {
 
 message ListByExternalIdRequest {
   // externalId of the things needed
-  int32 external_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 external_id = 1 [(buf.validate.field).required = true];
   int32 limit = 2;
   int32 offset = 3;
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"connectrpc.com/validate"
 	"connectrpc.com/vanguard"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
@@ -365,9 +366,9 @@ func main() {
 	// ---------------------------------------------------------
 	// Connect + Vanguard: REST/gRPC/Connect transcoding
 	// ---------------------------------------------------------
-	// Create auth interceptor for JWT validation
+	// Create auth interceptor for JWT validation and value validation
 	authInterceptor := thing.NewAuthInterceptor(myJwt, l)
-	interceptors := connect.WithInterceptors(authInterceptor)
+	interceptors := connect.WithInterceptors(authInterceptor, validate.NewInterceptor())
 
 	// Create Connect servers (auth is handled by interceptor, not servers)
 	thingConnectServer := thing.NewThingConnectServer(thingBusinessService, l)

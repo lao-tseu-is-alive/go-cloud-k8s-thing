@@ -7,6 +7,7 @@
 package thingv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -917,32 +918,32 @@ var File_thing_v1_type_thing_proto protoreflect.FileDescriptor
 
 const file_thing_v1_type_thing_proto_rawDesc = "" +
 	"\n" +
-	"\x19thing/v1/type_thing.proto\x12\bthing.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xea\x06\n" +
-	"\tTypeThing\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\x05B\x03\xe0A\x02R\x02id\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
+	"\x19thing/v1/type_thing.proto\x12\bthing.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xe7\x06\n" +
+	"\tTypeThing\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x05\x18dR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
 	"\acomment\x18\x04 \x01(\tR\acomment\x12\x1f\n" +
 	"\vexternal_id\x18\x05 \x01(\x05R\n" +
 	"externalId\x12\x1d\n" +
 	"\n" +
 	"table_name\x18\x06 \x01(\tR\ttableName\x12#\n" +
-	"\rgeometry_type\x18\a \x01(\tR\fgeometryType\x12%\n" +
-	"\vinactivated\x18\b \x01(\bB\x03\xe0A\x02R\vinactivated\x12E\n" +
+	"\rgeometry_type\x18\a \x01(\tR\fgeometryType\x12 \n" +
+	"\vinactivated\x18\b \x01(\bR\vinactivated\x12E\n" +
 	"\x10inactivated_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x0finactivatedTime\x12%\n" +
 	"\x0einactivated_by\x18\n" +
 	" \x01(\x05R\rinactivatedBy\x12-\n" +
 	"\x12inactivated_reason\x18\v \x01(\tR\x11inactivatedReason\x12\x1d\n" +
 	"\n" +
-	"managed_by\x18\f \x01(\x05R\tmanagedBy\x12 \n" +
-	"\ticon_path\x18\r \x01(\tB\x03\xe0A\x02R\biconPath\x129\n" +
+	"managed_by\x18\f \x01(\x05R\tmanagedBy\x12#\n" +
+	"\ticon_path\x18\r \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\biconPath\x129\n" +
 	"\n" +
-	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\"\n" +
+	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x0f \x01(\x05B\x03\xe0A\x02R\tcreatedBy\x12D\n" +
+	"created_by\x18\x0f \x01(\x05R\tcreatedBy\x12D\n" +
 	"\x10last_modified_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastModifiedAt\x12(\n" +
-	"\x10last_modified_by\x18\x11 \x01(\x05R\x0elastModifiedBy\x12\x1d\n" +
-	"\adeleted\x18\x12 \x01(\bB\x03\xe0A\x02R\adeleted\x129\n" +
+	"\x10last_modified_by\x18\x11 \x01(\x05R\x0elastModifiedBy\x12\x18\n" +
+	"\adeleted\x18\x12 \x01(\bR\adeleted\x129\n" +
 	"\n" +
 	"deleted_at\x18\x13 \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x1d\n" +
 	"\n" +
@@ -971,27 +972,27 @@ const file_thing_v1_type_thing_proto_rawDesc = "" +
 	"\x06offset\x18\x06 \x01(\x05R\x06offset\"X\n" +
 	"\x1cTypeThingServiceListResponse\x128\n" +
 	"\vtype_things\x18\x01 \x03(\v2\x17.thing.v1.TypeThingListR\n" +
-	"typeThings\"X\n" +
-	"\x1dTypeThingServiceCreateRequest\x127\n" +
+	"typeThings\"[\n" +
+	"\x1dTypeThingServiceCreateRequest\x12:\n" +
 	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingB\x03\xe0A\x02R\ttypeThing\"T\n" +
+	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingB\x06\xbaH\x03\xc8\x01\x01R\ttypeThing\"T\n" +
 	"\x1eTypeThingServiceCreateResponse\x122\n" +
 	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"1\n" +
-	"\x1aTypeThingServiceGetRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\x05B\x03\xe0A\x02R\x02id\"Q\n" +
+	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"4\n" +
+	"\x1aTypeThingServiceGetRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\x02id\"Q\n" +
 	"\x1bTypeThingServiceGetResponse\x122\n" +
 	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"m\n" +
-	"\x1dTypeThingServiceUpdateRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\x05B\x03\xe0A\x02R\x02id\x127\n" +
+	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"s\n" +
+	"\x1dTypeThingServiceUpdateRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\x02id\x12:\n" +
 	"\n" +
-	"type_thing\x18\x02 \x01(\v2\x13.thing.v1.TypeThingB\x03\xe0A\x02R\ttypeThing\"T\n" +
+	"type_thing\x18\x02 \x01(\v2\x13.thing.v1.TypeThingB\x06\xbaH\x03\xc8\x01\x01R\ttypeThing\"T\n" +
 	"\x1eTypeThingServiceUpdateResponse\x122\n" +
 	"\n" +
-	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"4\n" +
-	"\x1dTypeThingServiceDeleteRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\x05B\x03\xe0A\x02R\x02id\" \n" +
+	"type_thing\x18\x01 \x01(\v2\x13.thing.v1.TypeThingR\ttypeThing\"7\n" +
+	"\x1dTypeThingServiceDeleteRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\x02id\" \n" +
 	"\x1eTypeThingServiceDeleteResponse\"{\n" +
 	"\x1cTypeThingServiceCountRequest\x12\x1a\n" +
 	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x1d\n" +

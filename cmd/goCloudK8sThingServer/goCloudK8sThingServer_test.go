@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	DEBUG                           = false
+	DEBUG                           = true
 	assertCorrectStatusCodeExpected = "expected status code should be returned"
 	urlLogin                        = "/login"
 	urlThing                        = "/thing"
@@ -66,16 +66,19 @@ const (
     "pos_y": 1152609.12,
     "type_id": 2,
     "validated": true,
+    "created_by": 999999,
 	"comment": "À Noël la livraison de maïs, surtout après un Æquinoxe vernal est aussi hypothétique que la floraison des æschynanthes qui n'apparaîtra que dans l'Œil d'un cyclone métaphysique "
   }
 `
 	exampleTypeThing = `
 {
+  "id": 99999,
   "description": "Piscine publique ou privée",
   "geometry_type": "bbox", 
   "external_id": 987654321,
   "name": "Piscine",
-  "icon_path": "/img/gomarker_star_blue.png"
+  "icon_path": "/img/gomarker_star_blue.png",
+  "created_by": 1
 }
 
 `
@@ -153,8 +156,9 @@ func TestMainExec(t *testing.T) {
 	listenAddr := fmt.Sprintf("http://localhost:%d", listenPort)
 	fmt.Printf("INFO: 'Will start HTTP server listening on port %s'\n", listenAddr)
 	// common messages
-	nameCannotBeEmpty := fmt.Sprintf(thing.FieldCannotBeEmpty, "name")
-	nameMinLenghtMsg := fmt.Sprintf(thing.FieldMinLengthIsN, "name", thing.MinNameLength)
+	//nameCannotBeEmpty := fmt.Sprintf("name: value length must be at least 5field %s cannot be empty", "name")
+	//nameCannotBeEmpty := fmt.Sprintf("thing.%s: value length must be at least 5 characters ", "name")
+	nameMinLengthMsg := fmt.Sprintf("%s: value length must be at least %d", "name", thing.MinNameLength)
 	newRequest := func(method, url string, body string, useFormUrlencodedContentType bool) *http.Request {
 		fmt.Printf("INFO: 🚀🚀'newRequest %s on %s ##BODY : %+v'\n", method, url, body)
 		r, err := http.NewRequest(method, url, strings.NewReader(body))
@@ -367,7 +371,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /types with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameCannotBeEmpty,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          defaultSecuredApi + urlTypeThing,
@@ -379,7 +383,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /types with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameMinLenghtMsg,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          defaultSecuredApi + urlTypeThing,
@@ -403,7 +407,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /thing with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameCannotBeEmpty,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          defaultSecuredApi + urlThing,
@@ -415,7 +419,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "POST /thing with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameMinLenghtMsg,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPost,
 			url:                          defaultSecuredApi + urlThing,
@@ -535,7 +539,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /thing with existing id but empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameCannotBeEmpty,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
 			url:                          defaultSecuredApi + urlNewThingId,
@@ -547,7 +551,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /thing with existing id but name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameMinLenghtMsg,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
 			url:                          defaultSecuredApi + urlNewThingId,
@@ -578,7 +582,7 @@ func TestMainExec(t *testing.T) {
 			url:                          defaultSecuredApi + "/thing/11111111-4444-5555-6666-777777777777",
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
-			body:                         "",
+			body:                         exampleThingUpdate,
 		},
 		{
 			name:                         "GET /thing/by-external-id with existing id should return the valid thing",
@@ -753,7 +757,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /types with empty name should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameCannotBeEmpty,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
 			url:                          defaultSecuredApi + urTypeThingNewId,
@@ -765,7 +769,7 @@ func TestMainExec(t *testing.T) {
 			name:                         "PUT /types with name shorter then 5 chars should return bad request",
 			wantStatusCode:               http.StatusBadRequest,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     nameMinLenghtMsg,
+			wantBody:                     nameMinLengthMsg,
 			paramKeyValues:               make(map[string]string, 0),
 			httpMethod:                   http.MethodPut,
 			url:                          defaultSecuredApi + urTypeThingNewId,
@@ -783,7 +787,7 @@ func TestMainExec(t *testing.T) {
 			url:                          defaultSecuredApi + urTypeThingNewId,
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
-			body:                         exampleTypeThingUpdate,
+			body:                         strings.Replace(exampleTypeThingUpdate, "}", ",\n\"id\":"+strconv.Itoa(existingMaxTypeThingId)+"}", 1),
 		},
 		{
 			name:                         "PUT /types with non-existing id should return StatusNotFound",
@@ -795,7 +799,7 @@ func TestMainExec(t *testing.T) {
 			url:                          defaultSecuredApi + "/types/8876541",
 			useFormUrlencodedContentType: false,
 			useJwtToken:                  true,
-			body:                         "",
+			body:                         strings.Replace(exampleTypeThingUpdate, "}", ",\n\"id\":8876541}", 1),
 		},
 		{
 			name:                         "GET /types with with existing external_id should return the valid typeThing",

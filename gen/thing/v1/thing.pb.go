@@ -7,6 +7,7 @@
 package thingv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1449,11 +1450,11 @@ var File_thing_v1_thing_proto protoreflect.FileDescriptor
 
 const file_thing_v1_thing_proto_rawDesc = "" +
 	"\n" +
-	"\x14thing/v1/thing.proto\x12\bthing.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x92\t\n" +
-	"\x05Thing\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1c\n" +
-	"\atype_id\x18\x02 \x01(\x05B\x03\xe0A\x02R\x06typeId\x12\x17\n" +
-	"\x04name\x18\x03 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
+	"\x14thing/v1/thing.proto\x12\bthing.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9d\t\n" +
+	"\x05Thing\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1f\n" +
+	"\atype_id\x18\x02 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\x06typeId\x12\x1d\n" +
+	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x05\x18dR\x04name\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12\x1f\n" +
 	"\vexternal_id\x18\x06 \x01(\x05R\n" +
@@ -1463,8 +1464,8 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\x06status\x18\t \x01(\tR\x06status\x12!\n" +
 	"\fcontained_by\x18\n" +
 	" \x01(\tR\vcontainedBy\x12(\n" +
-	"\x10contained_by_old\x18\v \x01(\x05R\x0econtainedByOld\x12%\n" +
-	"\vinactivated\x18\f \x01(\bB\x03\xe0A\x02R\vinactivated\x12E\n" +
+	"\x10contained_by_old\x18\v \x01(\x05R\x0econtainedByOld\x12 \n" +
+	"\vinactivated\x18\f \x01(\bR\vinactivated\x12E\n" +
 	"\x10inactivated_time\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x0finactivatedTime\x12%\n" +
 	"\x0einactivated_by\x18\x0e \x01(\x05R\rinactivatedBy\x12-\n" +
 	"\x12inactivated_reason\x18\x0f \x01(\tR\x11inactivatedReason\x12\x1c\n" +
@@ -1474,19 +1475,19 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\n" +
 	"managed_by\x18\x13 \x01(\x05R\tmanagedBy\x12>\n" +
 	"\n" +
-	"created_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcreatedAt\x12\"\n" +
+	"created_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcreatedAt\x12%\n" +
 	"\n" +
-	"created_by\x18\x15 \x01(\x05B\x03\xe0A\x02R\tcreatedBy\x12I\n" +
+	"created_by\x18\x15 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\tcreatedBy\x12I\n" +
 	"\x10last_modified_at\x18\x16 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x0elastModifiedAt\x12(\n" +
-	"\x10last_modified_by\x18\x17 \x01(\x05R\x0elastModifiedBy\x12\x1d\n" +
-	"\adeleted\x18\x18 \x01(\bB\x03\xe0A\x02R\adeleted\x129\n" +
+	"\x10last_modified_by\x18\x17 \x01(\x05R\x0elastModifiedBy\x12\x18\n" +
+	"\adeleted\x18\x18 \x01(\bR\adeleted\x129\n" +
 	"\n" +
 	"deleted_at\x18\x19 \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x1d\n" +
 	"\n" +
 	"deleted_by\x18\x1a \x01(\x05R\tdeletedBy\x124\n" +
-	"\tmore_data\x18\x1b \x01(\v2\x17.google.protobuf.StructR\bmoreData\x12\x18\n" +
-	"\x05pos_x\x18\x1c \x01(\x01B\x03\xe0A\x02R\x04posX\x12\x18\n" +
-	"\x05pos_y\x18\x1d \x01(\x01B\x03\xe0A\x02R\x04posY\"\xe7\x02\n" +
+	"\tmore_data\x18\x1b \x01(\v2\x17.google.protobuf.StructR\bmoreData\x12\x1b\n" +
+	"\x05pos_x\x18\x1c \x01(\x01B\x06\xbaH\x03\xc8\x01\x01R\x04posX\x12\x1b\n" +
+	"\x05pos_y\x18\x1d \x01(\x01B\x06\xbaH\x03\xc8\x01\x01R\x04posY\"\xe7\x02\n" +
 	"\tThingList\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\atype_id\x18\x02 \x01(\x05R\x06typeId\x12\x12\n" +
@@ -1513,23 +1514,23 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
 	"\tvalidated\x18\x06 \x01(\bR\tvalidated\";\n" +
 	"\fListResponse\x12+\n" +
-	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\";\n" +
-	"\rCreateRequest\x12*\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingB\x03\xe0A\x02R\x05thing\"7\n" +
+	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\">\n" +
+	"\rCreateRequest\x12-\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingB\x06\xbaH\x03\xc8\x01\x01R\x05thing\"7\n" +
 	"\x0eCreateResponse\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"!\n" +
-	"\n" +
-	"GetRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"4\n" +
-	"\vGetResponse\x12%\n" +
-	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"P\n" +
-	"\rUpdateRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12*\n" +
-	"\x05thing\x18\x02 \x01(\v2\x0f.thing.v1.ThingB\x03\xe0A\x02R\x05thing\"7\n" +
-	"\x0eUpdateResponse\x12%\n" +
 	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"$\n" +
-	"\rDeleteRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x10\n" +
+	"\n" +
+	"GetRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\"4\n" +
+	"\vGetResponse\x12%\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"V\n" +
+	"\rUpdateRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12-\n" +
+	"\x05thing\x18\x02 \x01(\v2\x0f.thing.v1.ThingB\x06\xbaH\x03\xc8\x01\x01R\x05thing\"7\n" +
+	"\x0eUpdateResponse\x12%\n" +
+	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"'\n" +
+	"\rDeleteRequest\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\"\x10\n" +
 	"\x0eDeleteResponse\"\xcc\x01\n" +
 	"\rSearchRequest\x12\x1a\n" +
 	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x14\n" +
@@ -1560,9 +1561,9 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
 	"\tvalidated\x18\x06 \x01(\bR\tvalidated\")\n" +
 	"\x0fGeoJsonResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\tR\x06result\"m\n" +
-	"\x17ListByExternalIdRequest\x12$\n" +
-	"\vexternal_id\x18\x01 \x01(\x05B\x03\xe0A\x02R\n" +
+	"\x06result\x18\x01 \x01(\tR\x06result\"p\n" +
+	"\x17ListByExternalIdRequest\x12'\n" +
+	"\vexternal_id\x18\x01 \x01(\x05B\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"externalId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x05R\x06offset\"G\n" +

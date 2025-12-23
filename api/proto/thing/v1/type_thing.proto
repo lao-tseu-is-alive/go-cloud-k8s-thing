@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package thing.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
-import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 
@@ -68,24 +68,30 @@ service TypeThingService {
 // =========================================================
 
 message TypeThing {
-  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
-  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 id = 1 [(buf.validate.field).required = true];
+  string name = 2 [
+    (buf.validate.field).string = {
+      min_len: 5
+      max_len: 100
+    }
+  ];
+
   string description = 3;
   string comment = 4;
   int32 external_id = 5;
   string table_name = 6;
   string geometry_type = 7;
-  bool inactivated = 8 [(google.api.field_behavior) = REQUIRED];
+  bool inactivated = 8 ;
   google.protobuf.Timestamp inactivated_time = 9;
   int32 inactivated_by = 10;
   string inactivated_reason = 11;
   int32 managed_by = 12;
-  string icon_path = 13 [(google.api.field_behavior) = REQUIRED];
+  string icon_path = 13 [(buf.validate.field).required = true];
   google.protobuf.Timestamp created_at = 14;
-  int32 created_by = 15 [(google.api.field_behavior) = REQUIRED];
+  int32 created_by = 15 ;
   google.protobuf.Timestamp last_modified_at = 16;
   int32 last_modified_by = 17;
-  bool deleted = 18 [(google.api.field_behavior) = REQUIRED];
+  bool deleted = 18 ;
   google.protobuf.Timestamp deleted_at = 19;
   int32 deleted_by = 20;
   google.protobuf.Struct more_data_schema = 21;
@@ -125,7 +131,7 @@ message TypeThingServiceListResponse {
 }
 
 message TypeThingServiceCreateRequest {
-  TypeThing type_thing = 1 [(google.api.field_behavior) = REQUIRED];
+  TypeThing type_thing = 1 [(buf.validate.field).required = true];
 }
 
 message TypeThingServiceCreateResponse {
@@ -133,7 +139,7 @@ message TypeThingServiceCreateResponse {
 }
 
 message TypeThingServiceGetRequest {
-  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 id = 1 [(buf.validate.field).required = true];
 }
 
 message TypeThingServiceGetResponse {
@@ -141,8 +147,8 @@ message TypeThingServiceGetResponse {
 }
 
 message TypeThingServiceUpdateRequest {
-  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
-  TypeThing type_thing = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 id = 1 [(buf.validate.field).required = true];
+  TypeThing type_thing = 2 [(buf.validate.field).required = true];
 }
 
 message TypeThingServiceUpdateResponse {
@@ -150,7 +156,7 @@ message TypeThingServiceUpdateResponse {
 }
 
 message TypeThingServiceDeleteRequest {
-  int32 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 id = 1 [(buf.validate.field).required = true];
 }
 
 message TypeThingServiceDeleteResponse {}
