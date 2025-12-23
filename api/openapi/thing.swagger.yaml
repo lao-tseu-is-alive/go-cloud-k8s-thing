@@ -339,7 +339,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingListResponse'
+            $ref: '#/definitions/v1TypeThingServiceListResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -384,7 +384,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingCreateResponse'
+            $ref: '#/definitions/v1TypeThingServiceCreateResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -407,7 +407,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingCountResponse'
+            $ref: '#/definitions/v1TypeThingServiceCountResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -438,7 +438,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingGetResponse'
+            $ref: '#/definitions/v1TypeThingServiceGetResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -460,7 +460,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingDeleteResponse'
+            $ref: '#/definitions/v1TypeThingServiceDeleteResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -482,7 +482,7 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1TypeThingUpdateResponse'
+            $ref: '#/definitions/v1TypeThingServiceUpdateResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -815,24 +815,6 @@ definitions:
       - iconPath
       - createdBy
       - deleted
-  v1TypeThingCountResponse:
-    type: object
-    properties:
-      count:
-        type: integer
-        format: int32
-  v1TypeThingCreateResponse:
-    type: object
-    properties:
-      typeThing:
-        $ref: '#/definitions/v1TypeThing'
-  v1TypeThingDeleteResponse:
-    type: object
-  v1TypeThingGetResponse:
-    type: object
-    properties:
-      typeThing:
-        $ref: '#/definitions/v1TypeThing'
   v1TypeThingList:
     type: object
     properties:
@@ -856,7 +838,25 @@ definitions:
       inactivated:
         type: boolean
     title: A light version of TypeThing for lists
-  v1TypeThingListResponse:
+  v1TypeThingServiceCountResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int32
+  v1TypeThingServiceCreateResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingServiceDeleteResponse:
+    type: object
+  v1TypeThingServiceGetResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingServiceListResponse:
     type: object
     properties:
       typeThings:
@@ -864,7 +864,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1TypeThingList'
-  v1TypeThingUpdateResponse:
+  v1TypeThingServiceUpdateResponse:
     type: object
     properties:
       typeThing:

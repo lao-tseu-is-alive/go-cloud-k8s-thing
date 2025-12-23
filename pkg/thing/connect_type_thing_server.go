@@ -61,8 +61,8 @@ func (s *TypeThingConnectServer) mapErrorToConnect(err error) *connect.Error {
 // List returns a list of type things
 func (s *TypeThingConnectServer) List(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingListRequest],
-) (*connect.Response[thingv1.TypeThingListResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceListRequest],
+) (*connect.Response[thingv1.TypeThingServiceListResponse], error) {
 	s.Log.Info("Connect: TypeThing.List called")
 
 	// User info injected by AuthInterceptor
@@ -98,14 +98,14 @@ func (s *TypeThingConnectServer) List(
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Return empty list instead of error
-			return connect.NewResponse(&thingv1.TypeThingListResponse{
+			return connect.NewResponse(&thingv1.TypeThingServiceListResponse{
 				TypeThings: []*thingv1.TypeThingList{},
 			}), nil
 		}
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	response := &thingv1.TypeThingListResponse{
+	response := &thingv1.TypeThingServiceListResponse{
 		TypeThings: DomainTypeThingListSliceToProto(list),
 	}
 	return connect.NewResponse(response), nil
@@ -114,8 +114,8 @@ func (s *TypeThingConnectServer) List(
 // Create creates a new type thing
 func (s *TypeThingConnectServer) Create(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingCreateRequest],
-) (*connect.Response[thingv1.TypeThingCreateResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceCreateRequest],
+) (*connect.Response[thingv1.TypeThingServiceCreateResponse], error) {
 	s.Log.Info("Connect: TypeThing.Create called")
 
 	// User info injected by AuthInterceptor
@@ -134,7 +134,7 @@ func (s *TypeThingConnectServer) Create(
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	response := &thingv1.TypeThingCreateResponse{
+	response := &thingv1.TypeThingServiceCreateResponse{
 		TypeThing: DomainTypeThingToProto(createdTypeThing),
 	}
 	return connect.NewResponse(response), nil
@@ -143,8 +143,8 @@ func (s *TypeThingConnectServer) Create(
 // Get retrieves a type thing by ID
 func (s *TypeThingConnectServer) Get(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingGetRequest],
-) (*connect.Response[thingv1.TypeThingGetResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceGetRequest],
+) (*connect.Response[thingv1.TypeThingServiceGetResponse], error) {
 	s.Log.Info("Connect: TypeThing.Get called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
@@ -155,7 +155,7 @@ func (s *TypeThingConnectServer) Get(
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	response := &thingv1.TypeThingGetResponse{
+	response := &thingv1.TypeThingServiceGetResponse{
 		TypeThing: DomainTypeThingToProto(typeThing),
 	}
 	return connect.NewResponse(response), nil
@@ -164,8 +164,8 @@ func (s *TypeThingConnectServer) Get(
 // Update updates a type thing
 func (s *TypeThingConnectServer) Update(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingUpdateRequest],
-) (*connect.Response[thingv1.TypeThingUpdateResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceUpdateRequest],
+) (*connect.Response[thingv1.TypeThingServiceUpdateResponse], error) {
 	s.Log.Info("Connect: TypeThing.Update called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
@@ -184,7 +184,7 @@ func (s *TypeThingConnectServer) Update(
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	response := &thingv1.TypeThingUpdateResponse{
+	response := &thingv1.TypeThingServiceUpdateResponse{
 		TypeThing: DomainTypeThingToProto(updatedTypeThing),
 	}
 	return connect.NewResponse(response), nil
@@ -193,8 +193,8 @@ func (s *TypeThingConnectServer) Update(
 // Delete deletes a type thing
 func (s *TypeThingConnectServer) Delete(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingDeleteRequest],
-) (*connect.Response[thingv1.TypeThingDeleteResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceDeleteRequest],
+) (*connect.Response[thingv1.TypeThingServiceDeleteResponse], error) {
 	s.Log.Info("Connect: TypeThing.Delete called", "id", req.Msg.Id)
 
 	// User info injected by AuthInterceptor
@@ -206,14 +206,14 @@ func (s *TypeThingConnectServer) Delete(
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	return connect.NewResponse(&thingv1.TypeThingDeleteResponse{}), nil
+	return connect.NewResponse(&thingv1.TypeThingServiceDeleteResponse{}), nil
 }
 
 // Count returns the number of type things
 func (s *TypeThingConnectServer) Count(
 	ctx context.Context,
-	req *connect.Request[thingv1.TypeThingCountRequest],
-) (*connect.Response[thingv1.TypeThingCountResponse], error) {
+	req *connect.Request[thingv1.TypeThingServiceCountRequest],
+) (*connect.Response[thingv1.TypeThingServiceCountResponse], error) {
 	s.Log.Info("Connect: TypeThing.Count called")
 
 	// User info injected by AuthInterceptor
@@ -237,7 +237,7 @@ func (s *TypeThingConnectServer) Count(
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	response := &thingv1.TypeThingCountResponse{
+	response := &thingv1.TypeThingServiceCountResponse{
 		Count: count,
 	}
 	return connect.NewResponse(response), nil

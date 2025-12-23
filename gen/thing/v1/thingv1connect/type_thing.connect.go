@@ -51,22 +51,22 @@ const (
 type TypeThingServiceClient interface {
 	// TypeThingList returns a list of types.
 	// Returns the types in an array.
-	List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error)
+	List(context.Context, *connect.Request[v1.TypeThingServiceListRequest]) (*connect.Response[v1.TypeThingServiceListResponse], error)
 	// TypeThingCreate will create a new group.
 	// Creates a new group.
-	Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error)
+	Create(context.Context, *connect.Request[v1.TypeThingServiceCreateRequest]) (*connect.Response[v1.TypeThingServiceCreateResponse], error)
 	// TypeThingGet will retrieve in backend all information about a specific typeThingId.
 	// Retrieve a specific typeThing.
-	Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error)
+	Get(context.Context, *connect.Request[v1.TypeThingServiceGetRequest]) (*connect.Response[v1.TypeThingServiceGetResponse], error)
 	// TypeThingUpdate allows to modify information about a specific typeThingId.
 	// Updates the information related to a typeThing.
-	Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error)
+	Update(context.Context, *connect.Request[v1.TypeThingServiceUpdateRequest]) (*connect.Response[v1.TypeThingServiceUpdateResponse], error)
 	// TypeThingDelete allows to delete a specific typeThingId.
 	// delete a typeThing.
-	Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error)
+	Delete(context.Context, *connect.Request[v1.TypeThingServiceDeleteRequest]) (*connect.Response[v1.TypeThingServiceDeleteResponse], error)
 	// Count returns the number of TypeThing based on search criterias.
 	// Returns the number of TypeThings found after filtering with passed criterias.
-	Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error)
+	Count(context.Context, *connect.Request[v1.TypeThingServiceCountRequest]) (*connect.Response[v1.TypeThingServiceCountResponse], error)
 }
 
 // NewTypeThingServiceClient constructs a client for the thing.v1.TypeThingService service. By
@@ -80,37 +80,37 @@ func NewTypeThingServiceClient(httpClient connect.HTTPClient, baseURL string, op
 	baseURL = strings.TrimRight(baseURL, "/")
 	typeThingServiceMethods := v1.File_thing_v1_type_thing_proto.Services().ByName("TypeThingService").Methods()
 	return &typeThingServiceClient{
-		list: connect.NewClient[v1.TypeThingListRequest, v1.TypeThingListResponse](
+		list: connect.NewClient[v1.TypeThingServiceListRequest, v1.TypeThingServiceListResponse](
 			httpClient,
 			baseURL+TypeThingServiceListProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("List")),
 			connect.WithClientOptions(opts...),
 		),
-		create: connect.NewClient[v1.TypeThingCreateRequest, v1.TypeThingCreateResponse](
+		create: connect.NewClient[v1.TypeThingServiceCreateRequest, v1.TypeThingServiceCreateResponse](
 			httpClient,
 			baseURL+TypeThingServiceCreateProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("Create")),
 			connect.WithClientOptions(opts...),
 		),
-		get: connect.NewClient[v1.TypeThingGetRequest, v1.TypeThingGetResponse](
+		get: connect.NewClient[v1.TypeThingServiceGetRequest, v1.TypeThingServiceGetResponse](
 			httpClient,
 			baseURL+TypeThingServiceGetProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("Get")),
 			connect.WithClientOptions(opts...),
 		),
-		update: connect.NewClient[v1.TypeThingUpdateRequest, v1.TypeThingUpdateResponse](
+		update: connect.NewClient[v1.TypeThingServiceUpdateRequest, v1.TypeThingServiceUpdateResponse](
 			httpClient,
 			baseURL+TypeThingServiceUpdateProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("Update")),
 			connect.WithClientOptions(opts...),
 		),
-		delete: connect.NewClient[v1.TypeThingDeleteRequest, v1.TypeThingDeleteResponse](
+		delete: connect.NewClient[v1.TypeThingServiceDeleteRequest, v1.TypeThingServiceDeleteResponse](
 			httpClient,
 			baseURL+TypeThingServiceDeleteProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("Delete")),
 			connect.WithClientOptions(opts...),
 		),
-		count: connect.NewClient[v1.TypeThingCountRequest, v1.TypeThingCountResponse](
+		count: connect.NewClient[v1.TypeThingServiceCountRequest, v1.TypeThingServiceCountResponse](
 			httpClient,
 			baseURL+TypeThingServiceCountProcedure,
 			connect.WithSchema(typeThingServiceMethods.ByName("Count")),
@@ -121,41 +121,41 @@ func NewTypeThingServiceClient(httpClient connect.HTTPClient, baseURL string, op
 
 // typeThingServiceClient implements TypeThingServiceClient.
 type typeThingServiceClient struct {
-	list   *connect.Client[v1.TypeThingListRequest, v1.TypeThingListResponse]
-	create *connect.Client[v1.TypeThingCreateRequest, v1.TypeThingCreateResponse]
-	get    *connect.Client[v1.TypeThingGetRequest, v1.TypeThingGetResponse]
-	update *connect.Client[v1.TypeThingUpdateRequest, v1.TypeThingUpdateResponse]
-	delete *connect.Client[v1.TypeThingDeleteRequest, v1.TypeThingDeleteResponse]
-	count  *connect.Client[v1.TypeThingCountRequest, v1.TypeThingCountResponse]
+	list   *connect.Client[v1.TypeThingServiceListRequest, v1.TypeThingServiceListResponse]
+	create *connect.Client[v1.TypeThingServiceCreateRequest, v1.TypeThingServiceCreateResponse]
+	get    *connect.Client[v1.TypeThingServiceGetRequest, v1.TypeThingServiceGetResponse]
+	update *connect.Client[v1.TypeThingServiceUpdateRequest, v1.TypeThingServiceUpdateResponse]
+	delete *connect.Client[v1.TypeThingServiceDeleteRequest, v1.TypeThingServiceDeleteResponse]
+	count  *connect.Client[v1.TypeThingServiceCountRequest, v1.TypeThingServiceCountResponse]
 }
 
 // List calls thing.v1.TypeThingService.List.
-func (c *typeThingServiceClient) List(ctx context.Context, req *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error) {
+func (c *typeThingServiceClient) List(ctx context.Context, req *connect.Request[v1.TypeThingServiceListRequest]) (*connect.Response[v1.TypeThingServiceListResponse], error) {
 	return c.list.CallUnary(ctx, req)
 }
 
 // Create calls thing.v1.TypeThingService.Create.
-func (c *typeThingServiceClient) Create(ctx context.Context, req *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error) {
+func (c *typeThingServiceClient) Create(ctx context.Context, req *connect.Request[v1.TypeThingServiceCreateRequest]) (*connect.Response[v1.TypeThingServiceCreateResponse], error) {
 	return c.create.CallUnary(ctx, req)
 }
 
 // Get calls thing.v1.TypeThingService.Get.
-func (c *typeThingServiceClient) Get(ctx context.Context, req *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error) {
+func (c *typeThingServiceClient) Get(ctx context.Context, req *connect.Request[v1.TypeThingServiceGetRequest]) (*connect.Response[v1.TypeThingServiceGetResponse], error) {
 	return c.get.CallUnary(ctx, req)
 }
 
 // Update calls thing.v1.TypeThingService.Update.
-func (c *typeThingServiceClient) Update(ctx context.Context, req *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error) {
+func (c *typeThingServiceClient) Update(ctx context.Context, req *connect.Request[v1.TypeThingServiceUpdateRequest]) (*connect.Response[v1.TypeThingServiceUpdateResponse], error) {
 	return c.update.CallUnary(ctx, req)
 }
 
 // Delete calls thing.v1.TypeThingService.Delete.
-func (c *typeThingServiceClient) Delete(ctx context.Context, req *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error) {
+func (c *typeThingServiceClient) Delete(ctx context.Context, req *connect.Request[v1.TypeThingServiceDeleteRequest]) (*connect.Response[v1.TypeThingServiceDeleteResponse], error) {
 	return c.delete.CallUnary(ctx, req)
 }
 
 // Count calls thing.v1.TypeThingService.Count.
-func (c *typeThingServiceClient) Count(ctx context.Context, req *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error) {
+func (c *typeThingServiceClient) Count(ctx context.Context, req *connect.Request[v1.TypeThingServiceCountRequest]) (*connect.Response[v1.TypeThingServiceCountResponse], error) {
 	return c.count.CallUnary(ctx, req)
 }
 
@@ -163,22 +163,22 @@ func (c *typeThingServiceClient) Count(ctx context.Context, req *connect.Request
 type TypeThingServiceHandler interface {
 	// TypeThingList returns a list of types.
 	// Returns the types in an array.
-	List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error)
+	List(context.Context, *connect.Request[v1.TypeThingServiceListRequest]) (*connect.Response[v1.TypeThingServiceListResponse], error)
 	// TypeThingCreate will create a new group.
 	// Creates a new group.
-	Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error)
+	Create(context.Context, *connect.Request[v1.TypeThingServiceCreateRequest]) (*connect.Response[v1.TypeThingServiceCreateResponse], error)
 	// TypeThingGet will retrieve in backend all information about a specific typeThingId.
 	// Retrieve a specific typeThing.
-	Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error)
+	Get(context.Context, *connect.Request[v1.TypeThingServiceGetRequest]) (*connect.Response[v1.TypeThingServiceGetResponse], error)
 	// TypeThingUpdate allows to modify information about a specific typeThingId.
 	// Updates the information related to a typeThing.
-	Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error)
+	Update(context.Context, *connect.Request[v1.TypeThingServiceUpdateRequest]) (*connect.Response[v1.TypeThingServiceUpdateResponse], error)
 	// TypeThingDelete allows to delete a specific typeThingId.
 	// delete a typeThing.
-	Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error)
+	Delete(context.Context, *connect.Request[v1.TypeThingServiceDeleteRequest]) (*connect.Response[v1.TypeThingServiceDeleteResponse], error)
 	// Count returns the number of TypeThing based on search criterias.
 	// Returns the number of TypeThings found after filtering with passed criterias.
-	Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error)
+	Count(context.Context, *connect.Request[v1.TypeThingServiceCountRequest]) (*connect.Response[v1.TypeThingServiceCountResponse], error)
 }
 
 // NewTypeThingServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -247,26 +247,26 @@ func NewTypeThingServiceHandler(svc TypeThingServiceHandler, opts ...connect.Han
 // UnimplementedTypeThingServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTypeThingServiceHandler struct{}
 
-func (UnimplementedTypeThingServiceHandler) List(context.Context, *connect.Request[v1.TypeThingListRequest]) (*connect.Response[v1.TypeThingListResponse], error) {
+func (UnimplementedTypeThingServiceHandler) List(context.Context, *connect.Request[v1.TypeThingServiceListRequest]) (*connect.Response[v1.TypeThingServiceListResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.List is not implemented"))
 }
 
-func (UnimplementedTypeThingServiceHandler) Create(context.Context, *connect.Request[v1.TypeThingCreateRequest]) (*connect.Response[v1.TypeThingCreateResponse], error) {
+func (UnimplementedTypeThingServiceHandler) Create(context.Context, *connect.Request[v1.TypeThingServiceCreateRequest]) (*connect.Response[v1.TypeThingServiceCreateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Create is not implemented"))
 }
 
-func (UnimplementedTypeThingServiceHandler) Get(context.Context, *connect.Request[v1.TypeThingGetRequest]) (*connect.Response[v1.TypeThingGetResponse], error) {
+func (UnimplementedTypeThingServiceHandler) Get(context.Context, *connect.Request[v1.TypeThingServiceGetRequest]) (*connect.Response[v1.TypeThingServiceGetResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Get is not implemented"))
 }
 
-func (UnimplementedTypeThingServiceHandler) Update(context.Context, *connect.Request[v1.TypeThingUpdateRequest]) (*connect.Response[v1.TypeThingUpdateResponse], error) {
+func (UnimplementedTypeThingServiceHandler) Update(context.Context, *connect.Request[v1.TypeThingServiceUpdateRequest]) (*connect.Response[v1.TypeThingServiceUpdateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Update is not implemented"))
 }
 
-func (UnimplementedTypeThingServiceHandler) Delete(context.Context, *connect.Request[v1.TypeThingDeleteRequest]) (*connect.Response[v1.TypeThingDeleteResponse], error) {
+func (UnimplementedTypeThingServiceHandler) Delete(context.Context, *connect.Request[v1.TypeThingServiceDeleteRequest]) (*connect.Response[v1.TypeThingServiceDeleteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Delete is not implemented"))
 }
 
-func (UnimplementedTypeThingServiceHandler) Count(context.Context, *connect.Request[v1.TypeThingCountRequest]) (*connect.Response[v1.TypeThingCountResponse], error) {
+func (UnimplementedTypeThingServiceHandler) Count(context.Context, *connect.Request[v1.TypeThingServiceCountRequest]) (*connect.Response[v1.TypeThingServiceCountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("thing.v1.TypeThingService.Count is not implemented"))
 }

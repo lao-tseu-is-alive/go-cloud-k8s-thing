@@ -1,6 +1,4 @@
 version: v2
-managed:
-  enabled: true
 plugins:
   # 1. Generate Go Code (gRPC + Models)
   - remote: buf.build/protocolbuffers/go
@@ -21,3 +19,13 @@ plugins:
       - allow_merge=true
       - merge_file_name=thing       # Merges everything into thing.swagger.yaml
       - simple_operation_ids=true   # Makes operation IDs cleaner (e.g. "List" instead of "ThingService_List")
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis

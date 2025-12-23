@@ -7,8 +7,6 @@ import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1;thingv1";
-
 
 // =========================================================
 // Service: TypeThing
@@ -16,7 +14,7 @@ option go_package = "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v
 service TypeThingService {
   // TypeThingList returns a list of types.
   // Returns the types in an array.
-  rpc List(TypeThingListRequest) returns (TypeThingListResponse) {
+  rpc List(TypeThingServiceListRequest) returns (TypeThingServiceListResponse)  {
     option (google.api.http) = {
       get: "/types"
     };
@@ -24,7 +22,7 @@ service TypeThingService {
 
   // TypeThingCreate will create a new group.
   // Creates a new group.
-  rpc Create(TypeThingCreateRequest) returns (TypeThingCreateResponse) {
+  rpc Create(TypeThingServiceCreateRequest) returns (TypeThingServiceCreateResponse)  {
     option (google.api.http) = {
       post: "/types"
       body: "type_thing"
@@ -33,7 +31,7 @@ service TypeThingService {
 
   // TypeThingGet will retrieve in backend all information about a specific typeThingId.
   // Retrieve a specific typeThing.
-  rpc Get(TypeThingGetRequest) returns (TypeThingGetResponse) {
+  rpc Get(TypeThingServiceGetRequest) returns (TypeThingServiceGetResponse)  {
     option (google.api.http) = {
       get: "/types/{id}"
     };
@@ -41,7 +39,7 @@ service TypeThingService {
 
   // TypeThingUpdate allows to modify information about a specific typeThingId.
   // Updates the information related to a typeThing.
-  rpc Update(TypeThingUpdateRequest) returns (TypeThingUpdateResponse) {
+  rpc Update(TypeThingServiceUpdateRequest) returns (TypeThingServiceUpdateResponse)  {
     option (google.api.http) = {
       put: "/types/{id}"
       body: "type_thing"
@@ -50,7 +48,7 @@ service TypeThingService {
 
   // TypeThingDelete allows to delete a specific typeThingId.
   // delete a typeThing.
-  rpc Delete(TypeThingDeleteRequest) returns (TypeThingDeleteResponse) {
+  rpc Delete(TypeThingServiceDeleteRequest) returns (TypeThingServiceDeleteResponse)  {
     option (google.api.http) = {
       delete: "/types/{id}"
     };
@@ -58,7 +56,7 @@ service TypeThingService {
 
   // Count returns the number of TypeThing based on search criterias.
   // Returns the number of TypeThings found after filtering with passed criterias.
-  rpc Count(TypeThingCountRequest) returns (TypeThingCountResponse) {
+  rpc Count(TypeThingServiceCountRequest) returns (TypeThingServiceCountResponse)  {
     option (google.api.http) = {
       get: "/types/count"
     };
@@ -111,9 +109,9 @@ message TypeThingList {
 
 
 
-// TypeThing Requests
+// TypeThingService Requests
 
-message TypeThingListRequest {
+message TypeThingServiceListRequest {
   string keywords = 1;
   int32 created_by = 2;
   int32 external_id = 3;
@@ -122,47 +120,47 @@ message TypeThingListRequest {
   int32 offset = 6;
 }
 
-message TypeThingListResponse {
+message TypeThingServiceListResponse {
   repeated TypeThingList type_things = 1;
 }
 
-message TypeThingCreateRequest {
+message TypeThingServiceCreateRequest {
   TypeThing type_thing = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message TypeThingCreateResponse {
+message TypeThingServiceCreateResponse {
   TypeThing type_thing = 1;
 }
 
-message TypeThingGetRequest {
+message TypeThingServiceGetRequest {
   int32 id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message TypeThingGetResponse {
+message TypeThingServiceGetResponse {
   TypeThing type_thing = 1;
 }
 
-message TypeThingUpdateRequest {
+message TypeThingServiceUpdateRequest {
   int32 id = 1 [(google.api.field_behavior) = REQUIRED];
   TypeThing type_thing = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-message TypeThingUpdateResponse {
+message TypeThingServiceUpdateResponse {
   TypeThing type_thing = 1;
 }
 
-message TypeThingDeleteRequest {
+message TypeThingServiceDeleteRequest {
   int32 id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message TypeThingDeleteResponse {}
+message TypeThingServiceDeleteResponse {}
 
-message TypeThingCountRequest {
+message TypeThingServiceCountRequest {
   string keywords = 1;
   int32 created_by = 2;
   bool inactivated = 3;
 }
 
-message TypeThingCountResponse {
+message TypeThingServiceCountResponse {
   int32 count = 1;
 }
