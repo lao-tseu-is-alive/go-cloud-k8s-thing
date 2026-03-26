@@ -75,19 +75,19 @@ VALUES ($1, $2, $3, $4, $5, $6, $7,
        round(st_x(ST_Centroid(position))::numeric, 2) AS pos_x,
        round(st_y(ST_Centroid(position))::numeric, 2) AS pos_y
 FROM go_thing.thing
-WHERE id = $1;
+WHERE id = $1 AND _deleted = false;
 `
-	existThing        = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1;`
-	isActiveThing     = `SELECT COUNT(*) FROM go_thing.thing WHERE inactivated=false AND id = $1;`
-	existThingOwnedBy = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1 AND _created_by = $2;`
-	countThing        = `SELECT COUNT(*) FROM go_thing.thing `
+	existThing        = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1 AND _deleted = false;`
+	isActiveThing     = `SELECT COUNT(*) FROM go_thing.thing WHERE inactivated=false AND id = $1 AND _deleted = false;`
+	existThingOwnedBy = `SELECT COUNT(*) FROM go_thing.thing WHERE id = $1 AND _created_by = $2 AND _deleted = false;`
+	countThing        = `SELECT COUNT(*) FROM go_thing.thing WHERE _deleted = false `
 	deleteThing       = `
 UPDATE go_thing.thing
 SET
     _deleted = true,
     _deleted_by = $1,
     _deleted_at = CURRENT_TIMESTAMP
-WHERE id = $2;`
+WHERE id = $2 AND _deleted = false;`
 	updateThing = `
 UPDATE go_thing.thing SET
        type_id = $2,
@@ -115,7 +115,7 @@ UPDATE go_thing.thing SET
        text_search = to_tsvector('french', unaccent($3) ||
                              ' ' || coalesce(unaccent($4), ' ') ||
                              ' ' || coalesce(unaccent($5), ' ') )
-WHERE id = $1;
+WHERE id = $1 AND _deleted = false;
 `
 
 	baseGeoJsonThingSearch = `

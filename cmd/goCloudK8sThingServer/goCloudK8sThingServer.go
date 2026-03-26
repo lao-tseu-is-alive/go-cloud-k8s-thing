@@ -73,7 +73,6 @@ func (s *Service) login(ctx echo.Context) error {
 	uLogin := new(UserLogin)
 	login := ctx.FormValue("login")
 	passwordHash := ctx.FormValue("hashed")
-	s.Logger.Debug("login: %s, hash: %s ", login, passwordHash)
 	// maybe it was not a form but a fetch data post
 	if len(strings.Trim(login, " ")) < 1 {
 		if err := ctx.Bind(uLogin); err != nil {
@@ -83,7 +82,6 @@ func (s *Service) login(ctx echo.Context) error {
 		uLogin.Username = login
 		uLogin.PasswordHash = passwordHash
 	}
-	s.Logger.Debug("About to check username: %s , password: %s", uLogin.Username, uLogin.PasswordHash)
 
 	reqCtx := ctx.Request().Context()
 	if s.server.Authenticator.AuthenticateUser(reqCtx, uLogin.Username, uLogin.PasswordHash) {

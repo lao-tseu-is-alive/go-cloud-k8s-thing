@@ -77,6 +77,14 @@ rules:
     resources: ["pods/log"]
     verbs: ["get"]
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: go-cloud-k8s-thing-sa
+  namespace: go-testing
+  labels:
+    app: go-cloud-k8s-thing
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -84,9 +92,9 @@ metadata:
   labels:
     app: go-cloud-k8s-thing
 subjects:
-  - kind: Group
-    name: system:serviceaccounts
-    apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: go-cloud-k8s-thing-sa
+    namespace: go-testing
 roleRef:
   kind: ClusterRole
   name: pod-reader-role
@@ -110,9 +118,9 @@ metadata:
   labels:
     app: go-cloud-k8s-thing
 subjects:
-  - kind: Group
-    name: system:serviceaccounts
-    apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: go-cloud-k8s-thing-sa
+    namespace: go-testing
 roleRef:
   kind: ClusterRole
   name: service-reader-role
@@ -175,6 +183,7 @@ spec:
       # comment the two next lines if you do not have worker nodes (rancher-desktop)
       #nodeSelector:
       #  node-type: worker
+      serviceAccountName: go-cloud-k8s-thing-sa
       securityContext:           # https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
         seccompProfile:
           type: RuntimeDefault   # https://kubernetes.io/docs/tutorials/security/seccomp/

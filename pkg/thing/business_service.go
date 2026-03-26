@@ -12,6 +12,9 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 )
 
+// MaxPaginationLimit defines the maximum number of items that can be requested in a single list/search API call
+const MaxPaginationLimit = 1000
+
 // BusinessService Business Service contains the transport-agnostic business logic for Thing operations
 type BusinessService struct {
 	Log              *slog.Logger
@@ -43,6 +46,9 @@ func validateName(name string) error {
 
 // GeoJson returns a geoJson representation of things based on the given parameters
 func (s *BusinessService) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
+	if limit > MaxPaginationLimit {
+		limit = MaxPaginationLimit
+	}
 	jsonResult, err := s.Store.GeoJson(ctx, offset, limit, params)
 	if err != nil {
 		return "", fmt.Errorf("error retrieving geoJson: %w", err)
@@ -55,6 +61,9 @@ func (s *BusinessService) GeoJson(ctx context.Context, offset, limit int, params
 
 // List returns the list of things based on the given parameters
 func (s *BusinessService) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
+	if limit > MaxPaginationLimit {
+		limit = MaxPaginationLimit
+	}
 	list, err := s.Store.List(ctx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -185,6 +194,9 @@ func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thing
 
 // ListByExternalId returns things filtered by external ID
 func (s *BusinessService) ListByExternalId(ctx context.Context, offset, limit, externalId int) ([]*ThingList, error) {
+	if limit > MaxPaginationLimit {
+		limit = MaxPaginationLimit
+	}
 	list, err := s.Store.ListByExternalId(ctx, offset, limit, externalId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -201,6 +213,9 @@ func (s *BusinessService) ListByExternalId(ctx context.Context, offset, limit, e
 
 // Search returns things based on search criteria
 func (s *BusinessService) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
+	if limit > MaxPaginationLimit {
+		limit = MaxPaginationLimit
+	}
 	list, err := s.Store.Search(ctx, offset, limit, params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -217,6 +232,9 @@ func (s *BusinessService) Search(ctx context.Context, offset, limit int, params 
 
 // ListTypeThings returns a list of TypeThing based on parameters
 func (s *BusinessService) ListTypeThings(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
+	if limit > MaxPaginationLimit {
+		limit = MaxPaginationLimit
+	}
 	list, err := s.Store.ListTypeThing(ctx, offset, limit, params)
 	if err != nil {
 		return nil, fmt.Errorf("error listing type things: %w", err)
