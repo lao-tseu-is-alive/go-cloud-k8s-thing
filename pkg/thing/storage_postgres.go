@@ -222,7 +222,7 @@ func (db *PGX) Count(ctx context.Context, params CountParams) (int32, error) {
 		count int
 		err   error
 	)
-	queryCount := countThing + " WHERE _deleted = false AND position IS NOT NULL "
+	queryCount := countThing + " AND position IS NOT NULL "
 	withoutSearchParameters := true
 	if params.Keywords != nil {
 		withoutSearchParameters = false
