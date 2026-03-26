@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  APP_ENV: develop
+  PORT: "9090"
+kind: ConfigMap
+metadata:
+  name: app-config-go-cloud-k8s-thing
+  namespace: go-testing

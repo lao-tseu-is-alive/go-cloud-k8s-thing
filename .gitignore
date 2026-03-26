@@ -43,3 +43,6 @@ ___goCloudK8sThingServer_test_go.test
 **/node_modules
 proto_third_party/*
 /coverage.txt
+/deployments/go-testing/app-secrets-go-cloud-k8s-thing.yaml
+/deployments/deployments_samples/
+/update_deployment.py

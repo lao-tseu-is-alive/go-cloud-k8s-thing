@@ -229,64 +229,109 @@ spec:
             value: "9090"
           - name: DB_DRIVER
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_DRIVER
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_HOST
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_HOST
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_PORT
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_PORT
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_NAME
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_NAME
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_USER
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_USER
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_PASSWORD
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_PASSWORD
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: DB_SSL_MODE
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: DB_SSL_MODE
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: ADMIN_USER
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: ADMIN_USER
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: ADMIN_PASSWORD
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: ADMIN_PASSWORD
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: JWT_SECRET
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: JWT_SECRET
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: JWT_DURATION_MINUTES
             valueFrom:
-              configMapKeyRef:
+              secretKeyRef:
                 key: JWT_DURATION_MINUTES
-                name: app-configs
+                name: app-secrets-go-cloud-k8s-thing
           - name: APP_ENV
             valueFrom:
               configMapKeyRef:
                 key: APP_ENV
-                name: app-configs
+                name: app-config-go-cloud-k8s-thing
+          - name: ADMIN_EMAIL
+            valueFrom:
+              secretKeyRef:
+                key: ADMIN_EMAIL
+                name: app-secrets-go-cloud-k8s-thing
+          - name: ADMIN_ID
+            valueFrom:
+              secretKeyRef:
+                key: ADMIN_ID
+                name: app-secrets-go-cloud-k8s-thing
+          - name: ADMIN_EXTERNAL_ID
+            valueFrom:
+              secretKeyRef:
+                key: ADMIN_EXTERNAL_ID
+                name: app-secrets-go-cloud-k8s-thing
+          - name: ALLOWED_HOSTS
+            valueFrom:
+              secretKeyRef:
+                key: ALLOWED_HOSTS
+                name: app-secrets-go-cloud-k8s-thing
+          - name: JWT_ISSUER_ID
+            valueFrom:
+              secretKeyRef:
+                key: JWT_ISSUER_ID
+                name: app-secrets-go-cloud-k8s-thing
+          - name: JWT_CONTEXT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: JWT_CONTEXT_KEY
+                name: app-secrets-go-cloud-k8s-thing
+          - name: JWT_COOKIE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: JWT_COOKIE_NAME
+                name: app-secrets-go-cloud-k8s-thing
+          - name: JWT_AUTH_URL
+            valueFrom:
+              secretKeyRef:
+                key: JWT_AUTH_URL
+                name: app-secrets-go-cloud-k8s-thing
+          - name: JWT_STATUS_URL
+            valueFrom:
+              secretKeyRef:
+                key: JWT_STATUS_URL
+                name: app-secrets-go-cloud-k8s-thing
           - name: MY_NODE_NAME
             valueFrom:
               fieldRef:
