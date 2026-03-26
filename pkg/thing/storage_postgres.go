@@ -39,7 +39,7 @@ func NewPgxDB(ctx context.Context, db database.DB, log *slog.Logger) (Storage, e
 		log.Info("database contains records in go_thing.type_thing", "count", numberOfTypeThings)
 	} else {
 		log.Warn("go_thing.type_thing is empty - it should contain at least one row")
-		return nil, fmt.Errorf("«go_thing.type_thing» contains %w should not be empty", numberOfTypeThings)
+		return nil, fmt.Errorf("«go_thing.type_thing» contains %d rows, should not be empty", numberOfTypeThings)
 	}
 
 	return &psql, err

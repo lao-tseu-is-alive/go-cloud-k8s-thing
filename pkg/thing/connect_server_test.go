@@ -304,7 +304,7 @@ func TestTypeThingConnectServer_List(t *testing.T) {
 
 		mockStore.On("ListTypeThing", mock.Anything, 0, 250, TypeThingListParams{}).Return(expectedList, nil)
 
-		req := createConnectRequest(&thingv1.TypeThingListRequest{})
+		req := createConnectRequest(&thingv1.TypeThingServiceListRequest{})
 		ctx := contextWithUser(123, false)
 
 		resp, err := server.List(ctx, req)
@@ -330,7 +330,7 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 
 		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("TypeThing")).Return(expectedTypeThing, nil)
 
-		req := createConnectRequest(&thingv1.TypeThingCreateRequest{
+		req := createConnectRequest(&thingv1.TypeThingServiceCreateRequest{
 			TypeThing: &thingv1.TypeThing{
 				Name: "New Type",
 			},
@@ -350,7 +350,7 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
-		req := createConnectRequest(&thingv1.TypeThingCreateRequest{
+		req := createConnectRequest(&thingv1.TypeThingServiceCreateRequest{
 			TypeThing: &thingv1.TypeThing{
 				Name: "New Type",
 			},
