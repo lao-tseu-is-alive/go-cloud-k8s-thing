@@ -1,6 +1,6 @@
 .idea
 *.md
-.env
+.env*
 .env_sample
 .gitignore
 Dockerfile
@@ -8,3 +8,16 @@ Makefile
 scripts/*
 api/*
 deployments/*
+documentation/
+.git
+.github
+images/
+samples/
+scripts/
+LICENSE
+bin
+vdl_install/
+test/
+.python-version
+.venv/
+

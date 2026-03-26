@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -13,12 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"connectrpc.com/connect"
-	"connectrpc.com/validate"
-	"connectrpc.com/vanguard"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -28,44 +21,36 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/metadata"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/tools"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing"
+	thingmodule "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/thing/module"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/pkg/version"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
-	defaultPort                = 9090
-	defaultLogName             = "stderr"
-	defaultDBPort              = 5432
-	defaultDBIp                = "127.0.0.1"
-	defaultDBSslMode           = "prefer"
-	defaultJwtStatusUrl        = "/status"
-	defaultJwtCookieName       = "goJWT_token"
-	defaultAppInfoUrl          = "/goAppInfo"
-	defaultWebRootDir          = "goCloudK8sThingFront/dist/"
-	defaultSqlDbMigrationsPath = "db/migrations"
-	defaultSecuredApi          = "/goapi/v1"
-	defaultAdminUser           = "goadmin"
-	defaultAdminEmail          = "goadmin@yourdomain.org"
-	defaultAdminId             = 960901
-	charsetUTF8                = "charset=UTF-8"
-	MIMEAppJSON                = "application/json"
-	MIMEHtml                   = "text/html"
-	MIMEHtmlCharsetUTF8        = MIMEHtml + "; " + charsetUTF8
-	MIMEAppJSONCharsetUTF8     = MIMEAppJSON + "; " + charsetUTF8
+	defaultPort            = 9090
+	defaultLogName         = "stderr"
+	defaultDBPort          = 5432
+	defaultDBIp            = "127.0.0.1"
+	defaultDBSslMode       = "prefer"
+	defaultJwtStatusUrl    = "/status"
+	defaultJwtCookieName   = "goJWT_token"
+	defaultAppInfoUrl      = "/goAppInfo"
+	defaultWebRootDir      = "goCloudK8sThingFront/dist/"
+	defaultSecuredApi      = "/goapi/v1"
+	defaultAdminUser       = "goadmin"
+	defaultAdminEmail      = "goadmin@yourdomain.org"
+	defaultAdminId         = 960901
+	charsetUTF8            = "charset=UTF-8"
+	MIMEAppJSON            = "application/json"
+	MIMEHtml               = "text/html"
+	MIMEHtmlCharsetUTF8    = MIMEHtml + "; " + charsetUTF8
+	MIMEAppJSONCharsetUTF8 = MIMEAppJSON + "; " + charsetUTF8
 )
 
 // content holds our static web server content.
 //
 //go:embed goCloudK8sThingFront/dist/*
 var content embed.FS
-
-// sqlMigrations holds our db migrations sql files using https://github.com/golang-migrate/migrate
-// in the line above you SHOULD have the same path  as const defaultSqlDbMigrationsPath
-//
-//go:embed db/migrations/*.sql
-var sqlMigrations embed.FS
 
 // UserLogin defines model for UserLogin.
 type UserLogin struct {
@@ -183,28 +168,6 @@ func initMetadataOrFail(db database.DB, l *slog.Logger) {
 	metadataService.SetServiceVersionOrFail(metaDataCtx, version.APP, version.VERSION)
 }
 
-func runMigrationsOrFail(dbDsn string) {
-	// begin section go-migrate db migration with embed files in go program
-	// https://github.com/golang-migrate/migrate
-	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
-	if err != nil {
-		log.Fatalf("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
-	}
-	m, err := migrate.NewWithSourceInstance("iofs", d, strings.Replace(dbDsn, "postgres", "pgx5", 1))
-	if err != nil {
-		log.Fatalf("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
-	}
-
-	err = m.Up()
-	if err != nil {
-		//if err == m.
-		if !errors.Is(err, migrate.ErrNoChange) {
-			log.Fatalf("💥💥 error doing migrate.Up error: %v\n", err)
-		}
-	}
-	// end section go-migrate db migration with embed files in go program
-}
-
 func main() {
 	logWriter, err := config.GetLogWriter(defaultLogName)
 	if err != nil {
@@ -239,7 +202,12 @@ func main() {
 	l.Info("connected to db", "version", dbVersion)
 
 	initMetadataOrFail(db, l)
-	runMigrationsOrFail(dbDsn)
+
+	// Run Thing module migrations
+	if err := thingmodule.Migrate(dbDsn); err != nil {
+		l.Error("💥💥 error running Thing module migrations", "error", err)
+		os.Exit(1)
+	}
 
 	// Get the ENV JWT_AUTH_URL value
 	jwtAuthUrl, err := config.GetJwtAuthUrl()
@@ -356,63 +324,29 @@ func main() {
 	r := server.GetRestrictedGroup()
 	r.GET(jwtStatusUrl, yourService.GetStatus)
 
+	// ---------------------------------------------------------
+	// Thing Module: wiring domain + transport
+	// ---------------------------------------------------------
 	dbStorageCtx, dbStorageCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer dbStorageCancel()
-	thingStore := thing.GetStorageInstanceOrPanic(dbStorageCtx, "pgx", db, l)
 
-	// Create business service (transport-agnostic)
-	thingBusinessService := thing.NewBusinessService(thingStore, db, l, 50)
-
-	// ---------------------------------------------------------
-	// Connect + Vanguard: REST/gRPC/Connect transcoding
-	// ---------------------------------------------------------
-	// Create auth interceptor for JWT validation and value validation
-	authInterceptor := thing.NewAuthInterceptor(myJwt, l)
-	interceptors := connect.WithInterceptors(authInterceptor, validate.NewInterceptor())
-
-	// Create Connect servers (auth is handled by interceptor, not servers)
-	thingConnectServer := thing.NewThingConnectServer(thingBusinessService, l)
-	typeThingConnectServer := thing.NewTypeThingConnectServer(thingBusinessService, l)
-
-	// Create service handlers with auth interceptor
-	_, thingHandler := thingv1connect.NewThingServiceHandler(thingConnectServer, interceptors)
-	_, typeThingHandler := thingv1connect.NewTypeThingServiceHandler(typeThingConnectServer, interceptors)
-
-	// Create Vanguard services for HTTP transcoding
-	thingService := vanguard.NewService(
-		thingv1connect.ThingServiceName,
-		thingHandler,
+	thingMod, err := thingmodule.New(
+		dbStorageCtx,
+		thingmodule.Config{
+			SecuredPrefix:    defaultSecuredApi,
+			ListDefaultLimit: 50,
+		},
+		thingmodule.Deps{DB: db, JWT: myJwt, Logger: l},
 	)
-	typeThingService := vanguard.NewService(
-		thingv1connect.TypeThingServiceName,
-		typeThingHandler,
-	)
-
-	// Create transcoder for REST + gRPC + Connect
-	transcoder, err := vanguard.NewTranscoder([]*vanguard.Service{
-		thingService,
-		typeThingService,
-	})
 	if err != nil {
-		l.Error("💥💥 error failed to create vanguard transcoder", "error", err)
+		l.Error("💥💥 error creating Thing module", "error", err)
 		os.Exit(1)
 	}
 
-	// Mount transcoder into Echo with /goapi/v1 prefix
-	// The transcoder handles REST endpoints defined in proto:
-	// - GET /thing, POST /thing, etc. (defined in proto HTTP annotations)
-	// - Connect endpoints: /thing.v1.ThingService/*
-	//
-	// We strip the /goapi/v1 prefix before passing to transcoder
-	transcoderWithPrefix := http.StripPrefix(defaultSecuredApi, transcoder)
-
-	e.Any(defaultSecuredApi+"/thing*", echo.WrapHandler(transcoderWithPrefix))
-	e.Any(defaultSecuredApi+"/types*", echo.WrapHandler(transcoderWithPrefix))
-
-	// Connect RPC endpoints (no prefix stripping needed)
-	e.Any("/thing.v1.*", echo.WrapHandler(transcoder))
-
-	l.Info("🚀 Connect+Vanguard handlers mounted for REST/gRPC transcoding", "securedUrl", defaultSecuredApi)
+	if err := thingMod.RegisterRoutes(e); err != nil {
+		l.Error("💥💥 error registering Thing module routes", "error", err)
+		os.Exit(1)
+	}
 
 	err = server.StartServer()
 	if err != nil {

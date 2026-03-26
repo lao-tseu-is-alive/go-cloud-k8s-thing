@@ -8,7 +8,7 @@
 
 # 🚀 go-cloud-k8s-thing
 
-A modern **Proto-first** microservice for managing "Things" — built with Go, gRPC, ConnectRPC, and designed for cloud-native Kubernetes deployments.
+A modern **Proto-first** microservice for managing "Things" — built with Go, gRPC, ConnectRPC, and designed for cloud-native Kubernetes deployments. Includes an **importable module** for composing multiple microservices into a single bundle.
 
 > **Proto as Source of Truth**: API contracts are defined in Protocol Buffers, generating both Go code and OpenAPI specs automatically. Clients can connect via REST, gRPC, or Connect protocols.
 
@@ -59,6 +59,72 @@ graph TB
     TTS --> BS
     BS --> ST
     ST --> PG
+```
+
+---
+
+## 📦 Module & Bundle Strategy
+
+Since **v0.3.0**, the Thing domain is packaged as an importable Go module in `pkg/thing/module/`. This enables two deployment modes:
+
+### Standalone Mode (current)
+
+The `cmd/goCloudK8sThingServer` main uses `thingmodule.New()` + `thingmodule.RegisterRoutes(e)` internally — one microservice, one binary, one port.
+
+### Bundle Mode (multi-service)
+
+A separate `go-cloud-k8s-bundle` repository can import multiple domain modules (Thing, Document, Affaire…) behind a **single Echo server** and a **single Vanguard transcoder**:
+
+```mermaid
+graph TB
+    subgraph Bundle["🎁 go-cloud-k8s-bundle"]
+        MAIN["main()\ninit: logger, DB, JWT, metrics"]
+        subgraph Modules["Activated Modules"]
+            TM["📦 Thing Module"]
+            DM["📄 Document Module"]
+            AM["📋 Affaire Module"]
+        end
+        TC["🔄 Single Vanguard Transcoder"]
+        ECHO["🖥️ Single Echo Server :9090"]
+    end
+    
+    MAIN --> TM
+    MAIN --> DM
+    MAIN --> AM
+    TM -->|VanguardServices| TC
+    DM -->|VanguardServices| TC
+    AM -->|VanguardServices| TC
+    TC --> ECHO
+```
+
+### Module API
+
+Each module exposes:
+
+| Method | Purpose |
+|--------|---------|
+| `New(ctx, cfg, deps)` | Create module (storage + business service) |
+| `VanguardServices()` | Return `[]*vanguard.Service` for shared transcoder |
+| `RoutePatterns()` | REST patterns (e.g. `/thing*`, `/types*`) |
+| `ConnectPatterns()` | gRPC patterns (e.g. `/thing.v1.*`) |
+| `RegisterRoutes(e)` | Standalone shortcut (creates its own transcoder) |
+| `Migrate(dbDsn)` | Run embedded SQL migrations |
+| `Start(ctx)` / `Stop(ctx)` | Future: background workers (JetStream, etc.) |
+
+### Bundle: Database Isolation
+
+Each module uses its own PostgreSQL **schema** (e.g. `go_thing`, `go_document`) and its own migration table. A single shared database is sufficient — no need for separate databases.
+
+### Bundle: Local Development with `go.work`
+
+Use `go.work` for local multi-module development (not committed to the bundle repo):
+
+```bash
+# In the parent directory of all repos
+go work init
+go work use ./go-cloud-k8s-thing
+go work use ./go-cloud-k8s-document
+go work use ./go-cloud-k8s-bundle
 ```
 
 ---
@@ -135,7 +201,7 @@ curl -X POST http://localhost:9090/thing.v1.ThingService/List \
 
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.25+
 - PostgreSQL 14+
 - [buf](https://buf.build/docs/installation) (for proto generation)
 
@@ -204,7 +270,7 @@ Find all available versions in the [Packages section](https://github.com/lao-tse
 
 | Category | Technology |
 |----------|------------|
-| **Language** | Go 1.21+ |
+| **Language** | Go 1.25+ |
 | **API Framework** | [Echo](https://echo.labstack.com/) |
 | **RPC** | [ConnectRPC](https://connectrpc.com/) + [Vanguard](https://github.com/connectrpc/vanguard-go) |
 | **Proto Tooling** | [buf](https://buf.build/) |
@@ -221,21 +287,27 @@ Find all available versions in the [Packages section](https://github.com/lao-tse
 ```
 go-cloud-k8s-thing/
 ├── api/
-│   ├── proto/thing/v1/          # 📋 Proto definitions (source of truth)
-│   └── openapi/                  # 📄 Generated OpenAPI specs
+│   ├── proto/thing/v1/            # 📋 Proto definitions (source of truth)
+│   └── openapi/                    # 📄 Generated OpenAPI specs
 ├── cmd/
-│   └── goCloudK8sThingServer/   # 🚀 Main application entry point
+│   └── goCloudK8sThingServer/     # 🚀 Main application entry point
 ├── gen/
-│   └── thing/v1/                # ⚙️ Generated Go code from protos
+│   └── thing/v1/                  # ⚙️ Generated Go code from protos
 ├── pkg/
-│   └── thing/                   # 📦 Business logic
-│       ├── business_service.go  # Core business operations
-│       ├── connect_server.go    # Connect RPC handlers
-│       ├── mappers.go           # Domain ↔ Proto conversion
-│       └── storage_postgres.go  # Database operations
-├── db/migrations/               # 🗃️ SQL migrations
-├── scripts/                     # 🔧 Build & generation scripts
-└── documentation/               # 📚 Requirements & docs
+│   ├── thing/                     # 📦 Business logic
+│   │   ├── business_service.go    # Core business operations
+│   │   ├── connect_server.go      # Connect RPC handlers
+│   │   ├── auth_interceptor.go    # JWT auth interceptor
+│   │   ├── mappers.go             # Domain ↔ Proto conversion
+│   │   ├── storage.go             # Storage interface
+│   │   └── storage_postgres.go    # Database operations
+│   └── thing/module/              # 🎁 Importable module for bundle
+│       ├── module.go              # Module, Config, Deps, New()
+│       ├── routes.go              # VanguardServices, RegisterRoutes
+│       ├── migrate.go             # Embedded SQL migrations
+│       └── db/migrations/*.sql    # SQL migration files
+├── scripts/                       # 🔧 Build & generation scripts
+└── documentation/                 # 📚 Requirements & docs
 ```
 
 ---

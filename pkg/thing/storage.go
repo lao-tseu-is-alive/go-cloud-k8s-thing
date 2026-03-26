@@ -2,6 +2,7 @@ package thing
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -48,19 +49,28 @@ type Storage interface {
 	CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error)
 }
 
-func GetStorageInstanceOrPanic(ctx context.Context, dbDriver string, db database.DB, l *slog.Logger) Storage {
-	var store Storage
-	var err error
+// GetStorageInstance creates a new Storage backend for the given driver.
+// It returns an error instead of panicking, making it suitable for use
+// in module initialisation where a panic is not acceptable (e.g. in a bundle).
+func GetStorageInstance(ctx context.Context, dbDriver string, db database.DB, l *slog.Logger) (Storage, error) {
 	switch dbDriver {
 	case "pgx":
-		store, err = NewPgxDB(ctx, db, l)
+		store, err := NewPgxDB(ctx, db, l)
 		if err != nil {
-			l.Error("error doing NewPgxDB", "error", err)
-			panic(err)
+			return nil, fmt.Errorf("GetStorageInstance(pgx): %w", err)
 		}
-
+		return store, nil
 	default:
-		panic("unsupported DB driver type")
+		return nil, fmt.Errorf("GetStorageInstance: unsupported DB driver type: %s", dbDriver)
+	}
+}
+
+// Deprecated: GetStorageInstanceOrPanic panics on error. Prefer GetStorageInstance.
+func GetStorageInstanceOrPanic(ctx context.Context, dbDriver string, db database.DB, l *slog.Logger) Storage {
+	store, err := GetStorageInstance(ctx, dbDriver, db, l)
+	if err != nil {
+		l.Error("GetStorageInstanceOrPanic failed", "error", err)
+		panic(err)
 	}
 	return store
 }

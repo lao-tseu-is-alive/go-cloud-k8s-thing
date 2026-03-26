@@ -3,7 +3,9 @@ module github.com/lao-tseu-is-alive/go-cloud-k8s-thing
 go 1.25.5
 
 require (
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
 	connectrpc.com/connect v1.19.1
+	connectrpc.com/validate v0.6.0
 	connectrpc.com/vanguard v0.3.0
 	github.com/georgysavva/scany/v2 v2.1.4
 	github.com/golang-migrate/migrate/v4 v4.19.1
@@ -20,10 +22,8 @@ require (
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1 // indirect
 	buf.build/go/protovalidate v1.0.0 // indirect
 	cel.dev/expr v0.24.0 // indirect
-	connectrpc.com/validate v0.6.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -34,7 +34,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
