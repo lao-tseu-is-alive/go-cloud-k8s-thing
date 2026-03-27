@@ -76,41 +76,23 @@ func (s *ThingConnectServer) List(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("List", "userId", userId)
 
-	// Build domain params from proto request
+	// Use proto request directly
 	msg := req.Msg
-	params := ListParams{}
-	if msg.Type != 0 {
-		params.Type = &msg.Type
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.Inactivated != nil {
-		params.Inactivated = msg.Inactivated
-	}
-	if msg.Validated != nil {
-		params.Validated = msg.Validated
-	}
 
 	// Handle pagination with defaults
-	limit := s.BusinessService.ListDefaultLimit
-	if msg.Limit > 0 {
-		limit = int(msg.Limit)
-	}
-	offset := 0
-	if msg.Offset > 0 {
-		offset = int(msg.Offset)
+	if msg.Limit == 0 {
+		msg.Limit = int32(s.BusinessService.ListDefaultLimit)
 	}
 
 	// Call business logic
-	list, err := s.BusinessService.List(ctx, offset, limit, params)
+	list, err := s.BusinessService.List(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	// Convert to proto and return
+	// Return proto response directly
 	response := &thingv1.ListResponse{
-		Things: DomainThingListSliceToProto(list),
+		Things: list,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -126,26 +108,21 @@ func (s *ThingConnectServer) Create(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Create", "userId", userId)
 
-	// Convert proto to domain
+	// Use proto thing directly
 	protoThing := req.Msg.Thing
 	if protoThing == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("thing is required"))
 	}
 
-	domainThing, err := ProtoThingToDomain(protoThing)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	// Call business logic
-	createdThing, err := s.BusinessService.Create(ctx, userId, *domainThing)
+	createdThing, err := s.BusinessService.Create(ctx, userId, protoThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
-	// Convert back to proto
+	// Return proto response directly
 	response := &thingv1.CreateResponse{
-		Thing: DomainThingToProto(createdThing),
+		Thing: createdThing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -173,8 +150,9 @@ func (s *ThingConnectServer) Get(
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.GetResponse{
-		Thing: DomainThingToProto(thing),
+		Thing: thing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -196,25 +174,21 @@ func (s *ThingConnectServer) Update(
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid thing ID format"))
 	}
 
-	// Convert proto to domain
+	// Use proto thing directly
 	protoThing := req.Msg.Thing
 	if protoThing == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("thing data is required"))
 	}
 
-	domainThing, err := ProtoThingToDomain(protoThing)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	// Call business logic
-	updatedThing, err := s.BusinessService.Update(ctx, userId, thingId, *domainThing)
+	updatedThing, err := s.BusinessService.Update(ctx, userId, thingId, protoThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.UpdateResponse{
-		Thing: DomainThingToProto(updatedThing),
+		Thing: updatedThing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -256,40 +230,23 @@ func (s *ThingConnectServer) Search(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Search", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	params := SearchParams{}
-	if msg.Keywords != "" {
-		params.Keywords = &msg.Keywords
-	}
-	if msg.Type != 0 {
-		params.Type = &msg.Type
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.Inactivated != nil {
-		params.Inactivated = msg.Inactivated
-	}
-	if msg.Validated != nil {
-		params.Validated = msg.Validated
+
+	// Handle pagination with defaults
+	if msg.Limit == 0 {
+		msg.Limit = int32(s.BusinessService.ListDefaultLimit)
 	}
 
-	limit := s.BusinessService.ListDefaultLimit
-	if msg.Limit > 0 {
-		limit = int(msg.Limit)
-	}
-	offset := 0
-	if msg.Offset > 0 {
-		offset = int(msg.Offset)
-	}
-
-	list, err := s.BusinessService.Search(ctx, offset, limit, params)
+	// Call business logic
+	list, err := s.BusinessService.Search(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.SearchResponse{
-		Things: DomainThingListSliceToProto(list),
+		Things: list,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -305,25 +262,11 @@ func (s *ThingConnectServer) Count(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("Count", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	params := CountParams{}
-	if msg.Keywords != "" {
-		params.Keywords = &msg.Keywords
-	}
-	if msg.Type != 0 {
-		params.Type = &msg.Type
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.Inactivated != nil {
-		params.Inactivated = msg.Inactivated
-	}
-	if msg.Validated != nil {
-		params.Validated = msg.Validated
-	}
 
-	count, err := s.BusinessService.Count(ctx, params)
+	// Call business logic
+	count, err := s.BusinessService.Count(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -345,31 +288,16 @@ func (s *ThingConnectServer) GeoJson(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("GeoJson", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	params := GeoJsonParams{}
-	if msg.Type != 0 {
-		params.Type = &msg.Type
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.Inactivated != nil {
-		params.Inactivated = msg.Inactivated
-	}
-	if msg.Validated != nil {
-		params.Validated = msg.Validated
+
+	// Handle pagination with defaults
+	if msg.Limit == 0 {
+		msg.Limit = int32(s.BusinessService.ListDefaultLimit)
 	}
 
-	limit := s.BusinessService.ListDefaultLimit
-	if msg.Limit > 0 {
-		limit = int(msg.Limit)
-	}
-	offset := 0
-	if msg.Offset > 0 {
-		offset = int(msg.Offset)
-	}
-
-	result, err := s.BusinessService.GeoJson(ctx, offset, limit, params)
+	// Call business logic
+	result, err := s.BusinessService.GeoJson(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -391,17 +319,16 @@ func (s *ThingConnectServer) ListByExternalId(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("ListByExternalId", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	limit := s.BusinessService.ListDefaultLimit
-	if msg.Limit > 0 {
-		limit = int(msg.Limit)
-	}
-	offset := 0
-	if msg.Offset > 0 {
-		offset = int(msg.Offset)
+
+	// Handle pagination with defaults
+	if msg.Limit == 0 {
+		msg.Limit = int32(s.BusinessService.ListDefaultLimit)
 	}
 
-	list, err := s.BusinessService.ListByExternalId(ctx, offset, limit, int(msg.ExternalId))
+	// Call business logic
+	list, err := s.BusinessService.ListByExternalId(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
@@ -411,8 +338,9 @@ func (s *ThingConnectServer) ListByExternalId(
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no things found with this external ID"))
 	}
 
+	// Return proto response directly
 	response := &thingv1.ListByExternalIdResponse{
-		Things: DomainThingListSliceToProto(list),
+		Things: list,
 	}
 	return connect.NewResponse(response), nil
 }

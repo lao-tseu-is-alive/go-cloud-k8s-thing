@@ -69,32 +69,16 @@ func (s *TypeThingConnectServer) List(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.List", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	params := TypeThingListParams{}
-	if msg.Keywords != "" {
-		params.Keywords = &msg.Keywords
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.ExternalId != 0 {
-		params.ExternalId = &msg.ExternalId
-	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
+
+	// Handle pagination with defaults
+	if msg.Limit == 0 {
+		msg.Limit = 250 // Default for TypeThing as in HTTP handler
 	}
 
-	// Handle pagination
-	limit := 250 // Default for TypeThing as in HTTP handler
-	if msg.Limit > 0 {
-		limit = int(msg.Limit)
-	}
-	offset := 0
-	if msg.Offset > 0 {
-		offset = int(msg.Offset)
-	}
-
-	list, err := s.BusinessService.ListTypeThings(ctx, offset, limit, params)
+	// Call business logic
+	list, err := s.BusinessService.ListTypeThings(ctx, msg)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Return empty list instead of error
@@ -105,8 +89,9 @@ func (s *TypeThingConnectServer) List(
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.TypeThingServiceListResponse{
-		TypeThings: DomainTypeThingListSliceToProto(list),
+		TypeThings: list,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -122,20 +107,21 @@ func (s *TypeThingConnectServer) Create(
 	userId, isAdmin := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Create", "userId", userId, "isAdmin", isAdmin)
 
+	// Use proto typeThing directly
 	protoTypeThing := req.Msg.TypeThing
 	if protoTypeThing == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("type_thing is required"))
 	}
 
-	domainTypeThing := ProtoTypeThingToDomain(protoTypeThing)
-
-	createdTypeThing, err := s.BusinessService.CreateTypeThing(ctx, userId, isAdmin, *domainTypeThing)
+	// Call business logic
+	createdTypeThing, err := s.BusinessService.CreateTypeThing(ctx, userId, isAdmin, protoTypeThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.TypeThingServiceCreateResponse{
-		TypeThing: DomainTypeThingToProto(createdTypeThing),
+		TypeThing: createdTypeThing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -155,8 +141,9 @@ func (s *TypeThingConnectServer) Get(
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.TypeThingServiceGetResponse{
-		TypeThing: DomainTypeThingToProto(typeThing),
+		TypeThing: typeThing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -172,20 +159,21 @@ func (s *TypeThingConnectServer) Update(
 	userId, isAdmin := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Update", "userId", userId, "isAdmin", isAdmin)
 
+	// Use proto typeThing directly
 	protoTypeThing := req.Msg.TypeThing
 	if protoTypeThing == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("type_thing data is required"))
 	}
 
-	domainTypeThing := ProtoTypeThingToDomain(protoTypeThing)
-
-	updatedTypeThing, err := s.BusinessService.UpdateTypeThing(ctx, userId, isAdmin, req.Msg.Id, *domainTypeThing)
+	// Call business logic
+	updatedTypeThing, err := s.BusinessService.UpdateTypeThing(ctx, userId, isAdmin, req.Msg.Id, protoTypeThing)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}
 
+	// Return proto response directly
 	response := &thingv1.TypeThingServiceUpdateResponse{
-		TypeThing: DomainTypeThingToProto(updatedTypeThing),
+		TypeThing: updatedTypeThing,
 	}
 	return connect.NewResponse(response), nil
 }
@@ -220,19 +208,11 @@ func (s *TypeThingConnectServer) Count(
 	userId, _ := GetUserFromContext(ctx)
 	s.Log.Info("TypeThing.Count", "userId", userId)
 
+	// Use proto request directly
 	msg := req.Msg
-	params := TypeThingCountParams{}
-	if msg.Keywords != "" {
-		params.Keywords = &msg.Keywords
-	}
-	if msg.CreatedBy != 0 {
-		params.CreatedBy = &msg.CreatedBy
-	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
-	}
 
-	count, err := s.BusinessService.CountTypeThings(ctx, params)
+	// Call business logic
+	count, err := s.BusinessService.CountTypeThings(ctx, msg)
 	if err != nil {
 		return nil, s.mapErrorToConnect(err)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
+	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 )
 
 // MaxPaginationLimit defines the maximum number of items that can be requested in a single list/search API call
@@ -45,11 +46,11 @@ func validateName(name string) error {
 }
 
 // GeoJson returns a geoJson representation of things based on the given parameters
-func (s *BusinessService) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
-	if limit > MaxPaginationLimit {
-		limit = MaxPaginationLimit
+func (s *BusinessService) GeoJson(ctx context.Context, req *thingv1.GeoJsonRequest) (string, error) {
+	if req.Limit > MaxPaginationLimit {
+		req.Limit = MaxPaginationLimit
 	}
-	jsonResult, err := s.Store.GeoJson(ctx, offset, limit, params)
+	jsonResult, err := s.Store.GeoJson(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("error retrieving geoJson: %w", err)
 	}
@@ -60,26 +61,26 @@ func (s *BusinessService) GeoJson(ctx context.Context, offset, limit int, params
 }
 
 // List returns the list of things based on the given parameters
-func (s *BusinessService) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
-	if limit > MaxPaginationLimit {
-		limit = MaxPaginationLimit
+func (s *BusinessService) List(ctx context.Context, req *thingv1.ListRequest) ([]*thingv1.ThingList, error) {
+	if req.Limit > MaxPaginationLimit {
+		req.Limit = MaxPaginationLimit
 	}
-	list, err := s.Store.List(ctx, offset, limit, params)
+	list, err := s.Store.List(ctx, req)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
-			return make([]*ThingList, 0), nil
+			return make([]*thingv1.ThingList, 0), nil
 		}
 		return nil, fmt.Errorf("error listing things: %w", err)
 	}
 	if list == nil {
-		return make([]*ThingList, 0), nil
+		return make([]*thingv1.ThingList, 0), nil
 	}
 	return list, nil
 }
 
 // Create creates a new thing with the given data
-func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newThing Thing) (*Thing, error) {
+func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newThing *thingv1.Thing) (*thingv1.Thing, error) {
 	// Validate name
 	if err := validateName(newThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
@@ -92,7 +93,11 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 	}
 
 	// Check if thing already exists
-	exists, err := s.Store.Exist(ctx, newThing.Id)
+	thingUUID, err := uuid.Parse(newThing.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid uuid %v", ErrInvalidInput, newThing.Id)
+	}
+	exists, err := s.Store.Exist(ctx, thingUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error verifying existence: %w", err)
 	}
@@ -114,8 +119,8 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 }
 
 // Count returns the number of things based on the given parameters
-func (s *BusinessService) Count(ctx context.Context, params CountParams) (int32, error) {
-	numThings, err := s.Store.Count(ctx, params)
+func (s *BusinessService) Count(ctx context.Context, req *thingv1.CountRequest) (int32, error) {
+	numThings, err := s.Store.Count(ctx, req)
 	if err != nil {
 		return 0, fmt.Errorf("error counting things: %w", err)
 	}
@@ -153,7 +158,7 @@ func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thing
 }
 
 // Get retrieves a thing by its ID
-func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*Thing, error) {
+func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*thingv1.Thing, error) {
 	// Check if thing exists
 	exists, err := s.Store.Exist(ctx, thingId)
 	if err != nil {
@@ -173,7 +178,7 @@ func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*Thing, e
 }
 
 // Update updates a thing with the given ID
-func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thingId uuid.UUID, updateThing Thing) (*Thing, error) {
+func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thingId uuid.UUID, updateThing *thingv1.Thing) (*thingv1.Thing, error) {
 	// Check if thing exists
 	exists, err := s.Store.Exist(ctx, thingId)
 	if err != nil {
@@ -204,7 +209,7 @@ func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thing
 	}
 
 	// Set last modifier
-	updateThing.LastModifiedBy = &currentUserId
+	updateThing.LastModifiedBy = currentUserId
 
 	// Update in storage
 	thingUpdated, err := s.Store.Update(ctx, thingId, updateThing)
@@ -217,60 +222,60 @@ func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thing
 }
 
 // ListByExternalId returns things filtered by external ID
-func (s *BusinessService) ListByExternalId(ctx context.Context, offset, limit, externalId int) ([]*ThingList, error) {
-	if limit > MaxPaginationLimit {
-		limit = MaxPaginationLimit
+func (s *BusinessService) ListByExternalId(ctx context.Context, req *thingv1.ListByExternalIdRequest) ([]*thingv1.ThingList, error) {
+	if req.Limit > MaxPaginationLimit {
+		req.Limit = MaxPaginationLimit
 	}
-	list, err := s.Store.ListByExternalId(ctx, offset, limit, externalId)
+	list, err := s.Store.ListByExternalId(ctx, req)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
-			return make([]*ThingList, 0), nil
+			return make([]*thingv1.ThingList, 0), nil
 		}
 		return nil, fmt.Errorf("error listing things by external id: %w", err)
 	}
 	if list == nil {
-		return make([]*ThingList, 0), nil
+		return make([]*thingv1.ThingList, 0), nil
 	}
 	return list, nil
 }
 
 // Search returns things based on search criteria
-func (s *BusinessService) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
-	if limit > MaxPaginationLimit {
-		limit = MaxPaginationLimit
+func (s *BusinessService) Search(ctx context.Context, req *thingv1.SearchRequest) ([]*thingv1.ThingList, error) {
+	if req.Limit > MaxPaginationLimit {
+		req.Limit = MaxPaginationLimit
 	}
-	list, err := s.Store.Search(ctx, offset, limit, params)
+	list, err := s.Store.Search(ctx, req)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// No rows is not an error, return empty slice
-			return make([]*ThingList, 0), nil
+			return make([]*thingv1.ThingList, 0), nil
 		}
 		return nil, fmt.Errorf("error searching things: %w", err)
 	}
 	if list == nil {
-		return make([]*ThingList, 0), nil
+		return make([]*thingv1.ThingList, 0), nil
 	}
 	return list, nil
 }
 
 // ListTypeThings returns a list of TypeThing based on parameters
-func (s *BusinessService) ListTypeThings(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
-	if limit > MaxPaginationLimit {
-		limit = MaxPaginationLimit
+func (s *BusinessService) ListTypeThings(ctx context.Context, req *thingv1.TypeThingServiceListRequest) ([]*thingv1.TypeThingList, error) {
+	if req.Limit > MaxPaginationLimit {
+		req.Limit = MaxPaginationLimit
 	}
-	list, err := s.Store.ListTypeThing(ctx, offset, limit, params)
+	list, err := s.Store.ListTypeThing(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("error listing type things: %w", err)
 	}
 	if list == nil {
-		return make([]*TypeThingList, 0), nil
+		return make([]*thingv1.TypeThingList, 0), nil
 	}
 	return list, nil
 }
 
 // CreateTypeThing creates a new TypeThing
-func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, newTypeThing TypeThing) (*TypeThing, error) {
+func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, newTypeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -295,8 +300,8 @@ func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int
 }
 
 // CountTypeThings returns the count of TypeThings based on parameters
-func (s *BusinessService) CountTypeThings(ctx context.Context, params TypeThingCountParams) (int32, error) {
-	numThings, err := s.Store.CountTypeThing(ctx, params)
+func (s *BusinessService) CountTypeThings(ctx context.Context, req *thingv1.TypeThingServiceCountRequest) (int32, error) {
+	numThings, err := s.Store.CountTypeThing(ctx, req)
 	if err != nil {
 		return 0, fmt.Errorf("error counting type things: %w", err)
 	}
@@ -327,7 +332,7 @@ func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int
 }
 
 // GetTypeThing retrieves a TypeThing by ID
-func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeThingId int32) (*TypeThing, error) {
+func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeThingId int32) (*thingv1.TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -349,7 +354,7 @@ func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeTh
 }
 
 // UpdateTypeThing updates a TypeThing
-func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32, updateTypeThing TypeThing) (*TypeThing, error) {
+func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32, updateTypeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
@@ -367,7 +372,7 @@ func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int
 	}
 
 	// Set last modifier
-	updateTypeThing.LastModifiedBy = &currentUserId
+	updateTypeThing.LastModifiedBy = currentUserId
 
 	// Update in storage
 	thingUpdated, err := s.Store.UpdateTypeThing(ctx, typeThingId, updateTypeThing)

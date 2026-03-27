@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
+	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -19,41 +20,41 @@ type MockStorage struct {
 	mock.Mock
 }
 
-func (m *MockStorage) GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error) {
-	args := m.Called(ctx, offset, limit, params)
+func (m *MockStorage) GeoJson(ctx context.Context, req *thingv1.GeoJsonRequest) (string, error) {
+	args := m.Called(ctx, req)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockStorage) List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error) {
-	args := m.Called(ctx, offset, limit, params)
+func (m *MockStorage) List(ctx context.Context, req *thingv1.ListRequest) ([]*thingv1.ThingList, error) {
+	args := m.Called(ctx, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*ThingList), args.Error(1)
+	return args.Get(0).([]*thingv1.ThingList), args.Error(1)
 }
 
-func (m *MockStorage) ListByExternalId(ctx context.Context, offset, limit int, externalId int) ([]*ThingList, error) {
-	args := m.Called(ctx, offset, limit, externalId)
+func (m *MockStorage) ListByExternalId(ctx context.Context, req *thingv1.ListByExternalIdRequest) ([]*thingv1.ThingList, error) {
+	args := m.Called(ctx, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*ThingList), args.Error(1)
+	return args.Get(0).([]*thingv1.ThingList), args.Error(1)
 }
 
-func (m *MockStorage) Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error) {
-	args := m.Called(ctx, offset, limit, params)
+func (m *MockStorage) Search(ctx context.Context, req *thingv1.SearchRequest) ([]*thingv1.ThingList, error) {
+	args := m.Called(ctx, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*ThingList), args.Error(1)
+	return args.Get(0).([]*thingv1.ThingList), args.Error(1)
 }
 
-func (m *MockStorage) Get(ctx context.Context, id uuid.UUID) (*Thing, error) {
+func (m *MockStorage) Get(ctx context.Context, id uuid.UUID) (*thingv1.Thing, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*Thing), args.Error(1)
+	return args.Get(0).(*thingv1.Thing), args.Error(1)
 }
 
 func (m *MockStorage) Exist(ctx context.Context, id uuid.UUID) (bool, error) {
@@ -61,25 +62,25 @@ func (m *MockStorage) Exist(ctx context.Context, id uuid.UUID) (bool, error) {
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockStorage) Count(ctx context.Context, params CountParams) (int32, error) {
-	args := m.Called(ctx, params)
-	return int32(args.Int(0)), args.Error(1)
+func (m *MockStorage) Count(ctx context.Context, req *thingv1.CountRequest) (int32, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockStorage) Create(ctx context.Context, thing Thing) (*Thing, error) {
+func (m *MockStorage) Create(ctx context.Context, thing *thingv1.Thing) (*thingv1.Thing, error) {
 	args := m.Called(ctx, thing)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*Thing), args.Error(1)
+	return args.Get(0).(*thingv1.Thing), args.Error(1)
 }
 
-func (m *MockStorage) Update(ctx context.Context, id uuid.UUID, thing Thing) (*Thing, error) {
+func (m *MockStorage) Update(ctx context.Context, id uuid.UUID, thing *thingv1.Thing) (*thingv1.Thing, error) {
 	args := m.Called(ctx, id, thing)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*Thing), args.Error(1)
+	return args.Get(0).(*thingv1.Thing), args.Error(1)
 }
 
 func (m *MockStorage) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
@@ -97,20 +98,20 @@ func (m *MockStorage) IsUserOwner(ctx context.Context, id uuid.UUID, userId int3
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockStorage) CreateTypeThing(ctx context.Context, typeThing TypeThing) (*TypeThing, error) {
+func (m *MockStorage) CreateTypeThing(ctx context.Context, typeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
 	args := m.Called(ctx, typeThing)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*TypeThing), args.Error(1)
+	return args.Get(0).(*thingv1.TypeThing), args.Error(1)
 }
 
-func (m *MockStorage) UpdateTypeThing(ctx context.Context, id int32, typeThing TypeThing) (*TypeThing, error) {
+func (m *MockStorage) UpdateTypeThing(ctx context.Context, id int32, typeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
 	args := m.Called(ctx, id, typeThing)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*TypeThing), args.Error(1)
+	return args.Get(0).(*thingv1.TypeThing), args.Error(1)
 }
 
 func (m *MockStorage) DeleteTypeThing(ctx context.Context, id int32, userId int32) error {
@@ -118,25 +119,25 @@ func (m *MockStorage) DeleteTypeThing(ctx context.Context, id int32, userId int3
 	return args.Error(0)
 }
 
-func (m *MockStorage) ListTypeThing(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error) {
-	args := m.Called(ctx, offset, limit, params)
+func (m *MockStorage) ListTypeThing(ctx context.Context, req *thingv1.TypeThingServiceListRequest) ([]*thingv1.TypeThingList, error) {
+	args := m.Called(ctx, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*TypeThingList), args.Error(1)
+	return args.Get(0).([]*thingv1.TypeThingList), args.Error(1)
 }
 
-func (m *MockStorage) GetTypeThing(ctx context.Context, id int32) (*TypeThing, error) {
+func (m *MockStorage) GetTypeThing(ctx context.Context, id int32) (*thingv1.TypeThing, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*TypeThing), args.Error(1)
+	return args.Get(0).(*thingv1.TypeThing), args.Error(1)
 }
 
-func (m *MockStorage) CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error) {
-	args := m.Called(ctx, params)
-	return int32(args.Int(0)), args.Error(1)
+func (m *MockStorage) CountTypeThing(ctx context.Context, req *thingv1.TypeThingServiceCountRequest) (int32, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0).(int32), args.Error(1)
 }
 
 // MockDB is a minimal mock for database connection
@@ -211,19 +212,22 @@ func TestBusinessService_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		thingID := uuid.New()
-		newThing := Thing{
+		thingID := uuid.New().String()
+		newThing := &thingv1.Thing{
 			Id:   thingID,
 			Name: "Test Thing",
 		}
 
-		expectedThing := newThing
-		expectedThing.CreatedBy = 123
+		expectedThing := &thingv1.Thing{
+			Id:        thingID,
+			Name:      "Test Thing",
+			CreatedBy: 123,
+		}
 
 		// Mock TypeThing existence check
 		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{newThing.TypeId}).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, thingID).Return(false, nil)
-		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(&expectedThing, nil)
+		mockStore.On("Exist", mock.Anything, mock.Anything).Return(false, nil)
+		mockStore.On("Create", mock.Anything, mock.AnythingOfType("*thingv1.Thing")).Return(expectedThing, nil)
 
 		result, err := service.Create(ctx, 123, newThing)
 
@@ -238,8 +242,8 @@ func TestBusinessService_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		newThing := Thing{
-			Id:   uuid.New(),
+		newThing := &thingv1.Thing{
+			Id:   uuid.New().String(),
 			Name: "  ", // Empty/whitespace name
 		}
 
@@ -255,8 +259,8 @@ func TestBusinessService_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		newThing := Thing{
-			Id:   uuid.New(),
+		newThing := &thingv1.Thing{
+			Id:   uuid.New().String(),
 			Name: "ab", // Less than MinNameLength (5)
 		}
 
@@ -272,8 +276,8 @@ func TestBusinessService_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		newThing := Thing{
-			Id:     uuid.New(),
+		newThing := &thingv1.Thing{
+			Id:     uuid.New().String(),
 			Name:   "Test Thing",
 			TypeId: 999,
 		}
@@ -293,15 +297,15 @@ func TestBusinessService_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		thingID := uuid.New()
-		newThing := Thing{
+		thingID := uuid.New().String()
+		newThing := &thingv1.Thing{
 			Id:   thingID,
 			Name: "Test Thing",
 		}
 
 		// Mock TypeThing existence check
 		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{newThing.TypeId}).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
+		mockStore.On("Exist", mock.Anything, mock.Anything).Return(true, nil)
 
 		result, err := service.Create(ctx, 123, newThing)
 
@@ -322,8 +326,8 @@ func TestBusinessService_Get(t *testing.T) {
 		service := createTestBusinessService(mockStore, mockDB)
 
 		thingID := uuid.New()
-		expectedThing := &Thing{
-			Id:   thingID,
+		expectedThing := &thingv1.Thing{
+			Id:   thingID.String(),
 			Name: "Test Thing",
 		}
 
@@ -366,19 +370,22 @@ func TestBusinessService_Update(t *testing.T) {
 
 		thingID := uuid.New()
 		userID := int32(123)
-		updateThing := Thing{
-			Id:   thingID,
+		updateThing := &thingv1.Thing{
+			Id:   thingID.String(),
 			Name: "Updated Thing",
 		}
 
-		expectedThing := updateThing
-		expectedThing.LastModifiedBy = &userID
+		expectedThing := &thingv1.Thing{
+			Id:             thingID.String(),
+			Name:           "Updated Thing",
+			LastModifiedBy: userID,
+		}
 
 		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
 		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
 		// Mock TypeThing existence check
 		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{updateThing.TypeId}).Return(1, nil)
-		mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("Thing")).Return(&expectedThing, nil)
+		mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("*thingv1.Thing")).Return(expectedThing, nil)
 
 		result, err := service.Update(ctx, userID, thingID, updateThing)
 
@@ -395,8 +402,8 @@ func TestBusinessService_Update(t *testing.T) {
 
 		thingID := uuid.New()
 		userID := int32(123)
-		updateThing := Thing{
-			Id:   thingID,
+		updateThing := &thingv1.Thing{
+			Id:   thingID.String(),
 			Name: "Updated Thing",
 		}
 
@@ -417,8 +424,8 @@ func TestBusinessService_Update(t *testing.T) {
 
 		thingID := uuid.New()
 		userID := int32(123)
-		updateThing := Thing{
-			Id:     thingID,
+		updateThing := &thingv1.Thing{
+			Id:     thingID.String(),
 			Name:   "Updated Thing",
 			TypeId: 999,
 		}
@@ -487,15 +494,15 @@ func TestBusinessService_List(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		expectedList := []*ThingList{
-			{Id: uuid.New(), Name: "Thing 1"},
-			{Id: uuid.New(), Name: "Thing 2"},
+		expectedList := []*thingv1.ThingList{
+			{Id: uuid.New().String(), Name: "Thing 1"},
+			{Id: uuid.New().String(), Name: "Thing 2"},
 		}
-		params := ListParams{}
+		req := &thingv1.ListRequest{Limit: 10, Offset: 0}
 
-		mockStore.On("List", mock.Anything, 0, 10, params).Return(expectedList, nil)
+		mockStore.On("List", mock.Anything, req).Return(expectedList, nil)
 
-		result, err := service.List(ctx, 0, 10, params)
+		result, err := service.List(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
@@ -507,10 +514,10 @@ func TestBusinessService_List(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		params := ListParams{}
-		mockStore.On("List", mock.Anything, 0, 10, params).Return(nil, pgx.ErrNoRows)
+		req := &thingv1.ListRequest{Limit: 10, Offset: 0}
+		mockStore.On("List", mock.Anything, req).Return(nil, pgx.ErrNoRows)
 
-		result, err := service.List(ctx, 0, 10, params)
+		result, err := service.List(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Empty(t, result)
@@ -522,11 +529,11 @@ func TestBusinessService_List(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		params := ListParams{}
+		req := &thingv1.ListRequest{Limit: 10, Offset: 0}
 		dbError := errors.New("database connection failed")
-		mockStore.On("List", mock.Anything, 0, 10, params).Return(nil, dbError)
+		mockStore.On("List", mock.Anything, req).Return(nil, dbError)
 
-		result, err := service.List(ctx, 0, 10, params)
+		result, err := service.List(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -543,10 +550,10 @@ func TestBusinessService_Count(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		params := CountParams{}
-		mockStore.On("Count", mock.Anything, params).Return(42, nil)
+		req := &thingv1.CountRequest{}
+		mockStore.On("Count", mock.Anything, req).Return(int32(42), nil)
 
-		result, err := service.Count(ctx, params)
+		result, err := service.Count(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Equal(t, int32(42), result)
@@ -563,15 +570,17 @@ func TestBusinessService_CreateTypeThing(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		newTypeThing := TypeThing{
+		newTypeThing := &thingv1.TypeThing{
 			Name: "Test Type",
 		}
 
-		expectedTypeThing := newTypeThing
-		expectedTypeThing.Id = 1
-		expectedTypeThing.CreatedBy = 123
+		expectedTypeThing := &thingv1.TypeThing{
+			Name:      "Test Type",
+			Id:        1,
+			CreatedBy: 123,
+		}
 
-		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("TypeThing")).Return(&expectedTypeThing, nil)
+		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("*thingv1.TypeThing")).Return(expectedTypeThing, nil)
 
 		result, err := service.CreateTypeThing(ctx, 123, true, newTypeThing)
 
@@ -586,7 +595,7 @@ func TestBusinessService_CreateTypeThing(t *testing.T) {
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
-		newTypeThing := TypeThing{
+		newTypeThing := &thingv1.TypeThing{
 			Name: "Test Type",
 		}
 

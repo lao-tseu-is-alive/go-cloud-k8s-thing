@@ -1,11 +1,8 @@
-// Package thing provides mappers between domain types and Proto types.
-// This bridges the gap between the database layer (Domain) and the API layer (Proto).
 package thing
 
 import (
 	"time"
 
-	"github.com/google/uuid"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -98,34 +95,33 @@ func structToMap(s *structpb.Struct) *map[string]interface{} {
 	return &m
 }
 
-// statusToString converts a *ThingStatus to string
-func statusToString(s *ThingStatus) string {
+// statusToString converts a *string to string
+func statusToString(s *string) string {
 	if s == nil {
 		return ""
 	}
-	return string(*s)
+	return *s
 }
 
-// stringToStatus converts a string to *ThingStatus
-func stringToStatus(s string) *ThingStatus {
+// stringToStatus converts a string to *string
+func stringToStatus(s string) *string {
 	if s == "" {
 		return nil
 	}
-	status := ThingStatus(s)
-	return &status
+	return &s
 }
 
 // =============================================================================
 // Thing Mappers
 // =============================================================================
 
-// DomainThingToProto converts a domain Thing to a Proto Thing
-func DomainThingToProto(t *Thing) *thingv1.Thing {
+// DomainThingToProto converts a domain ThingDB to a Proto Thing
+func DomainThingToProto(t *ThingDB) *thingv1.Thing {
 	if t == nil {
 		return nil
 	}
 	return &thingv1.Thing{
-		Id:                t.Id.String(),
+		Id:                t.Id,
 		TypeId:            t.TypeId,
 		Name:              t.Name,
 		Description:       derefString(t.Description),
@@ -157,24 +153,14 @@ func DomainThingToProto(t *Thing) *thingv1.Thing {
 	}
 }
 
-// ProtoThingToDomain converts a Proto Thing to a domain Thing.
-// Returns an error if UUID parsing fails.
-func ProtoThingToDomain(t *thingv1.Thing) (*Thing, error) {
+// ProtoThingToDomain converts a Proto Thing to a domain ThingDB.
+func ProtoThingToDomain(t *thingv1.Thing) *ThingDB {
 	if t == nil {
-		return nil, nil
+		return nil
 	}
 
-	var id uuid.UUID
-	var err error
-	if t.Id != "" {
-		id, err = uuid.Parse(t.Id)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &Thing{
-		Id:                id,
+	return &ThingDB{
+		Id:                t.Id,
 		TypeId:            t.TypeId,
 		Name:              t.Name,
 		Description:       stringPtr(t.Description),
@@ -203,16 +189,16 @@ func ProtoThingToDomain(t *thingv1.Thing) (*Thing, error) {
 		MoreData:          structToMap(t.MoreData),
 		PosX:              t.PosX,
 		PosY:              t.PosY,
-	}, nil
+	}
 }
 
-// DomainThingListToProto converts a domain ThingList to a Proto ThingList
-func DomainThingListToProto(t *ThingList) *thingv1.ThingList {
+// DomainThingListToProto converts a domain ThingListDB to a Proto ThingList
+func DomainThingListToProto(t *ThingListDB) *thingv1.ThingList {
 	if t == nil {
 		return nil
 	}
 	return &thingv1.ThingList{
-		Id:          t.Id.String(),
+		Id:          t.Id,
 		TypeId:      t.TypeId,
 		Name:        t.Name,
 		Description: derefString(t.Description),
@@ -227,8 +213,8 @@ func DomainThingListToProto(t *ThingList) *thingv1.ThingList {
 	}
 }
 
-// DomainThingListSliceToProto converts a slice of domain ThingList to Proto ThingList
-func DomainThingListSliceToProto(items []*ThingList) []*thingv1.ThingList {
+// DomainThingListSliceToProto converts a slice of domain ThingListDB to Proto ThingList
+func DomainThingListSliceToProto(items []*ThingListDB) []*thingv1.ThingList {
 	if items == nil {
 		return nil
 	}
@@ -243,8 +229,8 @@ func DomainThingListSliceToProto(items []*ThingList) []*thingv1.ThingList {
 // TypeThing Mappers
 // =============================================================================
 
-// DomainTypeThingToProto converts a domain TypeThing to a Proto TypeThing
-func DomainTypeThingToProto(t *TypeThing) *thingv1.TypeThing {
+// DomainTypeThingToProto converts a domain TypeThingDB to a Proto TypeThing
+func DomainTypeThingToProto(t *TypeThingDB) *thingv1.TypeThing {
 	if t == nil {
 		return nil
 	}
@@ -273,12 +259,12 @@ func DomainTypeThingToProto(t *TypeThing) *thingv1.TypeThing {
 	}
 }
 
-// ProtoTypeThingToDomain converts a Proto TypeThing to a domain TypeThing
-func ProtoTypeThingToDomain(t *thingv1.TypeThing) *TypeThing {
+// ProtoTypeThingToDomain converts a Proto TypeThing to a domain TypeThingDB
+func ProtoTypeThingToDomain(t *thingv1.TypeThing) *TypeThingDB {
 	if t == nil {
 		return nil
 	}
-	return &TypeThing{
+	return &TypeThingDB{
 		Id:                t.Id,
 		Name:              t.Name,
 		Description:       stringPtr(t.Description),
@@ -303,8 +289,8 @@ func ProtoTypeThingToDomain(t *thingv1.TypeThing) *TypeThing {
 	}
 }
 
-// DomainTypeThingListToProto converts a domain TypeThingList to a Proto TypeThingList
-func DomainTypeThingListToProto(t *TypeThingList) *thingv1.TypeThingList {
+// DomainTypeThingListToProto converts a domain TypeThingListDB to a Proto TypeThingList
+func DomainTypeThingListToProto(t *TypeThingListDB) *thingv1.TypeThingList {
 	if t == nil {
 		return nil
 	}
@@ -320,8 +306,8 @@ func DomainTypeThingListToProto(t *TypeThingList) *thingv1.TypeThingList {
 	}
 }
 
-// DomainTypeThingListSliceToProto converts a slice of domain TypeThingList to Proto
-func DomainTypeThingListSliceToProto(items []*TypeThingList) []*thingv1.TypeThingList {
+// DomainTypeThingListSliceToProto converts a slice of domain TypeThingListDB to Proto
+func DomainTypeThingListSliceToProto(items []*TypeThingListDB) []*thingv1.TypeThingList {
 	if items == nil {
 		return nil
 	}

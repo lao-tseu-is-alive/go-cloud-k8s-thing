@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This release addresses the first part of Finding 12 from Phase 4 of the [Synthetic Action Plan](code_review/20260326/synthetic_action_plan.md).
 
 ### Changed
+- **OpenAPI Publishing (Finding 12)**: Complete refactoring of pkg/thing to replace OpenAPI-generated types with Protobuf types.
+
+
+## [0.3.6] - 2026-03-27
+
+This release addresses the first part of Finding 12 from Phase 4 of the [Synthetic Action Plan](code_review/20260326/synthetic_action_plan.md).
+
+### Changed
 - **OpenAPI Publishing (Finding 12)**: Automated the generation and distribution of the legacy OpenAPI JSON specification. The `buf` pipeline now explicitly outputs `thing.json` alongside the YAML spec, and `buf_generate.sh` distributes it using `rsync` to the frontend `public` and `docs` folders, eliminating the need to manually export JSON from Swagger UI. (`buf.gen.yaml`, `scripts/buf_generate.sh`)
 
 ## [0.3.5] - 2026-03-27

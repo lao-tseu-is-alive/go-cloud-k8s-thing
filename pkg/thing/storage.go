@@ -7,28 +7,29 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
+	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 )
 
 // Storage is an interface to different implementation of persistence for Things/TypeThing
 type Storage interface {
 	// GeoJson returns a geoJson of existing things with the given offset and limit.
-	GeoJson(ctx context.Context, offset, limit int, params GeoJsonParams) (string, error)
+	GeoJson(ctx context.Context, req *thingv1.GeoJsonRequest) (string, error)
 	// List returns the list of existing things with the given offset and limit.
-	List(ctx context.Context, offset, limit int, params ListParams) ([]*ThingList, error)
+	List(ctx context.Context, req *thingv1.ListRequest) ([]*thingv1.ThingList, error)
 	// ListByExternalId returns the list of existing things having the given externalId with the given offset and limit.
-	ListByExternalId(ctx context.Context, offset, limit int, externalId int) ([]*ThingList, error)
+	ListByExternalId(ctx context.Context, req *thingv1.ListByExternalIdRequest) ([]*thingv1.ThingList, error)
 	// Search returns the list of existing things filtered by search params with the given offset and limit.
-	Search(ctx context.Context, offset, limit int, params SearchParams) ([]*ThingList, error)
+	Search(ctx context.Context, req *thingv1.SearchRequest) ([]*thingv1.ThingList, error)
 	// Get returns the thing with the specified things ID.
-	Get(ctx context.Context, id uuid.UUID) (*Thing, error)
+	Get(ctx context.Context, id uuid.UUID) (*thingv1.Thing, error)
 	// Exist returns true only if a things with the specified id exists in store.
 	Exist(ctx context.Context, id uuid.UUID) (bool, error)
 	// Count returns the total number of things.
-	Count(ctx context.Context, params CountParams) (int32, error)
+	Count(ctx context.Context, req *thingv1.CountRequest) (int32, error)
 	// Create saves a new things in the storage.
-	Create(ctx context.Context, thing Thing) (*Thing, error)
+	Create(ctx context.Context, thing *thingv1.Thing) (*thingv1.Thing, error)
 	// Update updates the things with given ID in the storage.
-	Update(ctx context.Context, id uuid.UUID, thing Thing) (*Thing, error)
+	Update(ctx context.Context, id uuid.UUID, thing *thingv1.Thing) (*thingv1.Thing, error)
 	// Delete removes the things with given ID from the storage.
 	Delete(ctx context.Context, id uuid.UUID, userId int32) error
 	// IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
@@ -36,17 +37,17 @@ type Storage interface {
 	// IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
 	IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) (bool, error)
 	// CreateTypeThing saves a new typeThing in the storage.
-	CreateTypeThing(ctx context.Context, typeThing TypeThing) (*TypeThing, error)
+	CreateTypeThing(ctx context.Context, typeThing *thingv1.TypeThing) (*thingv1.TypeThing, error)
 	// UpdateTypeThing updates the typeThing with given ID in the storage.
-	UpdateTypeThing(ctx context.Context, id int32, typeThing TypeThing) (*TypeThing, error)
+	UpdateTypeThing(ctx context.Context, id int32, typeThing *thingv1.TypeThing) (*thingv1.TypeThing, error)
 	// DeleteTypeThing removes the typeThing with given ID from the storage.
 	DeleteTypeThing(ctx context.Context, id int32, userId int32) error
 	// ListTypeThing returns the list of active typeThings with the given offset and limit.
-	ListTypeThing(ctx context.Context, offset, limit int, params TypeThingListParams) ([]*TypeThingList, error)
+	ListTypeThing(ctx context.Context, req *thingv1.TypeThingServiceListRequest) ([]*thingv1.TypeThingList, error)
 	// GetTypeThing returns the typeThing with the specified things ID.
-	GetTypeThing(ctx context.Context, id int32) (*TypeThing, error)
+	GetTypeThing(ctx context.Context, id int32) (*thingv1.TypeThing, error)
 	// CountTypeThing returns the number of TypeThing based on search criteria
-	CountTypeThing(ctx context.Context, params TypeThingCountParams) (int32, error)
+	CountTypeThing(ctx context.Context, req *thingv1.TypeThingServiceCountRequest) (int32, error)
 }
 
 // GetStorageInstance creates a new Storage backend for the given driver.

@@ -12,6 +12,7 @@ import (
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // =============================================================================
@@ -57,14 +58,14 @@ func TestThingConnectServer_List(t *testing.T) {
 
 		// Setup mock storage
 		now := time.Now()
-		expectedList := []*ThingList{
-			{Id: uuid.New(), Name: "Thing 1", CreatedAt: &now},
-			{Id: uuid.New(), Name: "Thing 2", CreatedAt: &now},
+		expectedList := []*thingv1.ThingList{
+			{Id: uuid.New().String(), Name: "Thing 1", CreatedAt: &timestamppb.Timestamp{Seconds: now.Unix()}},
+			{Id: uuid.New().String(), Name: "Thing 2", CreatedAt: &timestamppb.Timestamp{Seconds: now.Unix()}},
 		}
-		mockStore.On("List", mock.Anything, 0, 50, ListParams{}).Return(expectedList, nil)
+		mockStore.On("List", mock.Anything, mock.AnythingOfType("*thingv1.ListRequest")).Return(expectedList, nil)
 
 		// Create request and context with user
-		req := createConnectRequest(&thingv1.ListRequest{Limit: 0, Offset: 0})
+		req := createConnectRequest(&thingv1.ListRequest{Limit: 50, Offset: 0})
 		ctx := contextWithUser(123, false)
 
 		// Call handler
@@ -84,10 +85,10 @@ func TestThingConnectServer_List(t *testing.T) {
 		server := createTestThingConnectServer(mockStore, mockDB)
 
 		now := time.Now()
-		expectedList := []*ThingList{
-			{Id: uuid.New(), Name: "Thing 3", CreatedAt: &now},
+		expectedList := []*thingv1.ThingList{
+			{Id: uuid.New().String(), Name: "Thing 3", CreatedAt: &timestamppb.Timestamp{Seconds: now.Unix()}},
 		}
-		mockStore.On("List", mock.Anything, 10, 5, ListParams{}).Return(expectedList, nil)
+		mockStore.On("List", mock.Anything, mock.AnythingOfType("*thingv1.ListRequest")).Return(expectedList, nil)
 
 		req := createConnectRequest(&thingv1.ListRequest{Limit: 5, Offset: 10})
 		ctx := contextWithUser(123, false)
@@ -108,8 +109,8 @@ func TestThingConnectServer_Get(t *testing.T) {
 		server := createTestThingConnectServer(mockStore, mockDB)
 
 		thingID := uuid.New()
-		expectedThing := &Thing{
-			Id:   thingID,
+		expectedThing := &thingv1.Thing{
+			Id:   thingID.String(),
 			Name: "Test Thing",
 		}
 
@@ -174,19 +175,20 @@ func TestThingConnectServer_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		server := createTestThingConnectServer(mockStore, mockDB)
 
-		thingID := uuid.New()
-		expectedThing := &Thing{
+		thingID := uuid.New().String()
+		expectedThing := &thingv1.Thing{
 			Id:        thingID,
 			Name:      "New Thing",
 			CreatedBy: 123,
 		}
 
 		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, mock.Anything).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false, nil)
-		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(expectedThing, nil)
+		mockStore.On("Exist", mock.Anything, mock.Anything).Return(false, nil)
+		mockStore.On("Create", mock.Anything, mock.Anything).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.CreateRequest{
 			Thing: &thingv1.Thing{
+				Id:   thingID,
 				Name: "New Thing",
 			},
 		})
@@ -272,7 +274,7 @@ func TestThingConnectServer_Count(t *testing.T) {
 		mockDB := new(MockDB)
 		server := createTestThingConnectServer(mockStore, mockDB)
 
-		mockStore.On("Count", mock.Anything, CountParams{}).Return(42, nil)
+		mockStore.On("Count", mock.Anything, mock.AnythingOfType("*thingv1.CountRequest")).Return(int32(42), nil)
 
 		req := createConnectRequest(&thingv1.CountRequest{})
 		ctx := contextWithUser(123, false)
@@ -297,12 +299,12 @@ func TestTypeThingConnectServer_List(t *testing.T) {
 		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
 		now := time.Now()
-		expectedList := []*TypeThingList{
-			{Id: 1, Name: "Type 1", CreatedAt: now},
-			{Id: 2, Name: "Type 2", CreatedAt: now},
+		expectedList := []*thingv1.TypeThingList{
+			{Id: 1, Name: "Type 1", CreatedAt: &timestamppb.Timestamp{Seconds: now.Unix()}},
+			{Id: 2, Name: "Type 2", CreatedAt: &timestamppb.Timestamp{Seconds: now.Unix()}},
 		}
 
-		mockStore.On("ListTypeThing", mock.Anything, 0, 250, TypeThingListParams{}).Return(expectedList, nil)
+		mockStore.On("ListTypeThing", mock.Anything, mock.AnythingOfType("*thingv1.TypeThingServiceListRequest")).Return(expectedList, nil)
 
 		req := createConnectRequest(&thingv1.TypeThingServiceListRequest{})
 		ctx := contextWithUser(123, false)
@@ -322,13 +324,13 @@ func TestTypeThingConnectServer_Create(t *testing.T) {
 		mockDB := new(MockDB)
 		server := createTestTypeThingConnectServer(mockStore, mockDB)
 
-		expectedTypeThing := &TypeThing{
+		expectedTypeThing := &thingv1.TypeThing{
 			Id:        1,
 			Name:      "New Type",
 			CreatedBy: 123,
 		}
 
-		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("TypeThing")).Return(expectedTypeThing, nil)
+		mockStore.On("CreateTypeThing", mock.Anything, mock.AnythingOfType("*thingv1.TypeThing")).Return(expectedTypeThing, nil)
 
 		req := createConnectRequest(&thingv1.TypeThingServiceCreateRequest{
 			TypeThing: &thingv1.TypeThing{
