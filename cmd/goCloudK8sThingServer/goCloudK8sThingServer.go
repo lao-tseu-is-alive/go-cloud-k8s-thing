@@ -125,7 +125,11 @@ func (s *Service) GetStatus(ctx echo.Context) error {
 }
 
 func (s *Service) IsDBAlive() bool {
-	dbVer, err := s.dbConn.GetVersion(context.Background())
+	// Use a bounded context to prevent readiness probe goroutines from piling up
+	// if the database hangs (e.g. during a transient network partition).
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	dbVer, err := s.dbConn.GetVersion(ctx)
 	if err != nil {
 		return false
 	}
@@ -144,10 +148,10 @@ func (s *Service) checkReady(string) bool {
 }
 
 func checkHealthy(string) bool {
-	// you decide what makes you ready, may be it is the connection to the database
-	//if !IsDBAlive() {
-	//	return false
-	//}
+	// Liveness intentionally does NOT check the database.
+	// Coupling liveness to DB state causes "thundering herd" restarts on transient
+	// DB blips: all pods restart simultaneously, overwhelming the recovering DB.
+	// DB connectivity is checked exclusively in checkReady (readiness probe).
 	return true
 }
 
@@ -346,6 +350,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	// goHttpEcho.StartServer blocks until SIGTERM/SIGINT;  a graceful shutdown is
+	// handled inside the function library by a call to goHttpEcho.waitForShutdownToExit()
 	err = server.StartServer()
 	if err != nil {
 		l.Error("💥💥 error starting server", "error", err)
