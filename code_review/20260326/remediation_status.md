@@ -33,9 +33,9 @@ The original plan is kept unmodified as a historical snapshot; all status update
 
 | # | Finding | Priority | Status | Version | Resolution |
 |---|---------|----------|--------|---------|------------|
-| 8 | Fix Proto3 Boolean Filtering | Medium | 🔲 Pending | — | `validated=false` / `inactivated=false` indistinguishable from unset in proto3 zero-value semantics. Requires wrapper types or explicit presence detection. |
-| 9 | Stop Error Masking in Storage | Medium | 🔲 Pending | — | `Exist`, `IsUserOwner` return `bool` only — DB errors silently appear as `false` (404) instead of 500. Refactor to `(bool, error)`. |
-| 10 | Correct Context Initialization | Medium | 🔲 Pending | — | `thingmodule.New` receives a 10-second bootstrap context (`dbStorageCtx`). If retained, background tasks may die silently after timeout. |
+| 8 | Fix Proto3 Boolean Filtering | Medium | ✅ Implemented | v0.3.5 | Switched `bool` fields `validated` and `inactivated` to `optional bool` in search/list request definitions so that `false` is distinguishable from unset. |
+| 9 | Stop Error Masking in Storage | Medium | ✅ Implemented | v0.3.5 | Refactored `Storage` methods (`Exist`, `IsThingActive`, `IsUserOwner`) to return `(bool, error)` to prevent swallowing underlying connection errors. |
+| 10 | Correct Context Initialization | Medium | ❌ False Positive | — | The startup context is only used synchronously during init queries (`existTypeThing`). It is not retained by the module, so no background tasks are at risk. |
 
 ---
 

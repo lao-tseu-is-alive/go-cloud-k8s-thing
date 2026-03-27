@@ -199,19 +199,19 @@ func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*Thing, error) {
 }
 
 // Exist returns true only if a thing with the specified id exists in store.
-func (db *PGX) Exist(ctx context.Context, id uuid.UUID) bool {
+func (db *PGX) Exist(ctx context.Context, id uuid.UUID) (bool, error) {
 	db.log.Debug("trace: entering Exist", "id", id)
 	count, err := db.dbi.GetQueryInt(ctx, existThing, id)
 	if err != nil {
 		db.log.Error("Exist could not be retrieved from DB", "id", id, "error", err)
-		return false
+		return false, err
 	}
 	if count > 0 {
 		db.log.Info("Exist: id does exist", "id", id, "count", count)
-		return true
+		return true, nil
 	} else {
 		db.log.Info("Exist: id does not exist", "id", id, "count", count)
-		return false
+		return false, nil
 	}
 }
 
@@ -335,36 +335,36 @@ func (db *PGX) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
 }
 
 // IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
-func (db *PGX) IsThingActive(ctx context.Context, id uuid.UUID) bool {
+func (db *PGX) IsThingActive(ctx context.Context, id uuid.UUID) (bool, error) {
 	db.log.Debug("trace: entering IsThingActive", "id", id)
 	count, err := db.dbi.GetQueryInt(ctx, isActiveThing, id)
 	if err != nil {
 		db.log.Error("IsThingActive could not be retrieved from DB", "id", id, "error", err)
-		return false
+		return false, err
 	}
 	if count > 0 {
 		db.log.Info("IsThingActive is true", "id", id, "count", count)
-		return true
+		return true, nil
 	} else {
 		db.log.Info("IsThingActive is false", "id", id, "count", count)
-		return false
+		return false, nil
 	}
 }
 
 // IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
-func (db *PGX) IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) bool {
+func (db *PGX) IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) (bool, error) {
 	db.log.Debug("trace: entering IsUserOwner", "id", id, "userId", userId)
 	count, err := db.dbi.GetQueryInt(ctx, existThingOwnedBy, id, userId)
 	if err != nil {
 		db.log.Error("IsUserOwner could not be retrieved from DB", "id", id, "userId", userId, "error", err)
-		return false
+		return false, err
 	}
 	if count > 0 {
 		db.log.Info("IsUserOwner is true", "id", id, "userId", userId, "count", count)
-		return true
+		return true, nil
 	} else {
 		db.log.Info("IsUserOwner is false", "id", id, "userId", userId, "count", count)
-		return false
+		return false, nil
 	}
 }
 

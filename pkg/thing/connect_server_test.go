@@ -113,7 +113,7 @@ func TestThingConnectServer_Get(t *testing.T) {
 			Name: "Test Thing",
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
 		mockStore.On("Get", mock.Anything, thingID).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
@@ -135,7 +135,7 @@ func TestThingConnectServer_Get(t *testing.T) {
 
 		thingID := uuid.New()
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(false)
+		mockStore.On("Exist", mock.Anything, thingID).Return(false, nil)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
 		ctx := contextWithUser(123, false)
@@ -182,7 +182,7 @@ func TestThingConnectServer_Create(t *testing.T) {
 		}
 
 		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, mock.Anything).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false)
+		mockStore.On("Exist", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(false, nil)
 		mockStore.On("Create", mock.Anything, mock.AnythingOfType("Thing")).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.CreateRequest{
@@ -227,8 +227,8 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
+		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
 		mockStore.On("Delete", mock.Anything, thingID, userID).Return(nil)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
@@ -249,8 +249,8 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false)
+		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
+		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false, nil)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
 		ctx := contextWithUser(userID, false)

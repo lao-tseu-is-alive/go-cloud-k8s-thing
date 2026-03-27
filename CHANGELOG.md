@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2026-03-27
+
+This release addresses logic and reliability findings 8, 9, and 10 from Phase 3 of the [Synthetic Action Plan](code_review/20260326/synthetic_action_plan.md).
+
+### Fixed
+- **Proto3 Boolean Filters (Finding 8)**: Changed boolean filters (`inactivated`, `validated`) in Search/List proto messages to `optional bool`. This allows API consumers to explicitly query for `false` values, which were previously indistinguishable from unset and ignored by the backend. (`api/proto/thing/v1/thing.proto`, `pkg/thing/connect_server.go`)
+- **Storage Error Masking (Finding 9)**: Updated `Storage` interface boolean methods (`Exist`, `IsThingActive`, `IsUserOwner`) to return `(bool, error)`. Previously, database connection drops or execution errors were swallowed and returned as `false`, causing 500 errors to masquerade as 404 Not Found or 403 Unauthorized. (`pkg/thing/storage.go`, `pkg/thing/storage_postgres.go`, `pkg/thing/business_service.go`, `pkg/thing/business_service_test.go`)
+
 ## [0.3.4] - 2026-03-27
 
 This release addresses operational findings 5 and 6 from Phase 2 of the [Synthetic Action Plan](code_review/20260326/synthetic_action_plan.md).

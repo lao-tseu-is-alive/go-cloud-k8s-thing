@@ -22,7 +22,7 @@ type Storage interface {
 	// Get returns the thing with the specified things ID.
 	Get(ctx context.Context, id uuid.UUID) (*Thing, error)
 	// Exist returns true only if a things with the specified id exists in store.
-	Exist(ctx context.Context, id uuid.UUID) bool
+	Exist(ctx context.Context, id uuid.UUID) (bool, error)
 	// Count returns the total number of things.
 	Count(ctx context.Context, params CountParams) (int32, error)
 	// Create saves a new things in the storage.
@@ -32,9 +32,9 @@ type Storage interface {
 	// Delete removes the things with given ID from the storage.
 	Delete(ctx context.Context, id uuid.UUID, userId int32) error
 	// IsThingActive returns true if the thing with the specified id has the inactivated attribute set to false
-	IsThingActive(ctx context.Context, id uuid.UUID) bool
+	IsThingActive(ctx context.Context, id uuid.UUID) (bool, error)
 	// IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
-	IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) bool
+	IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) (bool, error)
 	// CreateTypeThing saves a new typeThing in the storage.
 	CreateTypeThing(ctx context.Context, typeThing TypeThing) (*TypeThing, error)
 	// UpdateTypeThing updates the typeThing with given ID in the storage.

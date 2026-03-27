@@ -633,10 +633,10 @@ func TestMainExec(t *testing.T) {
 			body:                         "",
 		},
 		{
-			name:                         "GET /thing/search with existing keyword and validated false should return thing",
+			name:                         "GET /thing/search with existing keyword and validated false should return empty list",
 			wantStatusCode:               http.StatusOK,
 			contentType:                  MIMEHtmlCharsetUTF8,
-			wantBody:                     "things",
+			wantBody:                     "{}",
 			paramKeyValues:               make(map[string]string),
 			httpMethod:                   http.MethodGet,
 			url:                          defaultSecuredApi + "/thing/search?limit=1&offset=0&keywords=æschynanthes&validated=false",

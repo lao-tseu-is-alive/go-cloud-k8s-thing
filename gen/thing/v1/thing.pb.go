@@ -475,9 +475,9 @@ type ListRequest struct {
 	// id of the creator to filter by the things to return
 	CreatedBy int32 `protobuf:"varint,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	// inactivated flag to filter the things to return
-	Inactivated bool `protobuf:"varint,5,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
+	Inactivated *bool `protobuf:"varint,5,opt,name=inactivated,proto3,oneof" json:"inactivated,omitempty"`
 	// validation flag to filter the things to return
-	Validated     bool `protobuf:"varint,6,opt,name=validated,proto3" json:"validated,omitempty"`
+	Validated     *bool `protobuf:"varint,6,opt,name=validated,proto3,oneof" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -541,15 +541,15 @@ func (x *ListRequest) GetCreatedBy() int32 {
 }
 
 func (x *ListRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
+	if x != nil && x.Inactivated != nil {
+		return *x.Inactivated
 	}
 	return false
 }
 
 func (x *ListRequest) GetValidated() bool {
-	if x != nil {
-		return x.Validated
+	if x != nil && x.Validated != nil {
+		return *x.Validated
 	}
 	return false
 }
@@ -963,8 +963,8 @@ type SearchRequest struct {
 	Offset        int32  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	Type          int32  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
 	CreatedBy     int32  `protobuf:"varint,5,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool   `protobuf:"varint,6,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Validated     bool   `protobuf:"varint,7,opt,name=validated,proto3" json:"validated,omitempty"`
+	Inactivated   *bool  `protobuf:"varint,6,opt,name=inactivated,proto3,oneof" json:"inactivated,omitempty"`
+	Validated     *bool  `protobuf:"varint,7,opt,name=validated,proto3,oneof" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1035,15 +1035,15 @@ func (x *SearchRequest) GetCreatedBy() int32 {
 }
 
 func (x *SearchRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
+	if x != nil && x.Inactivated != nil {
+		return *x.Inactivated
 	}
 	return false
 }
 
 func (x *SearchRequest) GetValidated() bool {
-	if x != nil {
-		return x.Validated
+	if x != nil && x.Validated != nil {
+		return *x.Validated
 	}
 	return false
 }
@@ -1097,8 +1097,8 @@ type CountRequest struct {
 	Keywords      string                 `protobuf:"bytes,1,opt,name=keywords,proto3" json:"keywords,omitempty"`
 	Type          int32                  `protobuf:"varint,2,opt,name=type,proto3" json:"type,omitempty"`
 	CreatedBy     int32                  `protobuf:"varint,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,4,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Validated     bool                   `protobuf:"varint,5,opt,name=validated,proto3" json:"validated,omitempty"`
+	Inactivated   *bool                  `protobuf:"varint,4,opt,name=inactivated,proto3,oneof" json:"inactivated,omitempty"`
+	Validated     *bool                  `protobuf:"varint,5,opt,name=validated,proto3,oneof" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1155,15 +1155,15 @@ func (x *CountRequest) GetCreatedBy() int32 {
 }
 
 func (x *CountRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
+	if x != nil && x.Inactivated != nil {
+		return *x.Inactivated
 	}
 	return false
 }
 
 func (x *CountRequest) GetValidated() bool {
-	if x != nil {
-		return x.Validated
+	if x != nil && x.Validated != nil {
+		return *x.Validated
 	}
 	return false
 }
@@ -1218,8 +1218,8 @@ type GeoJsonRequest struct {
 	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	Type          int32                  `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
 	CreatedBy     int32                  `protobuf:"varint,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	Inactivated   bool                   `protobuf:"varint,5,opt,name=inactivated,proto3" json:"inactivated,omitempty"`
-	Validated     bool                   `protobuf:"varint,6,opt,name=validated,proto3" json:"validated,omitempty"`
+	Inactivated   *bool                  `protobuf:"varint,5,opt,name=inactivated,proto3,oneof" json:"inactivated,omitempty"`
+	Validated     *bool                  `protobuf:"varint,6,opt,name=validated,proto3,oneof" json:"validated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1283,15 +1283,15 @@ func (x *GeoJsonRequest) GetCreatedBy() int32 {
 }
 
 func (x *GeoJsonRequest) GetInactivated() bool {
-	if x != nil {
-		return x.Inactivated
+	if x != nil && x.Inactivated != nil {
+		return *x.Inactivated
 	}
 	return false
 }
 
 func (x *GeoJsonRequest) GetValidated() bool {
-	if x != nil {
-		return x.Validated
+	if x != nil && x.Validated != nil {
+		return *x.Validated
 	}
 	return false
 }
@@ -1504,15 +1504,18 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x13\n" +
 	"\x05pos_x\x18\v \x01(\x01R\x04posX\x12\x13\n" +
-	"\x05pos_y\x18\f \x01(\x01R\x04posY\"\xae\x01\n" +
+	"\x05pos_y\x18\f \x01(\x01R\x04posY\"\xd6\x01\n" +
 	"\vListRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\x05R\x04type\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x04 \x01(\x05R\tcreatedBy\x12 \n" +
-	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
-	"\tvalidated\x18\x06 \x01(\bR\tvalidated\";\n" +
+	"created_by\x18\x04 \x01(\x05R\tcreatedBy\x12%\n" +
+	"\vinactivated\x18\x05 \x01(\bH\x00R\vinactivated\x88\x01\x01\x12!\n" +
+	"\tvalidated\x18\x06 \x01(\bH\x01R\tvalidated\x88\x01\x01B\x0e\n" +
+	"\f_inactivatedB\f\n" +
+	"\n" +
+	"_validated\";\n" +
 	"\fListResponse\x12+\n" +
 	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\">\n" +
 	"\rCreateRequest\x12-\n" +
@@ -1531,35 +1534,44 @@ const file_thing_v1_thing_proto_rawDesc = "" +
 	"\x05thing\x18\x01 \x01(\v2\x0f.thing.v1.ThingR\x05thing\"'\n" +
 	"\rDeleteRequest\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\"\x10\n" +
-	"\x0eDeleteResponse\"\xcc\x01\n" +
+	"\x0eDeleteResponse\"\xf4\x01\n" +
 	"\rSearchRequest\x12\x1a\n" +
 	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x05R\x06offset\x12\x12\n" +
 	"\x04type\x18\x04 \x01(\x05R\x04type\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x05 \x01(\x05R\tcreatedBy\x12 \n" +
-	"\vinactivated\x18\x06 \x01(\bR\vinactivated\x12\x1c\n" +
-	"\tvalidated\x18\a \x01(\bR\tvalidated\"=\n" +
+	"created_by\x18\x05 \x01(\x05R\tcreatedBy\x12%\n" +
+	"\vinactivated\x18\x06 \x01(\bH\x00R\vinactivated\x88\x01\x01\x12!\n" +
+	"\tvalidated\x18\a \x01(\bH\x01R\tvalidated\x88\x01\x01B\x0e\n" +
+	"\f_inactivatedB\f\n" +
+	"\n" +
+	"_validated\"=\n" +
 	"\x0eSearchResponse\x12+\n" +
-	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\"\x9d\x01\n" +
+	"\x06things\x18\x01 \x03(\v2\x13.thing.v1.ThingListR\x06things\"\xc5\x01\n" +
 	"\fCountRequest\x12\x1a\n" +
 	"\bkeywords\x18\x01 \x01(\tR\bkeywords\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\x05R\x04type\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x03 \x01(\x05R\tcreatedBy\x12 \n" +
-	"\vinactivated\x18\x04 \x01(\bR\vinactivated\x12\x1c\n" +
-	"\tvalidated\x18\x05 \x01(\bR\tvalidated\"%\n" +
+	"created_by\x18\x03 \x01(\x05R\tcreatedBy\x12%\n" +
+	"\vinactivated\x18\x04 \x01(\bH\x00R\vinactivated\x88\x01\x01\x12!\n" +
+	"\tvalidated\x18\x05 \x01(\bH\x01R\tvalidated\x88\x01\x01B\x0e\n" +
+	"\f_inactivatedB\f\n" +
+	"\n" +
+	"_validated\"%\n" +
 	"\rCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x05R\x05count\"\xb1\x01\n" +
+	"\x05count\x18\x01 \x01(\x05R\x05count\"\xd9\x01\n" +
 	"\x0eGeoJsonRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\x05R\x04type\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x04 \x01(\x05R\tcreatedBy\x12 \n" +
-	"\vinactivated\x18\x05 \x01(\bR\vinactivated\x12\x1c\n" +
-	"\tvalidated\x18\x06 \x01(\bR\tvalidated\")\n" +
+	"created_by\x18\x04 \x01(\x05R\tcreatedBy\x12%\n" +
+	"\vinactivated\x18\x05 \x01(\bH\x00R\vinactivated\x88\x01\x01\x12!\n" +
+	"\tvalidated\x18\x06 \x01(\bH\x01R\tvalidated\x88\x01\x01B\x0e\n" +
+	"\f_inactivatedB\f\n" +
+	"\n" +
+	"_validated\")\n" +
 	"\x0fGeoJsonResponse\x12\x16\n" +
 	"\x06result\x18\x01 \x01(\tR\x06result\"p\n" +
 	"\x17ListByExternalIdRequest\x12'\n" +
@@ -1666,6 +1678,10 @@ func file_thing_v1_thing_proto_init() {
 	if File_thing_v1_thing_proto != nil {
 		return
 	}
+	file_thing_v1_thing_proto_msgTypes[2].OneofWrappers = []any{}
+	file_thing_v1_thing_proto_msgTypes[12].OneofWrappers = []any{}
+	file_thing_v1_thing_proto_msgTypes[14].OneofWrappers = []any{}
+	file_thing_v1_thing_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

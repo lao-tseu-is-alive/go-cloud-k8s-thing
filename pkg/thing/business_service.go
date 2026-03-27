@@ -92,7 +92,11 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 	}
 
 	// Check if thing already exists
-	if s.Store.Exist(ctx, newThing.Id) {
+	exists, err := s.Store.Exist(ctx, newThing.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying existence: %w", err)
+	}
+	if exists {
 		return nil, fmt.Errorf("%w: id %v", ErrAlreadyExists, newThing.Id)
 	}
 
@@ -121,17 +125,25 @@ func (s *BusinessService) Count(ctx context.Context, params CountParams) (int32,
 // Delete removes a thing with the given ID
 func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thingId uuid.UUID) error {
 	// Check if thing exists
-	if !s.Store.Exist(ctx, thingId) {
+	exists, err := s.Store.Exist(ctx, thingId)
+	if err != nil {
+		return fmt.Errorf("error verifying existence: %w", err)
+	}
+	if !exists {
 		return fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
 	// Check if user is owner
-	if !s.Store.IsUserOwner(ctx, thingId, currentUserId) {
+	isOwner, err := s.Store.IsUserOwner(ctx, thingId, currentUserId)
+	if err != nil {
+		return fmt.Errorf("error verifying ownership: %w", err)
+	}
+	if !isOwner {
 		return fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
 	}
 
 	// Delete from storage
-	err := s.Store.Delete(ctx, thingId, currentUserId)
+	err = s.Store.Delete(ctx, thingId, currentUserId)
 	if err != nil {
 		return fmt.Errorf("error deleting thing: %w", err)
 	}
@@ -143,7 +155,11 @@ func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thing
 // Get retrieves a thing by its ID
 func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*Thing, error) {
 	// Check if thing exists
-	if !s.Store.Exist(ctx, thingId) {
+	exists, err := s.Store.Exist(ctx, thingId)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying existence: %w", err)
+	}
+	if !exists {
 		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
@@ -159,12 +175,20 @@ func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*Thing, e
 // Update updates a thing with the given ID
 func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thingId uuid.UUID, updateThing Thing) (*Thing, error) {
 	// Check if thing exists
-	if !s.Store.Exist(ctx, thingId) {
+	exists, err := s.Store.Exist(ctx, thingId)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying existence: %w", err)
+	}
+	if !exists {
 		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
 	}
 
 	// Check if user is owner
-	if !s.Store.IsUserOwner(ctx, thingId, currentUserId) {
+	isOwner, err := s.Store.IsUserOwner(ctx, thingId, currentUserId)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying ownership: %w", err)
+	}
+	if !isOwner {
 		return nil, fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
 	}
 

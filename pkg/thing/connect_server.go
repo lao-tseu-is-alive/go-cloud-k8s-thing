@@ -85,11 +85,11 @@ func (s *ThingConnectServer) List(
 	if msg.CreatedBy != 0 {
 		params.CreatedBy = &msg.CreatedBy
 	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
+	if msg.Inactivated != nil {
+		params.Inactivated = msg.Inactivated
 	}
-	if msg.Validated {
-		params.Validated = &msg.Validated
+	if msg.Validated != nil {
+		params.Validated = msg.Validated
 	}
 
 	// Handle pagination with defaults
@@ -267,11 +267,11 @@ func (s *ThingConnectServer) Search(
 	if msg.CreatedBy != 0 {
 		params.CreatedBy = &msg.CreatedBy
 	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
+	if msg.Inactivated != nil {
+		params.Inactivated = msg.Inactivated
 	}
-	if msg.Validated {
-		params.Validated = &msg.Validated
+	if msg.Validated != nil {
+		params.Validated = msg.Validated
 	}
 
 	limit := s.BusinessService.ListDefaultLimit
@@ -316,11 +316,11 @@ func (s *ThingConnectServer) Count(
 	if msg.CreatedBy != 0 {
 		params.CreatedBy = &msg.CreatedBy
 	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
+	if msg.Inactivated != nil {
+		params.Inactivated = msg.Inactivated
 	}
-	if msg.Validated {
-		params.Validated = &msg.Validated
+	if msg.Validated != nil {
+		params.Validated = msg.Validated
 	}
 
 	count, err := s.BusinessService.Count(ctx, params)
@@ -353,11 +353,11 @@ func (s *ThingConnectServer) GeoJson(
 	if msg.CreatedBy != 0 {
 		params.CreatedBy = &msg.CreatedBy
 	}
-	if msg.Inactivated {
-		params.Inactivated = &msg.Inactivated
+	if msg.Inactivated != nil {
+		params.Inactivated = msg.Inactivated
 	}
-	if msg.Validated {
-		params.Validated = &msg.Validated
+	if msg.Validated != nil {
+		params.Validated = msg.Validated
 	}
 
 	limit := s.BusinessService.ListDefaultLimit
