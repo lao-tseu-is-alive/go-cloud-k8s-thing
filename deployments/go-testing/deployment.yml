@@ -135,8 +135,9 @@ metadata:
   namespace: go-testing
   labels:     # The labels that will be applied
     app: go-cloud-k8s-thing
-  annotations:
-    externalTrafficPolicy: "local"
+# with k3s LoadBalancer keep the next 2 lines commented or it wil not work
+#  annotations:
+#    externalTrafficPolicy: "local"
 spec:
   #type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
   # https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
@@ -145,9 +146,10 @@ spec:
   # By default k3s have a builtin load balancer called "klipper" https://github.com/k3s-io/klipper-lb ok for one dev node.
   # It is possible to run multiple Services on the same node, as long as they use different ports.
   # in case you are using a 'real' k3s cluster with multiple nodes consider using metalLB instead
-  externalTrafficPolicy: Local
-  loadBalancerSourceRanges:
-    - 192.168.50.6/32
+  # with k3s LoadBalancer keep the next 3 lines commented or it wil not work
+  #externalTrafficPolicy: Local
+  #loadBalancerSourceRanges:
+  #  - 192.168.0.0/16
   ports:                         # Take incoming HTTP requests on this port (exposed) and forward them to the targetPort of container
     - name: http
       port: 9090
@@ -196,7 +198,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: go-cloud-k8s-thing
-        image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.0.9
+        image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-thing:v0.3.3
         imagePullPolicy: Always
         securityContext:
           seccompProfile:
