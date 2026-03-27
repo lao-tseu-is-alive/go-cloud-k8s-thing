@@ -1,0 +1,324 @@
+swagger: "2.0"
+info:
+  title: thing/v1/type_thing.proto
+  version: version not set
+tags:
+  - name: TypeThingService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /types:
+    get:
+      summary: |-
+        TypeThingList returns a list of types.
+        Returns the types in an array.
+      operationId: List
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceListResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: externalId
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: offset
+          in: query
+          required: false
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    post:
+      summary: |-
+        TypeThingCreate will create a new group.
+        Creates a new group.
+      operationId: Create
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceCreateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: typeThing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1TypeThing'
+      tags:
+        - TypeThingService
+  /types/count:
+    get:
+      summary: |-
+        Count returns the number of TypeThing based on search criterias.
+        Returns the number of TypeThings found after filtering with passed criterias.
+      operationId: Count
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceCountResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: keywords
+          in: query
+          required: false
+          type: string
+        - name: createdBy
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: inactivated
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - TypeThingService
+  /types/{id}:
+    get:
+      summary: |-
+        TypeThingGet will retrieve in backend all information about a specific typeThingId.
+        Retrieve a specific typeThing.
+      operationId: Get
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceGetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    delete:
+      summary: |-
+        TypeThingDelete allows to delete a specific typeThingId.
+        delete a typeThing.
+      operationId: Delete
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceDeleteResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+      tags:
+        - TypeThingService
+    put:
+      summary: |-
+        TypeThingUpdate allows to modify information about a specific typeThingId.
+        Updates the information related to a typeThing.
+      operationId: Update
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1TypeThingServiceUpdateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+        - name: typeThing
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1TypeThing'
+      tags:
+        - TypeThingService
+definitions:
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  protobufNullValue:
+    type: string
+    enum:
+      - NULL_VALUE
+    default: NULL_VALUE
+    description: |-
+      `NullValue` is a singleton enumeration to represent the null value for the
+      `Value` type union.
+
+      The JSON representation for `NullValue` is JSON `null`.
+
+       - NULL_VALUE: Null value.
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/protobufAny'
+  v1TypeThing:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+      name:
+        type: string
+      description:
+        type: string
+      comment:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      tableName:
+        type: string
+      geometryType:
+        type: string
+      inactivated:
+        type: boolean
+      inactivatedTime:
+        type: string
+        format: date-time
+      inactivatedBy:
+        type: integer
+        format: int32
+      inactivatedReason:
+        type: string
+      managedBy:
+        type: integer
+        format: int32
+      iconPath:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      createdBy:
+        type: integer
+        format: int32
+      lastModifiedAt:
+        type: string
+        format: date-time
+      lastModifiedBy:
+        type: integer
+        format: int32
+      deleted:
+        type: boolean
+      deletedAt:
+        type: string
+        format: date-time
+      deletedBy:
+        type: integer
+        format: int32
+      moreDataSchema:
+        type: object
+  v1TypeThingList:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+      name:
+        type: string
+      externalId:
+        type: integer
+        format: int32
+      iconPath:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      tableName:
+        type: string
+      geometryType:
+        type: string
+      inactivated:
+        type: boolean
+    title: A light version of TypeThing for lists
+  v1TypeThingServiceCountResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int32
+  v1TypeThingServiceCreateResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingServiceDeleteResponse:
+    type: object
+  v1TypeThingServiceGetResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'
+  v1TypeThingServiceListResponse:
+    type: object
+    properties:
+      typeThings:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1TypeThingList'
+  v1TypeThingServiceUpdateResponse:
+    type: object
+    properties:
+      typeThing:
+        $ref: '#/definitions/v1TypeThing'

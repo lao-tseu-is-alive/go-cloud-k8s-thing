@@ -16,9 +16,16 @@ plugins:
     opt:
       - json_names_for_fields=true  # Forces camelCase (standard JSON)
       - output_format=yaml
-      - allow_merge=true
       - merge_file_name=thing       # Merges everything into thing.swagger.yaml
       - simple_operation_ids=true   # Makes operation IDs cleaner (e.g. "List" instead of "ThingService_List")
+  # 4. Generate OpenAPI in JSON format
+  - remote: buf.build/grpc-ecosystem/openapiv2
+    out: api/openapi
+    opt:
+      - json_names_for_fields=true  # Forces camelCase (standard JSON)
+      - allow_merge=true
+      - merge_file_name=thing.json  # Merges everything into thing.json.swagger.json (we can rename later)
+      - simple_operation_ids=true
 managed:
   enabled: true
   override:

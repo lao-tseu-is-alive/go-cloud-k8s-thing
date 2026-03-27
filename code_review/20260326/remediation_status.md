@@ -44,7 +44,7 @@ The original plan is kept unmodified as a historical snapshot; all status update
 | # | Finding | Priority | Status | Version | Resolution |
 |---|---------|----------|--------|---------|------------|
 | 11 | Optimize DB Operations | Low | 🔲 Pending | — | `Create`/`Update` do an extra `Get` round-trip. Use `RETURNING *` in SQL to eliminate it. |
-| 12 | Clean Up Generated Code & Docs | Low | 🔲 Pending | — | `api/thing.yaml` is stale; `thing_types.gen.go` is no longer generated. Rename to `thing_types.go` and remove stale OpenAPI artefacts. |
+| 12 | Clean Up Generated Code & Docs | Low | ⚠️ Partially Implemented | v0.3.6 | Automated `api/thing.json` generation natively inside the `buf` pipeline (no more manual Swagger UI exports). Complete refactoring to replace OpenAPI-generated types with Protobuf types is scheduled next. |
 
 ---
 
