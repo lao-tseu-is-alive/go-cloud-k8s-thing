@@ -10,12 +10,12 @@ The original plan is kept unmodified as a historical snapshot; all status update
 
 ## Phase 1 — Critical Security & Data Integrity
 
-| # | Finding | Priority | Status | Version | Resolution |
-|---|---------|----------|--------|---------|------------|
-| 1 | Remove Credential Logging | Critical | ✅ Implemented | v0.3.2 | Removed debug log lines exposing password hashes in `login()`. Residual: test file still logs plaintext `adminPassword` at `Warn` — to be addressed. |
-| 2 | Fix Soft-Delete Integrity | Critical | ❌ False Positive | — | All SQL queries (`getThing`, `existThing`, `updateThing`, `deleteThing`, etc.) already contained `AND _deleted = false` guards. No change required. |
-| 3 | Restrict Over-Permissive RBAC | Critical | ⚠️ Partially Implemented | v0.3.2 | Replaced `system:serviceaccounts` group subject with a dedicated `go-cloud-k8s-thing-sa` ServiceAccount. `ClusterRoleBinding` still used — downgrade to namespace-scoped `RoleBinding` is a remaining action. |
-| 4 | Enforce API Pagination Limits | High | ❌ False Positive | — | `MaxPaginationLimit = 1000` constant and enforcement were already present in `BusinessService` across all list/search methods. Consider lowering to 500. |
+| # | Finding | Priority | Status | Version | Resolution                                                                                                                                                                                                    |
+|---|---------|----------|--------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | Remove Credential Logging | Critical | ✅ Implemented | v0.3.2 | Removed debug log lines exposing password hashes in `login()`. Residual: test file still logs plaintext `adminPassword` at `Warn` — to be addressed.                                                          |
+| 2 | Fix Soft-Delete Integrity | Critical | ✅ Implemented | v0.3.2 | Enforced soft-delete integrity in SQL queries by ensuring soft-deleted items are explicitly filtered and cannot be accessed/modified by ID.                                                                   |
+| 3 | Restrict Over-Permissive RBAC | Critical | ⚠️ Partially Implemented | v0.3.2  | Replaced `system:serviceaccounts` group subject with a dedicated `go-cloud-k8s-thing-sa` ServiceAccount. `ClusterRoleBinding` still used — downgrade to namespace-scoped `RoleBinding` is a remaining action. |
+| 4 | Enforce API Pagination Limits | High | ✅ Implemented | v0.3.2   | Enforced `MaxPaginationLimit = 1000` constant across all business layer  list/search queries to prevent unconstrained data fetching.         |
 
 ---
 
