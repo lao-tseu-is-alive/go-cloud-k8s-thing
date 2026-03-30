@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.9] - 2026-03-27
+## [0.3.10] - 2026-03-30
+
+Fixing Hardcoded CORS Origins, now we use env variable ALLOWED_HOSTS or a default localhost 
+
+## [0.3.9] - 2026-03-30
 
 Fixing Docker-publish actions to latest trivy action
 v0.3.7 and v0.3.8 did not build Docker image because of problems in github action

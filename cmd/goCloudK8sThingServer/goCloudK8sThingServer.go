@@ -47,6 +47,8 @@ const (
 	MIMEAppJSONCharsetUTF8 = MIMEAppJSON + "; " + charsetUTF8
 )
 
+var defaultAllowedHosts = []string{"http://localhost:3000"}
+
 // content holds our static web server content.
 //
 //go:embed goCloudK8sThingFront/dist/*
@@ -170,6 +172,14 @@ func initMetadataOrFail(db database.DB, l *slog.Logger) {
 	metadataService.SetServiceVersionOrFail(metaDataCtx, version.APP, version.VERSION)
 }
 
+func getAllowedHost(defaultHosts []string) []string {
+	allowedHostsStr := os.Getenv("ALLOWED_HOSTS")
+	if allowedHostsStr == "" {
+		return defaultHosts
+	}
+	return strings.Split(allowedHostsStr, ",")
+}
+
 func main() {
 	logWriter, err := config.GetLogWriter(defaultLogName)
 	if err != nil {
@@ -279,7 +289,7 @@ func main() {
 	e := server.GetEcho()
 	//e.Use(goHttpEcho.CookieToHeaderMiddleware(yourService.jwtCookieName, l))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"https://golux.lausanne.ch", "http://localhost:3000"},
+		AllowOrigins:     getAllowedHost(defaultAllowedHosts),
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))
