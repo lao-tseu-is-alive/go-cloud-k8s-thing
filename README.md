@@ -201,7 +201,7 @@ curl -X POST http://localhost:9090/thing.v1.ThingService/List \
 
 ### Prerequisites
 
-- Go 1.25+
+- Go 1.26+
 - PostgreSQL 14+
 - [buf](https://buf.build/docs/installation) (for proto generation)
 
@@ -268,17 +268,17 @@ Find all available versions in the [Packages section](https://github.com/lao-tse
 
 ## 🛠️ Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| **Language** | Go 1.25+ |
-| **API Framework** | [Echo](https://echo.labstack.com/) |
+| Category | Technology                                                                                    |
+|----------|-----------------------------------------------------------------------------------------------|
+| **Language** | Go 1.26+                                                                                      |
+| **API Framework** | [Echo](https://echo.labstack.com/)                                                            |
 | **RPC** | [ConnectRPC](https://connectrpc.com/) + [Vanguard](https://github.com/connectrpc/vanguard-go) |
-| **Proto Tooling** | [buf](https://buf.build/) |
-| **Database** | PostgreSQL with [pgx](https://github.com/jackc/pgx) |
-| **Auth** | JWT via [cristalhq/jwt](https://github.com/cristalhq/jwt) |
-| **Monitoring** | Prometheus metrics |
-| **Container** | Docker with multi-stage builds |
-| **Security** | [Trivy](https://aquasecurity.github.io/trivy/) CVE scanning |
+| **Proto Tooling** | [buf](https://buf.build/)                                                                     |
+| **Database** | PostgreSQL with [pgx](https://github.com/jackc/pgx)                                           |
+| **Auth** | JWT via [cristalhq/jwt](https://github.com/cristalhq/jwt)                                     |
+| **Monitoring** | Prometheus metrics                                                                            |
+| **Container** | Docker with multi-stage builds                                                                |
+| **Security** | [Trivy](https://aquasecurity.github.io/trivy/) CVE scanning                                   |
 
 ---
 

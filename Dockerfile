@@ -1,8 +1,8 @@
 # Start from the latest golang base image
-FROM golang:1.25-alpine3.23 AS builder
+FROM golang:1.26-alpine3.23 AS builder
 
 ENV PATH /usr/local/go/bin:$PATH
-ENV GOLANG_VERSION 1.25.5
+ENV GOLANG_VERSION 1.26
 
 # Add Maintainer Info
 LABEL maintainer="cgil"
@@ -38,7 +38,7 @@ FROM scratch
 # It is a best practice to run containers as non-root users
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
 # https://docs.docker.com/engine/reference/builder/#user
-USER 1221:1221
+USER 12121:12121
 WORKDIR /goapp
 
 # Copy the Pre-built binary file from the previous stage
