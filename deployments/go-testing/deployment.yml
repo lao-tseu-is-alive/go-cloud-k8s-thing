@@ -253,9 +253,10 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 5
           timeoutSeconds: 2
-        volumeMounts:
-          - name: tmp
-            mountPath: /tmp
+#        add the above if you think you need (for temp files ?), the Go code does not need it
+#        volumeMounts:
+#          - name: tmp
+#            mountPath: /tmp
         env:
           - name: PORT
             value: "9090"
@@ -384,6 +385,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.serviceAccountName
-      volumes:
-        - name: tmp
-          emptyDir: { }
+#        add the above if you think you need (for temp files ?), the Go code does not need it
+#      volumes:
+#        - name: tmp
+#          emptyDir: { }
