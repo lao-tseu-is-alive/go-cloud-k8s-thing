@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.11] - 2026-03-31
+
+### Changed
+- **Domain-specific error handling**: Replaced `pgx.ErrNoRows` with domain-specific `ErrEmptyResult` error throughout the storage and business service layers, decoupling the application from the database driver (`pkg/thing/errors.go`, `pkg/thing/storage_postgres.go`, `pkg/thing/business_service.go`, `pkg/thing/connect_server.go`, `pkg/thing/connect_type_thing_server.go`).
+- **GeoJson empty result**: Returns valid empty GeoJSON `{"type":"FeatureCollection","features":[]}` when no records match the query, instead of propagating an error (`pkg/thing/thing_constants.go`, `pkg/thing/business_service.go`).
+
+### Fixed
+- **SQL typo**: Fixed variable name `updateTypeTing` → `updateTypeThing` in `pkg/thing/typething_sql.go`.
+- **K8s RBAC scoping**: Changed `ClusterRole`/`ClusterRoleBinding` to `Role`/`RoleBinding` for namespace-scoped permissions in test deployment (`deployments/go-testing/deployment.yml`).
+
+### Added
+- **PodDisruptionBudget**: Added PDB to ensure high availability during voluntary disruptions (`deployments/go-testing/deployment.yml`).
+
 ## [0.3.10] - 2026-03-30
 
 Fixing Hardcoded CORS Origins, now we use env variable ALLOWED_HOSTS or a default localhost 

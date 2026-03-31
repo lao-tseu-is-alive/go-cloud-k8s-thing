@@ -7,7 +7,6 @@ import (
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
@@ -83,7 +82,7 @@ func (db *PGX) GeoJson(ctx context.Context, req *thingv1.GeoJsonRequest) (string
 	}
 	if mayBeResultIsNull == nil {
 		db.log.Info("List returned no results")
-		return "", pgx.ErrNoRows
+		return "", ErrEmptyResult
 	}
 	return *mayBeResultIsNull, nil
 }
@@ -126,7 +125,7 @@ func (db *PGX) List(ctx context.Context, req *thingv1.ListRequest) ([]*thingv1.T
 	}
 	if res == nil {
 		db.log.Info("List returned no results")
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainThingListSliceToProto(res), nil
 }
@@ -143,7 +142,7 @@ func (db *PGX) ListByExternalId(ctx context.Context, req *thingv1.ListByExternal
 	}
 	if res == nil {
 		db.log.Info("ListByExternalId returned no results")
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainThingListSliceToProto(res), nil
 }
@@ -189,7 +188,7 @@ func (db *PGX) Search(ctx context.Context, req *thingv1.SearchRequest) ([]*thing
 	}
 	if res == nil {
 		db.log.Info("Search returned no results")
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainThingListSliceToProto(res), nil
 }
@@ -205,7 +204,7 @@ func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*thingv1.Thing, error) {
 	}
 	if res == nil {
 		db.log.Info("Get returned no results")
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainThingToProto(res), nil
 }
@@ -221,10 +220,9 @@ func (db *PGX) Exist(ctx context.Context, id uuid.UUID) (bool, error) {
 	if count > 0 {
 		db.log.Info("Exist: id does exist", "id", id, "count", count)
 		return true, nil
-	} else {
-		db.log.Info("Exist: id does not exist", "id", id, "count", count)
-		return false, nil
 	}
+	db.log.Info("Exist: id does not exist", "id", id, "count", count)
+	return false, nil
 }
 
 // Count returns the number of thing stored in DB
@@ -375,10 +373,9 @@ func (db *PGX) IsThingActive(ctx context.Context, id uuid.UUID) (bool, error) {
 	if count > 0 {
 		db.log.Info("IsThingActive is true", "id", id, "count", count)
 		return true, nil
-	} else {
-		db.log.Info("IsThingActive is false", "id", id, "count", count)
-		return false, nil
 	}
+	db.log.Info("IsThingActive is false", "id", id, "count", count)
+	return false, nil
 }
 
 // IsUserOwner returns true only if userId is the creator of the record (owner) of this thing in store.
@@ -392,10 +389,9 @@ func (db *PGX) IsUserOwner(ctx context.Context, id uuid.UUID, userId int32) (boo
 	if count > 0 {
 		db.log.Info("IsUserOwner is true", "id", id, "userId", userId, "count", count)
 		return true, nil
-	} else {
-		db.log.Info("IsUserOwner is false", "id", id, "userId", userId, "count", count)
-		return false, nil
 	}
+	db.log.Info("IsUserOwner is false", "id", id, "userId", userId, "count", count)
+	return false, nil
 }
 
 // CreateTypeThing will store the new TypeThing in the database
@@ -407,7 +403,7 @@ func (db *PGX) CreateTypeThing(ctx context.Context, tt *thingv1.TypeThing) (*thi
 		return nil, fmt.Errorf("invalid typeThing payload: typeThing is nil")
 	}
 
-	var lastInsertId int = 0
+	var lastInsertId = 0
 	err := db.Conn.QueryRow(ctx, createTypeThing,
 		t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.TableName, &t.GeometryType, //$6
 		&t.ManagedBy, t.IconPath, t.CreatedBy, &t.MoreDataSchema).Scan(&lastInsertId)
@@ -434,7 +430,7 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt *thingv1.TypeTh
 		return nil, fmt.Errorf("invalid typeThing payload: typeThing is nil")
 	}
 
-	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateTypeTing,
+	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateTypeThing,
 		id, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.TableName, //$6
 		&t.GeometryType, t.Inactivated, &t.InactivatedTime, &t.InactivatedBy, &t.InactivatedReason, //$11
 		&t.ManagedBy, t.IconPath, &t.LastModifiedBy, &t.MoreDataSchema) //$14
@@ -499,7 +495,7 @@ func (db *PGX) ListTypeThing(ctx context.Context, req *thingv1.TypeThingServiceL
 	}
 	if res == nil {
 		db.log.Info("ListTypeThing returned no results")
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainTypeThingListSliceToProto(res), nil
 }
@@ -515,7 +511,7 @@ func (db *PGX) GetTypeThing(ctx context.Context, id int32) (*thingv1.TypeThing, 
 	}
 	if res == nil {
 		db.log.Info("GetTypeThing returned no results", "id", id)
-		return nil, pgx.ErrNoRows
+		return nil, ErrEmptyResult
 	}
 	return DomainTypeThingToProto(res), nil
 }

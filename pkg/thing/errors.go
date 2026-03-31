@@ -5,6 +5,7 @@ import "errors"
 // Domain-specific errors for the Thing service
 var (
 	ErrNotFound          = errors.New("thing not found")
+	ErrEmptyResult       = errors.New("query returned no data")
 	ErrAlreadyExists     = errors.New("thing already exists")
 	ErrTypeThingNotFound = errors.New("type thing not found")
 	ErrUnauthorized      = errors.New("unauthorized")

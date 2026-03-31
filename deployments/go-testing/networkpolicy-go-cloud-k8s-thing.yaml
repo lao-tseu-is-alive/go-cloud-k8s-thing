@@ -1,0 +1,112 @@
+# Default deny-all ingress (explicitly allow only what is needed)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: go-cloud-k8s-thing-default-deny-ingress
+  namespace: go-testing
+  labels:
+    app: go-cloud-k8s-thing
+spec:
+  podSelector:
+    matchLabels:
+      app: go-cloud-k8s-thing
+  policyTypes:
+    - Ingress
+  ingress: []   # deny all ingress by default
+
+---
+# Allow specific ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: go-cloud-k8s-thing-ingress
+  namespace: go-testing
+  labels:
+    app: go-cloud-k8s-thing
+spec:
+  podSelector:
+    matchLabels:
+      app: go-cloud-k8s-thing
+  policyTypes:
+    - Ingress
+    - Egress   # comment if you do not want to restrict outbound traffic too
+  ingress:
+    # 1. Allow traffic from the LoadBalancer / Ingress controller (adjust selector to your actual ingress)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx   # or your ingress namespace (traefik, contour, etc.)
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx   # adjust to your ingress controller labels
+      ports:
+        - protocol: TCP
+          port: 9090
+
+    # 2. Allow traffic from other pods in the same namespace (for bundle mode or internal services)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: go-testing
+          podSelector: {}   # any pod in the same namespace
+      ports:
+        - protocol: TCP
+          port: 9090
+
+    # 3. (Optional) Allow specific external CIDRs if you expose via LoadBalancer and need direct access
+    # - from:
+    #     - ipBlock:
+    #         cidr: 192.168.0.0/16   # your internal network
+    #   ports:
+    #     - protocol: TCP
+    #       port: 9090
+
+---
+# Optional: Egress policy (recommended for restricted environments)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: go-cloud-k8s-thing-egress
+  namespace: go-testing
+  labels:
+    app: go-cloud-k8s-thing
+spec:
+  podSelector:
+    matchLabels:
+      app: go-cloud-k8s-thing
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # Allow PostgreSQL database (adjust to your DB namespace and labels)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: postgres   # or wherever your DB runs
+          podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow outbound to external services if needed (e.g. for metrics, tracing)
+    # - to:
+    #     - ipBlock:
+    #         cidr: 0.0.0.0/0
+    #   ports:
+    #     - protocol: TCP
+    #       port: 443   # HTTPS for external calls

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 )
@@ -52,10 +51,13 @@ func (s *BusinessService) GeoJson(ctx context.Context, req *thingv1.GeoJsonReque
 	}
 	jsonResult, err := s.Store.GeoJson(ctx, req)
 	if err != nil {
+		if errors.Is(err, ErrEmptyResult) {
+			return EmptyGeoJson, nil
+		}
 		return "", fmt.Errorf("error retrieving geoJson: %w", err)
 	}
 	if jsonResult == "" {
-		return "empty", nil
+		return EmptyGeoJson, nil
 	}
 	return jsonResult, nil
 }
@@ -67,7 +69,7 @@ func (s *BusinessService) List(ctx context.Context, req *thingv1.ListRequest) ([
 	}
 	list, err := s.Store.List(ctx, req)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, ErrEmptyResult) {
 			// No rows is not an error, return empty slice
 			return make([]*thingv1.ThingList, 0), nil
 		}
@@ -228,7 +230,7 @@ func (s *BusinessService) ListByExternalId(ctx context.Context, req *thingv1.Lis
 	}
 	list, err := s.Store.ListByExternalId(ctx, req)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, ErrEmptyResult) {
 			// No rows is not an error, return empty slice
 			return make([]*thingv1.ThingList, 0), nil
 		}
@@ -247,7 +249,7 @@ func (s *BusinessService) Search(ctx context.Context, req *thingv1.SearchRequest
 	}
 	list, err := s.Store.Search(ctx, req)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, ErrEmptyResult) {
 			// No rows is not an error, return empty slice
 			return make([]*thingv1.ThingList, 0), nil
 		}

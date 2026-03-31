@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/golog"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
@@ -509,13 +508,13 @@ func TestBusinessService_List(t *testing.T) {
 		mockStore.AssertExpectations(t)
 	})
 
-	t.Run("empty list with pgx.ErrNoRows", func(t *testing.T) {
+	t.Run("empty list with ErrEmptyResult", func(t *testing.T) {
 		mockStore := new(MockStorage)
 		mockDB := new(MockDB)
 		service := createTestBusinessService(mockStore, mockDB)
 
 		req := &thingv1.ListRequest{Limit: 10, Offset: 0}
-		mockStore.On("List", mock.Anything, req).Return(nil, pgx.ErrNoRows)
+		mockStore.On("List", mock.Anything, req).Return(nil, ErrEmptyResult)
 
 		result, err := service.List(ctx, req)
 

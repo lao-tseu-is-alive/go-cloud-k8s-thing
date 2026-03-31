@@ -11,3 +11,6 @@ const (
 
 // ThingStatus defines model for ThingStatus manually to preserve strongly typed strings.
 type ThingStatus string
+
+// EmptyGeoJson is a valid empty geojson
+const EmptyGeoJson = `{"type":"FeatureCollection","features":[]}`

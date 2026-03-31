@@ -8,7 +8,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1/thingv1connect"
 )
@@ -53,7 +52,7 @@ func (s *ThingConnectServer) mapErrorToConnect(err error) *connect.Error {
 		return connect.NewError(connect.CodePermissionDenied, errors.New(OnlyAdminCanManageTypeThings))
 	case errors.Is(err, ErrInvalidInput):
 		return connect.NewError(connect.CodeInvalidArgument, err)
-	case errors.Is(err, pgx.ErrNoRows):
+	case errors.Is(err, ErrEmptyResult):
 		return connect.NewError(connect.CodeNotFound, errors.New("not found"))
 	default:
 		s.Log.Error("internal error", "error", err)
