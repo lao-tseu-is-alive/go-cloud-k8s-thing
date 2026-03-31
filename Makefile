@@ -48,7 +48,7 @@ MAKEFLAGS += --silent
 # because it is the first target in this Makefile this is also the default rule
 .PHONY: run
 ## run:	will run a dev version of your Go application [DEFAULT RULE]
-run: check-env mod-download openapi-codegen
+run: check-env mod-download
 	go run $(LDFLAGS) cmd/$(APP_EXECUTABLE)/${APP_EXECUTABLE}.go
 
 .PHONY: mod-download
@@ -57,7 +57,7 @@ mod-download:
 	go mod download
 
 ## build:	will compile your server app binary and place it in the bin sub-folder
-build: check-env clean mod-download test openapi-codegen
+build: check-env clean mod-download test
 	@echo "  >  Building your app binary inside bin directory..."
 	CGO_ENABLED=0 go build ${LDFLAGS} -a -o bin/$(APP_EXECUTABLE) cmd/$(APP_EXECUTABLE)/${APP_EXECUTABLE}.go
 
@@ -139,15 +139,6 @@ else
 endif
 	#git push origin $(APP_VERSION)
 
-# check some dependencies
-.PHONY: dependencies-openapi
-dependencies-openapi:
-	@command -v oapi-codegen >/dev/null 2>&1 || { printf >&2 "oapi-codegen is not installed, please run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest\n"; exit 1; }
-
-.PHONY: dependencies-xo
-dependencies-xo:
-	@command -v oapi-codegen >/dev/null 2>&1 || { printf >&2 "xo is not installed, please run: go install github.com/xo/xo@latest\n"; exit 1; }
-
 
 .PHONY: check-env
 check-env:
@@ -164,25 +155,12 @@ endif
 
 
 # for reason to use .Phony see : https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
-.PHONY: openapi-codegen
-## openapi-codegen:	will generate helper Go code for types & server based on OpenApi spec in api/app.yml
-openapi-codegen: dependencies-openapi
-	oapi-codegen --old-config-style -generate types -o pkg/thing/thing_types.gen.go -package thing api/thing.yaml
-	oapi-codegen --old-config-style -templates templates_oapi-codegen -generate server -o pkg/thing/thing_server.gen.go -package thing api/thing.yaml
-
-
 .PHONY: build-container-image
 ## build-container-image:	will build a local container multi-stage image from your app
 build-container-image:
 	echo "  >  Building your container image using scripts/01_build_image_locally.sh"
 	$(shell ./scripts/01_build_image_locally.sh)
 
-
-.PHONY: xo-codegen
-## xo-codegen:	will generate helper Go code for database queries in models directory
-xo-codegen: dependencies-xo
-	xo schema schema -s public --go-pkg=thing --src templates_xo -o models ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
-	#xo schema schema -s public --go-pkg=thing --src templates_xo -o pkg/thing ${DB_DRIVER}://${DB_USER}:=@${DB_HOST}/${DB_NAME}
 
 .PHONY: help
 help: Makefile

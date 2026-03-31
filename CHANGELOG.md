@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.12] - 2026-03-31
+
+### Changed
+- removed old openapi-codegen targets in Makefile
+- removed old openapi files `api/thing.json` and `api/thing.yaml`
+
+### Fixed 
+- Fixed Create, Update, and UpdateTypeThing in `pkg/thing/storage_postgres.go` when rowsAffected < 1 was returning nil, nil - now a real error is returned  
+
 ## [0.3.11] - 2026-03-31
 
 ### Changed

@@ -94,11 +94,15 @@ func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newTh
 		return nil, fmt.Errorf("%w: typeId %v", ErrTypeThingNotFound, newThing.TypeId)
 	}
 
-	// Check if thing already exists
+	// check if thing id is empty if it is we refuse to handle it by contract
+	if newThing.Id == "" {
+		return nil, fmt.Errorf("%w: uuid %v contains empty string", ErrInvalidInput, newThing.Id)
+	}
 	thingUUID, err := uuid.Parse(newThing.Id)
 	if err != nil {
 		return nil, fmt.Errorf("%w: invalid uuid %v", ErrInvalidInput, newThing.Id)
 	}
+	// Check if thing already exists
 	exists, err := s.Store.Exist(ctx, thingUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error verifying existence: %w", err)

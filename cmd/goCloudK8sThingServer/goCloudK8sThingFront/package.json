@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "generate-client-openapi-generator": "npx openapi-generator-cli generate -i ../../../api/thing.yaml -g  typescript-axios -o src/openapi-generator-cli_thing_typescript-axios/"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@mdi/font": "7.4.47",

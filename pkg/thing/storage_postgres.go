@@ -2,6 +2,7 @@ package thing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -298,8 +299,9 @@ func (db *PGX) Create(ctx context.Context, thing *thingv1.Thing) (*thingv1.Thing
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("Create no row was created", "name", t.Name)
-		return nil, err
+		msg := fmt.Sprintf(NoRowsAffectedInFunc, "Create")
+		db.log.Error(msg, "name", t.Name)
+		return nil, errors.New(msg)
 	}
 	db.log.Info("Create success", "name", t.Name, "id", t.Id)
 
@@ -335,8 +337,9 @@ func (db *PGX) Update(ctx context.Context, id uuid.UUID, thing *thingv1.Thing) (
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("Update no row was updated", "id", t.Id)
-		return nil, err
+		msg := fmt.Sprintf(NoRowsAffectedInFunc, "Update")
+		db.log.Error(msg, "id", t.Id)
+		return nil, errors.New(msg)
 	}
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
@@ -440,8 +443,9 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt *thingv1.TypeTh
 		return nil, err
 	}
 	if rowsAffected < 1 {
-		db.log.Error("UpdateTypeThing no row was updated", "id", id)
-		return nil, err
+		msg := fmt.Sprintf(NoRowsAffectedInFunc, "UpdateTypeThing")
+		db.log.Error(msg, "name", t.Name)
+		return nil, errors.New(msg)
 	}
 
 	// if we get to here all is good, so let's retrieve a fresh copy to send it back
