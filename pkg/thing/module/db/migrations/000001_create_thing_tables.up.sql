@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS go_thing.thing
 SELECT AddGeometryColumn('go_thing', 'thing', 'position', 2056, 'POINT', 2);
 CREATE INDEX idx_thing_geom_gist ON go_thing.thing USING gist (position);
 CREATE INDEX idx_thing_type_id ON go_thing.thing (type_id);
-
+CREATE INDEX idx_thing_not_deleted_id ON go_thing.thing (id) WHERE (_deleted = false);
 
 --
 -- Table structure for table `TypeThing` generated from model 'TypeThing'
@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS go_thing.type_thing
 (
     id                 serial
         constraint pk_type_thing primary key,
-    name               text                    not null,
+    name               text                    not null constraint go_type_thing_unique_name	unique
+        constraint name_min_length check (length(btrim(name)) > 2),
     description        text,
     comment            text,
     external_id        integer,
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS go_thing.type_thing
 alter table go_thing.thing
     add constraint thing_type_thing_id_fk
         foreign key (type_id) references go_thing.type_thing;
+CREATE INDEX idx_type_thing_not_deleted_id ON go_thing.type_thing (id) WHERE (_deleted = false);
 
 -- #### BEGIN OF DATA FROM GOELAND
 -- imported from TypeThing in goeland as of 2023-07-21

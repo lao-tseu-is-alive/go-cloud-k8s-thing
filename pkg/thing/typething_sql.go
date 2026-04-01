@@ -1,7 +1,7 @@
 package thing
 
 const (
-	typeThingMaxId     = "SELECT MAX(id) FROM go_thing.type_thing"
+	typeThingMaxId     = "SELECT MAX(id) FROM go_thing.type_thing WHERE _deleted = false"
 	typeThingListQuery = `
 SELECT id,
     name,
@@ -26,7 +26,6 @@ WHERE _deleted = false
  AND external_id = coalesce($4, external_id)
  AND inactivated = coalesce($5, inactivated)
 `
-	typeThingCount  = "SELECT COUNT(*) FROM go_thing.type_thing;"
 	createTypeThing = `
 INSERT INTO go_thing.type_thing
     (name, description, comment, external_id, table_name, geometry_type,
@@ -62,12 +61,12 @@ SELECT id,
        _deleted_by as deleted_by,
        more_data_schema
 FROM go_thing.type_thing
-WHERE id = $1;
+WHERE id = $1 AND _deleted = false;
 `
 	existTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND  _deleted = false;`
 	isActiveTypeThing     = `SELECT COUNT(*) FROM go_thing.type_thing WHERE inactivated=false AND id = $1;`
 	existTypeThingOwnedBy = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND _created_by = $2;`
-	countTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing`
+	countTypeThing        = "SELECT COUNT(*) FROM go_thing.type_thing WHERE _deleted = false;"
 	deleteTypeThing       = `
 UPDATE go_thing.type_thing
 SET
@@ -96,6 +95,7 @@ SET
     text_search = to_tsvector('french', unaccent($2) ||
                              ' ' || coalesce(unaccent($3), ' ') ||
                              ' ' || coalesce(unaccent($4), ' ') )
-WHERE id = $1;
+WHERE id = $1 AND _deleted = false
+RETURNING *;
 `
 )

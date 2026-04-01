@@ -52,3 +52,5 @@ proto_third_party/*
 /code_review/20260330/GEMINI_go-cloud-k8s-thing_20260330.md
 /code_review/20260331/GROK_go-cloud-k8s-thing_20260331.md
 /postgRest/test.js
+/code_review/20260331/CHATGPT_go-cloud-k8s-thing_20260331.md
+/code_review/20260331/llm_prompt.md

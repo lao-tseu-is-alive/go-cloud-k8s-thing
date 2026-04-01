@@ -83,43 +83,20 @@ func (s *BusinessService) List(ctx context.Context, req *thingv1.ListRequest) ([
 
 // Create creates a new thing with the given data
 func (s *BusinessService) Create(ctx context.Context, currentUserId int32, newThing *thingv1.Thing) (*thingv1.Thing, error) {
-	// Validate name
 	if err := validateName(newThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
-
-	// Validate TypeId
-	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, newThing.TypeId)
-	if err != nil || typeThingCount < 1 {
-		return nil, fmt.Errorf("%w: typeId %v", ErrTypeThingNotFound, newThing.TypeId)
-	}
-
-	// check if thing id is empty if it is we refuse to handle it by contract
 	if newThing.Id == "" {
-		return nil, fmt.Errorf("%w: uuid %v contains empty string", ErrInvalidInput, newThing.Id)
+		return nil, fmt.Errorf("%w: uuid is required", ErrInvalidInput)
 	}
-	thingUUID, err := uuid.Parse(newThing.Id)
-	if err != nil {
-		return nil, fmt.Errorf("%w: invalid uuid %v", ErrInvalidInput, newThing.Id)
+	if _, err := uuid.Parse(newThing.Id); err != nil {
+		return nil, fmt.Errorf("%w: invalid uuid format %v", ErrInvalidInput, newThing.Id)
 	}
-	// Check if thing already exists
-	exists, err := s.Store.Exist(ctx, thingUUID)
-	if err != nil {
-		return nil, fmt.Errorf("error verifying existence: %w", err)
-	}
-	if exists {
-		return nil, fmt.Errorf("%w: id %v", ErrAlreadyExists, newThing.Id)
-	}
-
-	// Set creator
 	newThing.CreatedBy = currentUserId
-
-	// Create in storage
 	thingCreated, err := s.Store.Create(ctx, newThing)
 	if err != nil {
-		return nil, fmt.Errorf("error creating thing: %w", err)
+		return nil, err
 	}
-
 	s.Log.Info("Created thing", "id", thingCreated.Id, "userId", currentUserId)
 	return thingCreated, nil
 }
@@ -135,96 +112,30 @@ func (s *BusinessService) Count(ctx context.Context, req *thingv1.CountRequest) 
 
 // Delete removes a thing with the given ID
 func (s *BusinessService) Delete(ctx context.Context, currentUserId int32, thingId uuid.UUID) error {
-	// Check if thing exists
-	exists, err := s.Store.Exist(ctx, thingId)
+	err := s.Store.Delete(ctx, thingId, currentUserId)
 	if err != nil {
-		return fmt.Errorf("error verifying existence: %w", err)
+		return err
 	}
-	if !exists {
-		return fmt.Errorf("%w: id %v", ErrNotFound, thingId)
-	}
-
-	// Check if user is owner
-	isOwner, err := s.Store.IsUserOwner(ctx, thingId, currentUserId)
-	if err != nil {
-		return fmt.Errorf("error verifying ownership: %w", err)
-	}
-	if !isOwner {
-		return fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
-	}
-
-	// Delete from storage
-	err = s.Store.Delete(ctx, thingId, currentUserId)
-	if err != nil {
-		return fmt.Errorf("error deleting thing: %w", err)
-	}
-
 	s.Log.Info("Deleted thing", "id", thingId, "userId", currentUserId)
 	return nil
 }
 
 // Get retrieves a thing by its ID
 func (s *BusinessService) Get(ctx context.Context, thingId uuid.UUID) (*thingv1.Thing, error) {
-	// Check if thing exists
-	exists, err := s.Store.Exist(ctx, thingId)
-	if err != nil {
-		return nil, fmt.Errorf("error verifying existence: %w", err)
-	}
-	if !exists {
-		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
-	}
-
-	// Get from storage
 	thing, err := s.Store.Get(ctx, thingId)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving thing: %w", err)
+		return nil, err
 	}
-
 	return thing, nil
 }
 
 // Update updates a thing with the given ID
 func (s *BusinessService) Update(ctx context.Context, currentUserId int32, thingId uuid.UUID, updateThing *thingv1.Thing) (*thingv1.Thing, error) {
-	// Check if thing exists
-	exists, err := s.Store.Exist(ctx, thingId)
-	if err != nil {
-		return nil, fmt.Errorf("error verifying existence: %w", err)
-	}
-	if !exists {
-		return nil, fmt.Errorf("%w: id %v", ErrNotFound, thingId)
-	}
-
-	// Check if user is owner
-	isOwner, err := s.Store.IsUserOwner(ctx, thingId, currentUserId)
-	if err != nil {
-		return nil, fmt.Errorf("error verifying ownership: %w", err)
-	}
-	if !isOwner {
-		return nil, fmt.Errorf("%w: user %d is not owner of thing %v", ErrUnauthorized, currentUserId, thingId)
-	}
-
-	// Validate name
 	if err := validateName(updateThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
-
-	// Validate TypeId
-	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, updateThing.TypeId)
-	if err != nil || typeThingCount < 1 {
-		return nil, fmt.Errorf("%w: typeId %v", ErrTypeThingNotFound, updateThing.TypeId)
-	}
-
-	// Set last modifier
 	updateThing.LastModifiedBy = currentUserId
-
-	// Update in storage
-	thingUpdated, err := s.Store.Update(ctx, thingId, updateThing)
-	if err != nil {
-		return nil, fmt.Errorf("error updating thing: %w", err)
-	}
-
-	s.Log.Info("Updated thing", "id", thingId, "userId", currentUserId)
-	return thingUpdated, nil
+	return s.Store.Update(ctx, thingId, updateThing)
 }
 
 // ListByExternalId returns things filtered by external ID
@@ -280,7 +191,7 @@ func (s *BusinessService) ListTypeThings(ctx context.Context, req *thingv1.TypeT
 	return list, nil
 }
 
-// CreateTypeThing creates a new TypeThing
+// CreateTypeThing creates a new TypeThing, only admins can manage TypeThing
 func (s *BusinessService) CreateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, newTypeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
 	// Check admin privileges
 	if !isAdmin {
@@ -314,7 +225,7 @@ func (s *BusinessService) CountTypeThings(ctx context.Context, req *thingv1.Type
 	return numThings, nil
 }
 
-// DeleteTypeThing deletes a TypeThing by ID
+// DeleteTypeThing deletes a TypeThing by ID, only admins can manage TypeThing
 func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32) error {
 	// Check admin privileges
 	if !isAdmin {
@@ -339,11 +250,6 @@ func (s *BusinessService) DeleteTypeThing(ctx context.Context, currentUserId int
 
 // GetTypeThing retrieves a TypeThing by ID
 func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeThingId int32) (*thingv1.TypeThing, error) {
-	// Check admin privileges
-	if !isAdmin {
-		return nil, ErrAdminRequired
-	}
-
 	// Check if TypeThing exists
 	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, typeThingId)
 	if err != nil || typeThingCount < 1 {
@@ -359,33 +265,14 @@ func (s *BusinessService) GetTypeThing(ctx context.Context, isAdmin bool, typeTh
 	return typeThing, nil
 }
 
-// UpdateTypeThing updates a TypeThing
+// UpdateTypeThing updates a TypeThing, only admins can manage TypeThing
 func (s *BusinessService) UpdateTypeThing(ctx context.Context, currentUserId int32, isAdmin bool, typeThingId int32, updateTypeThing *thingv1.TypeThing) (*thingv1.TypeThing, error) {
-	// Check admin privileges
 	if !isAdmin {
 		return nil, ErrAdminRequired
 	}
-
-	// Check if TypeThing exists
-	typeThingCount, err := s.DbConn.GetQueryInt(ctx, existTypeThing, typeThingId)
-	if err != nil || typeThingCount < 1 {
-		return nil, fmt.Errorf("%w: id %d", ErrTypeThingNotFound, typeThingId)
-	}
-
-	// Validate name
 	if err := validateName(updateTypeThing.Name); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
-
-	// Set last modifier
 	updateTypeThing.LastModifiedBy = currentUserId
-
-	// Update in storage
-	thingUpdated, err := s.Store.UpdateTypeThing(ctx, typeThingId, updateTypeThing)
-	if err != nil {
-		return nil, fmt.Errorf("error updating type thing: %w", err)
-	}
-
-	s.Log.Info("Updated TypeThing", "id", typeThingId, "userId", currentUserId)
-	return thingUpdated, nil
+	return s.Store.UpdateTypeThing(ctx, typeThingId, updateTypeThing)
 }

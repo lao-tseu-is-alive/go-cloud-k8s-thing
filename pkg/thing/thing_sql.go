@@ -42,7 +42,8 @@ VALUES ($1, $2, $3, $4, $5, $6, $7,
         to_tsvector('french', unaccent($3) ||
                               ' ' || coalesce(unaccent($4), ' ') ||
                               ' ' || coalesce(unaccent($5), ' ') ),
-        ST_SetSRID(ST_MakePoint($18,$19), 2056));
+        ST_SetSRID(ST_MakePoint($18,$19), 2056))
+RETURNING *;
 `
 
 	getThing = `SELECT id,
@@ -87,7 +88,8 @@ SET
     _deleted = true,
     _deleted_by = $1,
     _deleted_at = CURRENT_TIMESTAMP
-WHERE id = $2 AND _deleted = false;`
+WHERE id = $2 AND _deleted = false AND _created_by = $1;`
+
 	updateThing = `
 UPDATE go_thing.thing SET
        type_id = $2,
@@ -115,7 +117,8 @@ UPDATE go_thing.thing SET
        text_search = to_tsvector('french', unaccent($3) ||
                              ' ' || coalesce(unaccent($4), ' ') ||
                              ' ' || coalesce(unaccent($5), ' ') )
-WHERE id = $1 AND _deleted = false;
+WHERE id = $1 AND _deleted = false AND _created_by = $20
+RETURNING *;
 `
 
 	baseGeoJsonThingSearch = `

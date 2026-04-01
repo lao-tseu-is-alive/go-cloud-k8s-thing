@@ -8,6 +8,9 @@ import (
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common-libs/pkg/database"
 	thingv1 "github.com/lao-tseu-is-alive/go-cloud-k8s-thing/gen/thing/v1"
@@ -30,7 +33,7 @@ func NewPgxDB(ctx context.Context, db database.DB, log *slog.Logger) (Storage, e
 	psql.dbi = db
 	psql.log = log
 	var numberOfTypeThings int
-	errTypeThingTable := pgConn.QueryRow(ctx, typeThingCount).Scan(&numberOfTypeThings)
+	errTypeThingTable := pgConn.QueryRow(ctx, countTypeThing).Scan(&numberOfTypeThings)
 	if errTypeThingTable != nil {
 		log.Error("Unable to retrieve the number of typeThing", "error", err)
 		return nil, errTypeThingTable
@@ -200,12 +203,12 @@ func (db *PGX) Get(ctx context.Context, id uuid.UUID) (*thingv1.Thing, error) {
 	res := &ThingDB{}
 	err := pgxscan.Get(ctx, db.Conn, res, getThing, id)
 	if err != nil {
-		db.log.Error("Get failed", "error", err)
-		return nil, err
-	}
-	if res == nil {
-		db.log.Info("Get returned no results")
-		return nil, ErrEmptyResult
+		if errors.Is(err, pgx.ErrNoRows) {
+			db.log.Info("thing not found", "id", id)
+			return nil, ErrNotFound
+		}
+		db.log.Error("database error during Get", "id", id, "error", err)
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 	return DomainThingToProto(res), nil
 }
@@ -289,65 +292,73 @@ func (db *PGX) Create(ctx context.Context, thing *thingv1.Thing) (*thingv1.Thing
 	if t == nil {
 		return nil, fmt.Errorf("invalid thing payload: thing is nil")
 	}
-
-	rowsAffected, err := db.dbi.ExecActionQuery(ctx, createThing,
+	res := &ThingDB{}
+	err := pgxscan.Get(ctx, db.Conn, res, createThing,
 		t.Id, t.TypeId, t.Name, t.Description, t.Comment, t.ExternalId, t.ExternalRef, //$7
 		t.BuildAt, t.Status, t.ContainedBy, t.ContainedByOld, t.Validated, t.ValidatedTime, t.ValidatedBy, //$14
 		t.ManagedBy, t.CreatedBy, t.MoreData, t.PosX, t.PosY)
 	if err != nil {
-		db.log.Error("Create unexpectedly failed", "name", t.Name, "error", err)
-		return nil, err
-	}
-	if rowsAffected < 1 {
-		msg := fmt.Sprintf(NoRowsAffectedInFunc, "Create")
-		db.log.Error(msg, "name", t.Name)
-		return nil, errors.New(msg)
-	}
-	db.log.Info("Create success", "name", t.Name, "id", t.Id)
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				// handling constraint pk_thing (ID) and go_thing_unique_name
+				db.log.Warn("create failed: identity or name already exists", "id", t.Id, "name", t.Name)
+				return nil, ErrAlreadyExists
 
-	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	createdId, _ := uuid.Parse(t.Id)
-	createdThing, err := db.Get(ctx, createdId)
-	if err != nil {
-		return nil, fmt.Errorf("error %w: thing was created, but can not be retrieved", err)
+			case pgerrcode.ForeignKeyViolation:
+				// handling FK constraint on type_id
+				db.log.Warn("create failed: invalid type_id provided", "typeId", t.TypeId)
+				return nil, ErrTypeThingNotFound
+			}
+		}
+		db.log.Error("thing could not be created", "id", t.Id, "error", err)
+		return nil, fmt.Errorf("database error during creation: %w", err)
 	}
-	return createdThing, nil
+	db.log.Info("Create success", "name", res.Name, "id", res.Id)
+
+	return DomainThingToProto(res), nil
 }
 
 // Update the thing stored in DB with given id and other information in struct
 func (db *PGX) Update(ctx context.Context, id uuid.UUID, thing *thingv1.Thing) (*thingv1.Thing, error) {
 	db.log.Debug("trace: entering Update", "id", id)
-
 	t := ProtoThingToDomain(thing)
 	if t == nil {
 		return nil, fmt.Errorf("invalid thing payload: thing is nil")
 	}
-
 	// Ensure the ID parameter is enforced for the update query.
 	t.Id = id.String()
-
-	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateThing,
+	res := &ThingDB{}
+	err := pgxscan.Get(ctx, db.Conn, res, updateThing,
 		t.Id, t.TypeId, t.Name, t.Description, t.Comment, t.ExternalId, t.ExternalRef, //$7
 		t.BuildAt, t.Status, t.ContainedBy, t.ContainedByOld, t.Inactivated, t.InactivatedTime, t.InactivatedBy, t.InactivatedReason, //$15
 		t.Validated, t.ValidatedTime, t.ValidatedBy, //$18
 		t.ManagedBy, t.LastModifiedBy, t.MoreData, t.PosX, t.PosY) //$23
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				// Si le nouveau nom est déjà pris par un autre objet
+				db.log.Warn("update failed: name already exists", "name", t.Name)
+				return nil, ErrAlreadyExists
+			case pgerrcode.ForeignKeyViolation:
+				// Si le type_id fourni n'existe pas
+				db.log.Warn("update failed: invalid type_id", "typeId", t.TypeId)
+				return nil, ErrTypeThingNotFound
+			}
+		}
 
-		db.log.Error("Update unexpectedly failed", "id", t.Id, "error", err)
-		return nil, err
-	}
-	if rowsAffected < 1 {
-		msg := fmt.Sprintf(NoRowsAffectedInFunc, "Update")
-		db.log.Error(msg, "id", t.Id)
-		return nil, errors.New(msg)
+		if errors.Is(err, pgx.ErrNoRows) {
+			db.log.Info("thing not found or unauthorized", "id", id, "userId", t.LastModifiedBy)
+			return nil, ErrNotFound
+		}
+
+		db.log.Error("thing could not be updated", "id", id, "error", err)
+		return nil, fmt.Errorf("database error during update: %w", err)
 	}
 
-	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	updatedThing, err := db.Get(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("error %w: thing was updated, but can not be retrieved", err)
-	}
-	return updatedThing, nil
+	db.log.Info("Update success", "id", res.Id, "userId", res.LastModifiedBy)
+	return DomainThingToProto(res), nil
 }
 
 // Delete the thing stored in DB with given id
@@ -356,11 +367,12 @@ func (db *PGX) Delete(ctx context.Context, id uuid.UUID, userId int32) error {
 	rowsAffected, err := db.dbi.ExecActionQuery(ctx, deleteThing, userId, id)
 	if err != nil {
 		db.log.Error("thing could not be deleted", "id", id, "error", err)
-		return fmt.Errorf("thing could not be deleted: %w", err)
+		return fmt.Errorf("database error during deletion: %w", err)
 	}
 	if rowsAffected < 1 {
-		db.log.Error("thing was not deleted", "id", id)
-		return fmt.Errorf("thing was not marked for deletetion")
+		db.log.Info("thing not found or user is not the owner", "id", id, "userId", userId)
+		// Utilisation de l'erreur sentinelle pour le mapping HTTP correct
+		return ErrNotFound
 	}
 	return nil
 }
@@ -432,28 +444,31 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt *thingv1.TypeTh
 	if t == nil {
 		return nil, fmt.Errorf("invalid typeThing payload: typeThing is nil")
 	}
-
-	rowsAffected, err := db.dbi.ExecActionQuery(ctx, updateTypeThing,
-		id, t.Name, &t.Description, &t.Comment, &t.ExternalId, &t.TableName, //$6
-		&t.GeometryType, t.Inactivated, &t.InactivatedTime, &t.InactivatedBy, &t.InactivatedReason, //$11
-		&t.ManagedBy, t.IconPath, &t.LastModifiedBy, &t.MoreDataSchema) //$14
+	res := &TypeThingDB{}
+	err := pgxscan.Get(ctx, db.Conn, res, updateTypeThing,
+		id, t.Name, t.Description, t.Comment, t.ExternalId, t.TableName, //$6
+		t.GeometryType, t.Inactivated, t.InactivatedTime, t.InactivatedBy, t.InactivatedReason, //$11
+		t.ManagedBy, t.IconPath, t.LastModifiedBy, t.MoreDataSchema) //$14
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				db.log.Warn("update failed: name already exists", "name", t.Name)
+				return nil, ErrAlreadyExists
+			}
+		}
 
-		db.log.Error("UpdateTypeThing unexpectedly failed", "id", id, "error", err)
-		return nil, err
-	}
-	if rowsAffected < 1 {
-		msg := fmt.Sprintf(NoRowsAffectedInFunc, "UpdateTypeThing")
-		db.log.Error(msg, "name", t.Name)
-		return nil, errors.New(msg)
+		if errors.Is(err, pgx.ErrNoRows) {
+			db.log.Info("type thing not found or deleted", "id", id)
+			return nil, ErrNotFound
+		}
+
+		db.log.Error("database error during UpdateTypeThing", "id", id, "error", err)
+		return nil, fmt.Errorf("database error during update: %w", err)
 	}
 
-	// if we get to here all is good, so let's retrieve a fresh copy to send it back
-	updatedTypeThing, err := db.GetTypeThing(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("error %w: thing was updated, but can not be retrieved", err)
-	}
-	return updatedTypeThing, nil
+	db.log.Info("Update success", "id", res.Id, "userId", res.LastModifiedBy)
+	return DomainTypeThingToProto(res), nil
 }
 
 // DeleteTypeThing deletes the TypeThing stored in DB with given id

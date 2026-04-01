@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.13] - 2026-04-01
+
+### Security
+refactor(thing): optimize CRUD operations and eliminate TOCTOU races
+
+- move existence and ownership checks into SQL WHERE clauses for atomicity
+- implement RETURNING * in Create/Update to reduce database round-trips
+- delegate TypeId validation to native DB foreign key constraints
+- improve error handling by mapping PGX errors to business sentinels
+- simplify BusinessService by removing redundant I/O calls
+
+
 ## [0.3.12] - 2026-03-31
 
 ### Changed
