@@ -66,7 +66,7 @@ WHERE id = $1 AND _deleted = false;
 	existTypeThing        = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND  _deleted = false;`
 	isActiveTypeThing     = `SELECT COUNT(*) FROM go_thing.type_thing WHERE inactivated=false AND id = $1;`
 	existTypeThingOwnedBy = `SELECT COUNT(*) FROM go_thing.type_thing WHERE id = $1 AND _created_by = $2;`
-	countTypeThing        = "SELECT COUNT(*) FROM go_thing.type_thing WHERE _deleted = false;"
+	countTypeThing        = "SELECT COUNT(*) FROM go_thing.type_thing "
 	deleteTypeThing       = `
 UPDATE go_thing.type_thing
 SET
@@ -96,6 +96,15 @@ SET
                              ' ' || coalesce(unaccent($3), ' ') ||
                              ' ' || coalesce(unaccent($4), ' ') )
 WHERE id = $1 AND _deleted = false
-RETURNING *;
+RETURNING id, name, description, comment, external_id, table_name, geometry_type, 
+    inactivated, inactivated_time, inactivated_by, inactivated_reason, managed_by,
+     _created_at as created_at,
+       _created_by as created_by,
+       _last_modified_at as last_modified_at,
+       _last_modified_by as last_modified_by,
+       _deleted as deleted,
+       _deleted_at as deleted_at,
+       _deleted_by as deleted_by,
+       more_data_schema,  icon_path;
 `
 )

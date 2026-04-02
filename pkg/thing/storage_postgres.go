@@ -460,7 +460,7 @@ func (db *PGX) UpdateTypeThing(ctx context.Context, id int32, tt *thingv1.TypeTh
 
 		if errors.Is(err, pgx.ErrNoRows) {
 			db.log.Info("type thing not found or deleted", "id", id)
-			return nil, ErrNotFound
+			return nil, ErrTypeThingNotFound
 		}
 
 		db.log.Error("database error during UpdateTypeThing", "id", id, "error", err)
@@ -542,7 +542,7 @@ func (db *PGX) CountTypeThing(ctx context.Context, req *thingv1.TypeThingService
 		count int
 		err   error
 	)
-	queryCount := countTypeThing + " WHERE 1 = 1 "
+	queryCount := countTypeThing + " WHERE _deleted = false  "
 	withoutSearchParameters := true
 	if req.Keywords != "" {
 		withoutSearchParameters = false

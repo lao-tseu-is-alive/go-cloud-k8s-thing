@@ -43,7 +43,15 @@ VALUES ($1, $2, $3, $4, $5, $6, $7,
                               ' ' || coalesce(unaccent($4), ' ') ||
                               ' ' || coalesce(unaccent($5), ' ') ),
         ST_SetSRID(ST_MakePoint($18,$19), 2056))
-RETURNING *;
+RETURNING id, type_id, name, description, comment, external_id, external_ref, build_at, status, contained_by, contained_by_old, inactivated, inactivated_time, inactivated_by, inactivated_reason, validated, validated_time, validated_by, managed_by, 
+    _created_at as created_at,
+       _created_by as created_by,
+       _last_modified_at as last_modified_at,
+       _last_modified_by as last_modified_by,
+       _deleted as deleted,
+       _deleted_at as deleted_at,
+       _deleted_by as deleted_by,
+    more_data;
 `
 
 	getThing = `SELECT id,
@@ -118,7 +126,16 @@ UPDATE go_thing.thing SET
                              ' ' || coalesce(unaccent($4), ' ') ||
                              ' ' || coalesce(unaccent($5), ' ') )
 WHERE id = $1 AND _deleted = false AND _created_by = $20
-RETURNING *;
+RETURNING
+    id, type_id, name, description, comment, external_id, external_ref, build_at, status, contained_by, contained_by_old, inactivated, inactivated_time, inactivated_by, inactivated_reason, validated, validated_time, validated_by, managed_by, 
+    _created_at as created_at,
+       _created_by as created_by,
+       _last_modified_at as last_modified_at,
+       _last_modified_by as last_modified_by,
+       _deleted as deleted,
+       _deleted_at as deleted_at,
+       _deleted_by as deleted_by,
+    more_data;
 `
 
 	baseGeoJsonThingSearch = `

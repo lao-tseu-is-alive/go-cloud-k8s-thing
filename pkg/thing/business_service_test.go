@@ -223,9 +223,6 @@ func TestBusinessService_Create(t *testing.T) {
 			CreatedBy: 123,
 		}
 
-		// Mock TypeThing existence check
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{newThing.TypeId}).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, mock.Anything).Return(false, nil)
 		mockStore.On("Create", mock.Anything, mock.AnythingOfType("*thingv1.Thing")).Return(expectedThing, nil)
 
 		result, err := service.Create(ctx, 123, newThing)
@@ -282,7 +279,7 @@ func TestBusinessService_Create(t *testing.T) {
 		}
 
 		// Mock TypeThing existence check failure
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{newThing.TypeId}).Return(0, nil)
+		mockStore.On("Create", mock.Anything, mock.Anything).Return(nil, ErrTypeThingNotFound)
 
 		result, err := service.Create(ctx, 123, newThing)
 
@@ -303,8 +300,7 @@ func TestBusinessService_Create(t *testing.T) {
 		}
 
 		// Mock TypeThing existence check
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{newThing.TypeId}).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, mock.Anything).Return(true, nil)
+		mockStore.On("Create", mock.Anything, mock.Anything).Return(nil, ErrAlreadyExists)
 
 		result, err := service.Create(ctx, 123, newThing)
 
@@ -330,7 +326,6 @@ func TestBusinessService_Get(t *testing.T) {
 			Name: "Test Thing",
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
 		mockStore.On("Get", mock.Anything, thingID).Return(expectedThing, nil)
 
 		result, err := service.Get(ctx, thingID)
@@ -347,7 +342,7 @@ func TestBusinessService_Get(t *testing.T) {
 		service := createTestBusinessService(mockStore, mockDB)
 
 		thingID := uuid.New()
-		mockStore.On("Exist", mock.Anything, thingID).Return(false, nil)
+		mockStore.On("Get", mock.Anything, mock.Anything).Return(nil, ErrNotFound)
 
 		result, err := service.Get(ctx, thingID)
 
@@ -380,10 +375,6 @@ func TestBusinessService_Update(t *testing.T) {
 			LastModifiedBy: userID,
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
-		// Mock TypeThing existence check
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{updateThing.TypeId}).Return(1, nil)
 		mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("*thingv1.Thing")).Return(expectedThing, nil)
 
 		result, err := service.Update(ctx, userID, thingID, updateThing)
@@ -406,14 +397,15 @@ func TestBusinessService_Update(t *testing.T) {
 			Name: "Updated Thing",
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false, nil)
-
+		//mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("*thingv1.Thing")).Return(nil, ErrNotOwner)
+		// On simule le retour du store tel qu'implémenté dans PGX.Update (ErrNotFound)
+		mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("*thingv1.Thing")).
+			Return(nil, ErrNotFound)
 		result, err := service.Update(ctx, userID, thingID, updateThing)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, ErrUnauthorized)
+		assert.ErrorIs(t, err, ErrNotFound)
 		mockStore.AssertExpectations(t)
 	})
 	t.Run("validation error - invalid type id", func(t *testing.T) {
@@ -429,10 +421,9 @@ func TestBusinessService_Update(t *testing.T) {
 			TypeId: 999,
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
-		// Mock TypeThing existence check failure
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, []interface{}{updateThing.TypeId}).Return(0, nil)
+		//mockStore.On("Update", mock.Anything, mock.Anything).Return(nil, ErrTypeThingNotFound)
+		mockStore.On("Update", mock.Anything, thingID, mock.AnythingOfType("*thingv1.Thing")).
+			Return(nil, ErrTypeThingNotFound)
 
 		result, err := service.Update(ctx, userID, thingID, updateThing)
 
@@ -455,8 +446,6 @@ func TestBusinessService_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
 		mockStore.On("Delete", mock.Anything, thingID, userID).Return(nil)
 
 		err := service.Delete(ctx, userID, thingID)
@@ -473,13 +462,12 @@ func TestBusinessService_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false, nil)
+		mockStore.On("Delete", mock.Anything, thingID, userID).Return(ErrNotFound)
 
 		err := service.Delete(ctx, userID, thingID)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrUnauthorized)
+		assert.ErrorIs(t, err, ErrNotFound)
 		mockStore.AssertExpectations(t)
 	})
 }

@@ -114,7 +114,6 @@ func TestThingConnectServer_Get(t *testing.T) {
 			Name: "Test Thing",
 		}
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
 		mockStore.On("Get", mock.Anything, thingID).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
@@ -136,7 +135,7 @@ func TestThingConnectServer_Get(t *testing.T) {
 
 		thingID := uuid.New()
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(false, nil)
+		mockStore.On("Get", mock.Anything, thingID).Return(nil, ErrNotFound)
 
 		req := createConnectRequest(&thingv1.GetRequest{Id: thingID.String()})
 		ctx := contextWithUser(123, false)
@@ -182,8 +181,6 @@ func TestThingConnectServer_Create(t *testing.T) {
 			CreatedBy: 123,
 		}
 
-		mockDB.On("GetQueryInt", mock.Anything, existTypeThing, mock.Anything).Return(1, nil)
-		mockStore.On("Exist", mock.Anything, mock.Anything).Return(false, nil)
 		mockStore.On("Create", mock.Anything, mock.Anything).Return(expectedThing, nil)
 
 		req := createConnectRequest(&thingv1.CreateRequest{
@@ -229,8 +226,6 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(true, nil)
 		mockStore.On("Delete", mock.Anything, thingID, userID).Return(nil)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
@@ -251,8 +246,7 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		thingID := uuid.New()
 		userID := int32(123)
 
-		mockStore.On("Exist", mock.Anything, thingID).Return(true, nil)
-		mockStore.On("IsUserOwner", mock.Anything, thingID, userID).Return(false, nil)
+		mockStore.On("Delete", mock.Anything, thingID, userID).Return(ErrNotFound)
 
 		req := createConnectRequest(&thingv1.DeleteRequest{Id: thingID.String()})
 		ctx := contextWithUser(userID, false)
@@ -263,7 +257,7 @@ func TestThingConnectServer_Delete(t *testing.T) {
 		assert.Nil(t, resp)
 		connectErr, ok := err.(*connect.Error)
 		assert.True(t, ok)
-		assert.Equal(t, connect.CodePermissionDenied, connectErr.Code())
+		assert.Equal(t, connect.CodeNotFound, connectErr.Code())
 		mockStore.AssertExpectations(t)
 	})
 }
